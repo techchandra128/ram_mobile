@@ -1,6 +1,6 @@
 // sw_mobile.js - RAM Mobile Service Worker
 
-const CACHE = 'ram-mobile-v1';
+const CACHE = 'ram-mobile-v2';
 const STATIC = [
     '/mobile.html',
     '/mobile.css',
