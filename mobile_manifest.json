@@ -1,0 +1,22 @@
+{
+    "name": "RAM - Read Analyze Memorize",
+    "short_name": "RAM",
+    "description": "RAM Mobile - Your study companion",
+    "start_url": "/mobile.html",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "icon192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icon512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
