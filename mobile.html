@@ -78,36 +78,5 @@
     </div>
 
     <script src="mobile.js"></script>
-
-    <!-- DEBUG PANEL -->
-    <div id="debugPanel" style="display:none;position:fixed;bottom:0;left:0;right:0;height:40vh;background:#000;color:#0f0;font-size:11px;font-family:monospace;overflow-y:auto;z-index:9999;padding:8px;border-top:2px solid #0f0;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="color:#fff;font-weight:bold;">DEBUG LOG</span>
-            <button onclick="document.getElementById('debugPanel').style.display='none'" style="background:#f00;color:#fff;border:none;padding:2px 8px;border-radius:4px;">X</button>
-        </div>
-        <div id="debugLog"></div>
-    </div>
-    <button onclick="document.getElementById('debugPanel').style.display='block'" style="position:fixed;bottom:10px;right:10px;z-index:9998;background:#333;color:#fff;border:none;padding:6px 10px;border-radius:6px;font-size:11px;">DEBUG</button>
-
-    <script>
-        const _log = console.log.bind(console);
-        const _warn = console.warn.bind(console);
-        const _error = console.error.bind(console);
-        function appendDebug(type, args) {
-            const el = document.getElementById('debugLog');
-            if (!el) return;
-            const line = document.createElement('div');
-            line.style.color = type === 'error' ? '#f66' : type === 'warn' ? '#ff0' : '#0f0';
-            line.style.borderBottom = '1px solid #222';
-            line.style.padding = '2px 0';
-            line.textContent = `[${type}] ${Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')}`;
-            el.appendChild(line);
-            el.scrollTop = el.scrollHeight;
-        }
-        console.log = (...args) => { _log(...args); appendDebug('log', args); };
-        console.warn = (...args) => { _warn(...args); appendDebug('warn', args); };
-        console.error = (...args) => { _error(...args); appendDebug('error', args); };
-        window.onerror = (msg, src, line) => { appendDebug('error', [`${msg} (line ${line})`]); };
-    </script>
 </body>
 </html>
