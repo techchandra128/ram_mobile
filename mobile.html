@@ -41,35 +41,130 @@
         <span id="mSyncMsg">Syncing...</span>
     </div>
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN CONTENT AREA -->
     <div class="m-content" id="mContent">
 
-        <!-- SCREEN: FILE LIST -->
-        <div class="m-screen active" id="screenFiles">
-            <div class="m-list" id="mFileList">
-                <div class="m-empty">Loading...</div>
-            </div>
-        </div>
+        <!-- ========== PAGE: MY LIBRARY ========== -->
+        <div class="m-page active" id="pagLibrary">
 
-        <!-- SCREEN: SECTION LIST -->
-        <div class="m-screen" id="screenSections">
-            <div class="m-list" id="mSectionList"></div>
-        </div>
-
-        <!-- SCREEN: SECTION DETAIL -->
-        <div class="m-screen" id="screenDetail">
-            <!-- TAB BAR -->
-            <div class="m-tab-bar" id="mTabBar">
-                <button class="m-tab active" data-tab="notes">Notes</button>
-                <button class="m-tab" data-tab="c5">Progress</button>
-                <button class="m-tab" data-tab="c4">Notes/Tasks</button>
+            <!-- SCREEN: ROOT (folders + files) -->
+            <div class="m-screen active" id="screenLibraryRoot">
+                <div class="m-list" id="mLibraryList">
+                    <div class="m-empty">Loading...</div>
+                </div>
             </div>
 
-            <!-- TAB CONTENT -->
-            <div class="m-tab-content" id="mTabContent"></div>
+            <!-- SCREEN: INSIDE FOLDER -->
+            <div class="m-screen" id="screenLibraryFolder">
+                <div class="m-list" id="mFolderFileList"></div>
+            </div>
+
+            <!-- SCREEN: SECTION LIST -->
+            <div class="m-screen" id="screenSections">
+                <div class="m-section-toolbar">
+                    <select class="m-sort-select" id="mSortSelect">
+                        <option value="default">Sort: Default</option>
+                        <option value="alpha-asc">A &rarr; Z</option>
+                        <option value="alpha-desc">Z &rarr; A</option>
+                        <option value="studied-first">Studied First</option>
+                        <option value="unstudied-first">Unstudied First</option>
+                        <option value="completed-first">Completed First</option>
+                        <option value="incomplete-first">Incomplete First</option>
+                        <option value="proficiency-high">Proficiency High &darr;</option>
+                        <option value="proficiency-low">Proficiency Low &uarr;</option>
+                    </select>
+                </div>
+                <div class="m-list" id="mSectionList"></div>
+            </div>
+
+            <!-- SCREEN: SECTION DETAIL -->
+            <div class="m-screen" id="screenDetail">
+                <div class="m-tab-bar" id="mTabBar">
+                    <button class="m-tab active" data-tab="notes">Notes</button>
+                    <button class="m-tab" data-tab="c5">Progress</button>
+                    <button class="m-tab" data-tab="c4">Tasks</button>
+                </div>
+                <div class="m-tab-content" id="mTabContent"></div>
+            </div>
+
+        </div>
+
+        <!-- ========== PAGE: SMART DESK ========== -->
+        <div class="m-page" id="pagSmartDesk">
+
+            <!-- SCREEN: FILE LIST (flat, no folders) -->
+            <div class="m-screen active" id="screenSDFiles">
+                <div class="m-list" id="mSDFileList">
+                    <div class="m-empty">Loading...</div>
+                </div>
+            </div>
+
+            <!-- SCREEN: SECTION LIST -->
+            <div class="m-screen" id="screenSDSections">
+                <div class="m-section-toolbar">
+                    <select class="m-sort-select" id="mSDSortSelect">
+                        <option value="default">Sort: Default</option>
+                        <option value="alpha-asc">A &rarr; Z</option>
+                        <option value="alpha-desc">Z &rarr; A</option>
+                        <option value="studied-first">Studied First</option>
+                        <option value="unstudied-first">Unstudied First</option>
+                        <option value="completed-first">Completed First</option>
+                        <option value="incomplete-first">Incomplete First</option>
+                        <option value="proficiency-high">Proficiency High &darr;</option>
+                        <option value="proficiency-low">Proficiency Low &uarr;</option>
+                    </select>
+                </div>
+                <div class="m-list" id="mSDSectionList"></div>
+            </div>
+
+            <!-- SCREEN: SECTION DETAIL (Smart Desk) -->
+            <div class="m-screen" id="screenSDDetail">
+                <div class="m-tab-bar" id="mSDTabBar">
+                    <button class="m-tab active" data-tab="notes">Notes</button>
+                    <button class="m-tab" data-tab="c5">Progress</button>
+                    <button class="m-tab" data-tab="c4">Tasks</button>
+                </div>
+                <div class="m-tab-content" id="mSDTabContent"></div>
+            </div>
+
+        </div>
+
+        <!-- ========== PAGE: DASHBOARD ========== -->
+        <div class="m-page" id="pagDashboard">
+            <div class="m-dash-tabs">
+                <button class="m-dash-tab active" data-dash="heatmap">Heatmap</button>
+                <button class="m-dash-tab" data-dash="graphs">Graphs</button>
+            </div>
+            <div class="m-dash-content" id="mDashContent"></div>
         </div>
 
     </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="m-bottom-nav">
+        <button class="m-nav-btn active" data-page="Library" id="navBtnLibrary">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span>Library</span>
+        </button>
+        <button class="m-nav-btn" data-page="SmartDesk" id="navBtnSmartDesk">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
+            </svg>
+            <span>Smart Desk</span>
+        </button>
+        <button class="m-nav-btn" data-page="Dashboard" id="navBtnDashboard">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <span>Dashboard</span>
+        </button>
+    </nav>
 
     <!-- LOADING OVERLAY -->
     <div class="m-loading" id="mLoading">
