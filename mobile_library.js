@@ -258,14 +258,17 @@ function renderSectionList(context) {
 
     container.innerHTML = '';
 
+    const navC5 = c5Store['navigation'];
+    const navPct = navC5?.proficiency || 0;
+    const navColor = getLibProgressColor(navPct);
     const navCard = document.createElement('div');
     navCard.className = 'm-file-card m-section-card';
     navCard.innerHTML = `
         <div class="m-file-icon">📋</div>
         <div class="m-file-info">
             <div class="m-file-name">Table of Contents</div>
-            <div class="m-file-meta">Navigation</div>
         </div>
+        <div class="m-pct-badge" style="color:${navColor};border-color:${navColor}">${navPct}%</div>
     `;
     navCard.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
     container.appendChild(navCard);
@@ -296,16 +299,19 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
         const card = document.createElement('div');
         card.className = 'm-file-card m-section-card';
 
+        const titleDisplay = section.number
+            ? `${escHtml(section.number)}. ${escHtml(section.title)}`
+            : escHtml(section.title);
+
         const metaParts = [];
-        if (section.number) metaParts.push(section.number);
         if (c5?.isCompleted) metaParts.push('✓ Done');
         if (c5 && isStudiedToday(c5)) metaParts.push('Today');
 
         card.innerHTML = `
             <div class="m-file-icon">📋</div>
             <div class="m-file-info">
-                <div class="m-file-name">${escHtml(section.title)}</div>
-                ${metaParts.length ? `<div class="m-file-meta">${escHtml(metaParts.join(' · '))}</div>` : ''}
+                <div class="m-file-name">${titleDisplay}</div>
+                ${metaParts.length ? `<div class="m-file-meta">${metaParts.join(' · ')}</div>` : ''}
             </div>
             <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
         `;
@@ -316,32 +322,61 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
 
 function sortSections(sections, c5Store, sort) {
     const arr = [...sections];
+    const diffOrder = { 'Easy': 1, 'Moderate': 2, 'Challenging': 3, 'Hard': 4 };
+    const prioOrder = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
+
     switch(sort) {
-        case 'alpha-asc': return arr.sort((a, b) => a.title.localeCompare(b.title));
-        case 'alpha-desc': return arr.sort((a, b) => b.title.localeCompare(a.title));
-        case 'studied-first': return arr.sort((a, b) => {
-            const aS = c5Store[a.id] && isStudiedToday(c5Store[a.id]) ? 1 : 0;
-            const bS = c5Store[b.id] && isStudiedToday(c5Store[b.id]) ? 1 : 0;
-            return bS - aS;
-        });
-        case 'unstudied-first': return arr.sort((a, b) => {
-            const aS = c5Store[a.id] && isStudiedToday(c5Store[a.id]) ? 1 : 0;
-            const bS = c5Store[b.id] && isStudiedToday(c5Store[b.id]) ? 1 : 0;
-            return aS - bS;
-        });
-        case 'completed-first': return arr.sort((a, b) => {
-            return (c5Store[b.id]?.isCompleted ? 1 : 0) - (c5Store[a.id]?.isCompleted ? 1 : 0);
-        });
-        case 'incomplete-first': return arr.sort((a, b) => {
-            return (c5Store[a.id]?.isCompleted ? 1 : 0) - (c5Store[b.id]?.isCompleted ? 1 : 0);
-        });
-        case 'proficiency-high': return arr.sort((a, b) => {
-            return (c5Store[b.id]?.proficiency || 0) - (c5Store[a.id]?.proficiency || 0);
-        });
-        case 'proficiency-low': return arr.sort((a, b) => {
-            return (c5Store[a.id]?.proficiency || 0) - (c5Store[b.id]?.proficiency || 0);
-        });
-        default: return arr;
+        case 'alpha':
+            return arr.sort((a, b) => a.title.localeCompare(b.title));
+        case 'section-count': {
+            const getSubCount = s => {
+                if (!s.number) return 0;
+                const prefix = s.number + '.';
+                return arr.filter(x => x.number && x.number.startsWith(prefix)).length;
+            };
+            return arr.sort((a, b) => getSubCount(b) - getSubCount(a));
+        }
+        case 'proficiency':
+            return arr.sort((a, b) => (c5Store[b.id]?.proficiency || 0) - (c5Store[a.id]?.proficiency || 0));
+        case 'progress': {
+            const getProg = id => {
+                const c5 = c5Store[id];
+                if (!c5?.activatedCount) return 0;
+                return (c5.revisions.filter(r => r.date).length / c5.activatedCount) * 100;
+            };
+            return arr.sort((a, b) => getProg(b.id) - getProg(a.id));
+        }
+        case 'difficulty':
+            return arr.sort((a, b) =>
+                (diffOrder[c5Store[b.id]?.difficulty] || 0) - (diffOrder[c5Store[a.id]?.difficulty] || 0));
+        case 'priority':
+            return arr.sort((a, b) =>
+                (prioOrder[c5Store[b.id]?.priority] || 0) - (prioOrder[c5Store[a.id]?.priority] || 0));
+        case 'last-revised': {
+            const getLastDate = id => {
+                const c5 = c5Store[id];
+                const filled = c5?.revisions?.filter(r => r.date);
+                if (!filled?.length) return null;
+                const last = filled[filled.length - 1];
+                const [d, m] = last.date.split('/');
+                return new Date(last.year || new Date().getFullYear(), parseInt(m) - 1, parseInt(d));
+            };
+            return arr.sort((a, b) => {
+                const da = getLastDate(a.id), db = getLastDate(b.id);
+                if (!da && !db) return 0;
+                if (!da) return -1;
+                if (!db) return 1;
+                return da - db;
+            });
+        }
+        case 'revision-count':
+            return arr.sort((a, b) => {
+                const ca = c5Store[a.id]?.revisions?.filter(r => r.date).length || 0;
+                const cb = c5Store[b.id]?.revisions?.filter(r => r.date).length || 0;
+                return ca - cb;
+            });
+        default: // 'outline' — preserve original order
+            return arr;
     }
 }
 

@@ -21,8 +21,8 @@ const mState = {
     currentSection: null,
     currentContext: 'lib',    // 'lib' | 'sd'
 
-    libSort: 'default',
-    sdSort: 'default',
+    libSort: 'outline',
+    sdSort: 'outline',
     libRootSort: 'name-asc',
     activeDash: 'heatmap',
 
