@@ -808,102 +808,325 @@ async function saveC5(c5Store) {
     hideSyncBarAfter('Saved ✓', 'success', 2000);
 }
 
+// ===== C4 OBSERVATIONS STATE =====
+const mC4 = {
+    DEFAULT_CATS: ['General', 'Doubts', 'Insights', 'Memorise', 'Keywords', 'Summary', 'Examples', 'Tips'],
+    categories: [],
+    allNotes: {},
+    selectedCat: 'All',
+    sortAsc: false,
+    editingId: null,
+    modalCat: null
+};
+
 // ===== C4 TAB =====
 function renderC4Tab(container) {
     const fileData = getFileData(mState.currentFileId);
-    const allNotes = fileData?.c4_allSectionNotes ? JSON.parse(fileData.c4_allSectionNotes) : {};
-    const notes = allNotes[mState.currentSectionId] || [];
+    mC4.allNotes = fileData?.c4_allSectionNotes ? JSON.parse(fileData.c4_allSectionNotes) : {};
+    const sectionId = mState.currentSectionId;
+    if (!mC4.allNotes[sectionId]) mC4.allNotes[sectionId] = [];
+
+    const savedCats = fileData?.c4_categories ? JSON.parse(fileData.c4_categories) : [];
+    const merged = [...mC4.DEFAULT_CATS];
+    savedCats.forEach(c => { if (!merged.includes(c)) merged.push(c); });
+    mC4.categories = merged;
+    mC4.selectedCat = 'All';
+    mC4.sortAsc = false;
+    mC4.editingId = null;
+
+    container.innerHTML = '';
+
+    const filterBar = document.createElement('div');
+    filterBar.className = 'm-c4-filter-bar';
+    filterBar.id = 'mC4FilterBar';
+    _c4RenderChips(filterBar);
+    container.appendChild(filterBar);
+
+    const notesList = document.createElement('div');
+    notesList.id = 'mC4NotesList';
+    _c4RenderNotes(notesList);
+    container.appendChild(notesList);
 
     const addBtn = document.createElement('button');
     addBtn.className = 'm-add-note-btn';
-    addBtn.textContent = '+ Add Note';
-    addBtn.addEventListener('click', () => openAddNoteModal());
+    addBtn.textContent = '+ Add Observation';
+    addBtn.addEventListener('click', () => _c4OpenModal(null));
     container.appendChild(addBtn);
+}
 
-    if (notes.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'm-empty';
-        empty.textContent = 'No notes yet.';
-        container.appendChild(empty);
-    } else {
-        const starred = notes.filter(n => n.starred);
-        const unchecked = notes.filter(n => !n.starred && !n.checked);
-        const checked = notes.filter(n => !n.starred && n.checked);
-        [...starred, ...unchecked, ...checked].forEach(note => {
-            const card = document.createElement('div');
-            card.className = 'm-c4-note';
-            card.innerHTML = `
-                <div class="m-c4-note-header">
-                    <span class="m-c4-note-cat">${escHtml(note.category)}</span>
-                    <div class="m-c4-note-actions">
-                        ${note.starred ? '<span class="m-c4-starred">★</span>' : ''}
-                        <input type="checkbox" class="m-c4-check" ${note.checked ? 'checked' : ''} data-id="${note.id}">
-                    </div>
-                </div>
-                <div class="m-c4-note-title${note.checked ? ' checked' : ''}">${escHtml(note.title)}</div>
-                <div class="m-c4-note-body${note.checked ? ' checked' : ''}">${escHtml(note.content)}</div>
-                <div class="m-c4-note-ts">${formatTs(note)}</div>
-            `;
-            card.querySelector('.m-c4-check').addEventListener('change', async (e) => {
-                note.checked = e.target.checked;
-                note.updatedAt = new Date().toISOString();
-                await saveC4Notes(allNotes);
-                const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
-                renderDetailTab('c4', contentId);
-            });
-            container.appendChild(card);
+function _c4RenderChips(bar) {
+    bar.innerHTML = '';
+    ['All', ...mC4.categories].forEach(cat => {
+        const chip = document.createElement('button');
+        chip.className = 'm-c4-chip' + (cat === mC4.selectedCat ? ' active' : '');
+        chip.textContent = cat;
+        chip.addEventListener('click', () => {
+            mC4.selectedCat = cat;
+            _c4RenderChips(document.getElementById('mC4FilterBar'));
+            _c4RenderNotes(document.getElementById('mC4NotesList'));
         });
+        bar.appendChild(chip);
+    });
+}
+
+function _c4RenderNotes(container) {
+    if (!container) return;
+    container.innerHTML = '';
+    const sectionId = mState.currentSectionId;
+    const notes = mC4.allNotes[sectionId] || [];
+
+    const filtered = mC4.selectedCat === 'All' ? [...notes] : notes.filter(n => n.category === mC4.selectedCat);
+    const sortFn = (a, b) => {
+        const at = new Date(a.updatedAt || a.createdAt);
+        const bt = new Date(b.updatedAt || b.createdAt);
+        return mC4.sortAsc ? at - bt : bt - at;
+    };
+    const sorted = [
+        ...filtered.filter(n => n.starred).sort(sortFn),
+        ...filtered.filter(n => !n.starred && !n.checked).sort(sortFn),
+        ...filtered.filter(n => !n.starred && n.checked).sort(sortFn)
+    ];
+
+    if (sorted.length === 0) {
+        container.innerHTML = '<div class="m-empty">No observations yet.</div>';
+        return;
     }
 
-    const modal = document.createElement('div');
-    modal.className = 'm-modal-overlay';
-    modal.id = 'mNoteModal';
-    modal.innerHTML = `
+    sorted.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'm-c4-note' + (note.starred ? ' starred' : '');
+        card.innerHTML = `
+            <div class="m-c4-note-header">
+                <span class="m-c4-note-cat">${escHtml(note.category)}</span>
+                <div class="m-c4-note-actions">
+                    <button class="m-c4-action-btn edit" title="Edit">✎</button>
+                    <button class="m-c4-action-btn delete" title="Delete">🗑</button>
+                    <button class="m-c4-action-btn star${note.starred ? ' active' : ''}" title="Star">★</button>
+                    <input type="checkbox" class="m-c4-check" ${note.checked ? 'checked' : ''}>
+                </div>
+            </div>
+            <div class="m-c4-note-title${note.checked ? ' checked' : ''}">${escHtml(note.title)}</div>
+            <div class="m-c4-note-body${note.checked ? ' checked' : ''}">${escHtml(note.content)}</div>
+            <div class="m-c4-note-ts">${_c4FormatTs(note)}</div>
+        `;
+        card.querySelector('.edit').addEventListener('click', () => _c4OpenModal(note.id));
+        card.querySelector('.delete').addEventListener('click', async () => {
+            if (!confirm('Delete this observation?')) return;
+            const idx = (mC4.allNotes[sectionId] || []).findIndex(n => n.id === note.id);
+            if (idx !== -1) mC4.allNotes[sectionId].splice(idx, 1);
+            await _c4Save();
+            _c4RenderNotes(container);
+            _c4RenderChips(document.getElementById('mC4FilterBar'));
+        });
+        card.querySelector('.star').addEventListener('click', async () => {
+            const n = (mC4.allNotes[sectionId] || []).find(n => n.id === note.id);
+            if (n) { n.starred = !n.starred; await _c4Save(); _c4RenderNotes(container); }
+        });
+        card.querySelector('.m-c4-check').addEventListener('change', async (e) => {
+            const n = (mC4.allNotes[sectionId] || []).find(n => n.id === note.id);
+            if (n) { n.checked = e.target.checked; n.updatedAt = new Date().toISOString(); await _c4Save(); _c4RenderNotes(container); }
+        });
+        container.appendChild(card);
+    });
+}
+
+function _c4FormatTs(note) {
+    const ref = note.updatedAt ? new Date(note.updatedAt) : new Date(note.createdAt);
+    const label = note.updatedAt ? 'Updated' : 'Added';
+    const diff = Math.floor((Date.now() - ref) / 86400000);
+    if (diff === 0) return `${label}: today`;
+    if (diff < 30) return `${label}: ${diff} day${diff === 1 ? '' : 's'} ago`;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${label} on: ${String(ref.getDate()).padStart(2,'0')} - ${months[ref.getMonth()]} - ${ref.getFullYear()}`;
+}
+
+async function _c4Save() {
+    showSyncBar('Saving...', 'default');
+    const notesKey = `c4_allSectionNotes_${mState.currentFileId}`;
+    const catsKey = `c4_categories_${mState.currentFileId}`;
+    localStorage.setItem(notesKey, JSON.stringify(mC4.allNotes));
+    localStorage.setItem(`__ts_${notesKey}`, Date.now().toString());
+    localStorage.setItem(catsKey, JSON.stringify(mC4.categories));
+    localStorage.setItem(`__ts_${catsKey}`, Date.now().toString());
+    await pushToSupabase(notesKey, JSON.stringify(mC4.allNotes));
+    await pushToSupabase(catsKey, JSON.stringify(mC4.categories));
+    hideSyncBarAfter('Saved ✓', 'success', 2000);
+}
+
+// ===== C4 ADD/EDIT MODAL =====
+function _c4OpenModal(editId) {
+    mC4.editingId = editId;
+    const note = editId != null ? (mC4.allNotes[mState.currentSectionId] || []).find(n => n.id === editId) : null;
+    mC4.modalCat = note?.category || mC4.categories[0] || 'General';
+
+    document.getElementById('mC4Modal')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'm-modal-overlay active';
+    overlay.id = 'mC4Modal';
+    overlay.innerHTML = `
         <div class="m-modal">
-            <div class="m-modal-title">Add Note</div>
-            <input class="m-modal-input" id="mNoteTitleInput" placeholder="Title" maxlength="80">
-            <textarea class="m-modal-input m-modal-textarea" id="mNoteContentInput" placeholder="Content" maxlength="280"></textarea>
+            <div class="m-modal-title">${editId != null ? 'Edit' : 'Add'} Observation</div>
+            <input class="m-modal-input" id="mC4TitleInput" placeholder="Title" maxlength="80" value="${escHtml(note?.title || '')}">
+            <div class="m-c4-counter" id="mC4TitleCounter">${(note?.title || '').length}/80</div>
+            <textarea class="m-modal-input m-modal-textarea" id="mC4ContentInput" placeholder="Content" maxlength="280">${escHtml(note?.content || '')}</textarea>
+            <div class="m-c4-counter" id="mC4ContentCounter">${(note?.content || '').length}/280</div>
+            <div class="m-c4-cat-label-row">
+                <span class="m-c4-modal-cat-label">Category</span>
+                <button class="m-c4-add-cat-btn" id="mC4AddCatBtn">+ Add</button>
+            </div>
+            <div class="m-c4-cat-list" id="mC4CatList"></div>
             <div class="m-modal-btns">
-                <button class="m-modal-btn cancel" id="mNoteModalCancel">Cancel</button>
-                <button class="m-modal-btn save" id="mNoteModalSave">Save</button>
+                <button class="m-modal-btn cancel" id="mC4CancelBtn">Cancel</button>
+                <button class="m-modal-btn save" id="mC4SaveBtn">Save</button>
             </div>
         </div>
     `;
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeNoteModal(); });
-    container.appendChild(modal);
-    document.getElementById('mNoteModalCancel').addEventListener('click', closeNoteModal);
-    document.getElementById('mNoteModalSave').addEventListener('click', () => saveNewNote(allNotes));
+    document.body.appendChild(overlay);
+    _c4RenderModalCats();
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) _c4CloseModal(); });
+    document.getElementById('mC4CancelBtn').addEventListener('click', _c4CloseModal);
+    document.getElementById('mC4SaveBtn').addEventListener('click', _c4SaveNote);
+    document.getElementById('mC4AddCatBtn').addEventListener('click', _c4OpenAddCatPopup);
+    document.getElementById('mC4TitleInput').addEventListener('input', () => {
+        document.getElementById('mC4TitleCounter').textContent = `${document.getElementById('mC4TitleInput').value.length}/80`;
+    });
+    document.getElementById('mC4ContentInput').addEventListener('input', () => {
+        document.getElementById('mC4ContentCounter').textContent = `${document.getElementById('mC4ContentInput').value.length}/280`;
+    });
+    setTimeout(() => document.getElementById('mC4TitleInput')?.focus(), 100);
 }
 
-function openAddNoteModal() {
-    const modal = document.getElementById('mNoteModal');
-    if (modal) { modal.classList.add('active'); document.getElementById('mNoteTitleInput').focus(); }
+function _c4RenderModalCats() {
+    const list = document.getElementById('mC4CatList');
+    if (!list) return;
+    list.innerHTML = '';
+    mC4.categories.forEach(cat => {
+        const isGeneral = cat === 'General';
+        const item = document.createElement('div');
+        item.className = 'm-c4-cat-item' + (cat === mC4.modalCat ? ' active' : '');
+        item.innerHTML = `
+            <span class="m-c4-cat-name">${escHtml(cat)}</span>
+            <div class="m-c4-cat-item-actions">
+                ${!isGeneral ? `<button class="m-c4-cat-action rename" title="Rename">✎</button>` : ''}
+                ${!isGeneral ? `<button class="m-c4-cat-action del" title="Delete">🗑</button>` : ''}
+            </div>
+        `;
+        item.querySelector('.m-c4-cat-name').addEventListener('click', () => {
+            mC4.modalCat = cat;
+            _c4RenderModalCats();
+        });
+        if (!isGeneral) {
+            item.querySelector('.rename').addEventListener('click', e => { e.stopPropagation(); _c4ShowRenameInput(cat, item); });
+            item.querySelector('.del').addEventListener('click', async e => {
+                e.stopPropagation();
+                if (!confirm(`Delete "${cat}"? Notes will move to General.`)) return;
+                mC4.categories.splice(mC4.categories.indexOf(cat), 1);
+                Object.values(mC4.allNotes).forEach(notes => notes.forEach(n => { if (n.category === cat) n.category = 'General'; }));
+                if (mC4.modalCat === cat) mC4.modalCat = 'General';
+                await _c4Save();
+                _c4RenderModalCats();
+                _c4RenderChips(document.getElementById('mC4FilterBar'));
+                _c4RenderNotes(document.getElementById('mC4NotesList'));
+            });
+        }
+        list.appendChild(item);
+    });
 }
 
-function closeNoteModal() {
-    const modal = document.getElementById('mNoteModal');
-    if (modal) modal.classList.remove('active');
+function _c4ShowRenameInput(cat, itemEl) {
+    itemEl.innerHTML = `
+        <input class="m-c4-cat-rename-input" value="${escHtml(cat)}" maxlength="40">
+        <div class="m-c4-cat-item-actions">
+            <button class="m-c4-cat-action confirm" title="Save">✔</button>
+            <button class="m-c4-cat-action cancel-r" title="Cancel">✕</button>
+        </div>
+    `;
+    const input = itemEl.querySelector('.m-c4-cat-rename-input');
+    input.focus(); input.select();
+    const confirmFn = async () => {
+        const newCat = input.value.trim();
+        if (!newCat || newCat === cat) { _c4RenderModalCats(); return; }
+        if (mC4.categories.some(c => c.toLowerCase() === newCat.toLowerCase() && c !== cat)) { alert('Category already exists.'); return; }
+        mC4.categories[mC4.categories.indexOf(cat)] = newCat;
+        Object.values(mC4.allNotes).forEach(notes => notes.forEach(n => { if (n.category === cat) n.category = newCat; }));
+        if (mC4.modalCat === cat) mC4.modalCat = newCat;
+        await _c4Save();
+        _c4RenderModalCats();
+        _c4RenderChips(document.getElementById('mC4FilterBar'));
+        _c4RenderNotes(document.getElementById('mC4NotesList'));
+    };
+    itemEl.querySelector('.confirm').addEventListener('click', confirmFn);
+    itemEl.querySelector('.cancel-r').addEventListener('click', () => _c4RenderModalCats());
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') confirmFn(); if (e.key === 'Escape') _c4RenderModalCats(); });
 }
 
-async function saveNewNote(allNotes) {
-    const title = document.getElementById('mNoteTitleInput').value.trim();
-    const content = document.getElementById('mNoteContentInput').value.trim();
-    if (!title || !content) { alert('Please fill in both fields.'); return; }
+function _c4CloseModal() {
+    document.getElementById('mC4Modal')?.remove();
+    mC4.editingId = null;
+}
+
+async function _c4SaveNote() {
+    const title = document.getElementById('mC4TitleInput')?.value.trim();
+    const content = document.getElementById('mC4ContentInput')?.value.trim();
+    if (!title) { alert('Please enter a title.'); return; }
+    if (!content) { alert('Please enter content.'); return; }
+
     const sectionId = mState.currentSectionId;
-    if (!allNotes[sectionId]) allNotes[sectionId] = [];
-    const maxId = allNotes[sectionId].reduce((m, n) => Math.max(m, n.id || 0), 0);
-    allNotes[sectionId].unshift({ id: maxId + 1, title, content, category: 'General', starred: false, checked: false, createdAt: new Date().toISOString(), updatedAt: null });
-    closeNoteModal();
-    await saveC4Notes(allNotes);
-    const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
-    renderDetailTab('c4', contentId);
+    if (!mC4.allNotes[sectionId]) mC4.allNotes[sectionId] = [];
+    const notes = mC4.allNotes[sectionId];
+
+    if (mC4.editingId != null) {
+        const note = notes.find(n => n.id === mC4.editingId);
+        if (note) { note.title = title; note.content = content; note.category = mC4.modalCat || 'General'; note.updatedAt = new Date().toISOString(); }
+    } else {
+        const maxId = notes.reduce((m, n) => Math.max(m, n.id || 0), 0);
+        notes.unshift({ id: maxId + 1, title, content, category: mC4.modalCat || 'General', starred: false, checked: false, createdAt: new Date().toISOString(), updatedAt: null });
+    }
+
+    await _c4Save();
+    _c4CloseModal();
+    _c4RenderNotes(document.getElementById('mC4NotesList'));
+    _c4RenderChips(document.getElementById('mC4FilterBar'));
 }
 
-async function saveC4Notes(allNotes) {
-    showSyncBar('Saving...', 'default');
-    const c4Key = `c4_allSectionNotes_${mState.currentFileId}`;
-    localStorage.setItem(c4Key, JSON.stringify(allNotes));
-    localStorage.setItem(`__ts_${c4Key}`, Date.now().toString());
-    await pushToSupabase(c4Key, JSON.stringify(allNotes));
-    hideSyncBarAfter('Saved ✓', 'success', 2000);
+// ===== C4 ADD CATEGORY POPUP =====
+function _c4OpenAddCatPopup() {
+    document.getElementById('mC4CatPopup')?.remove();
+
+    const popup = document.createElement('div');
+    popup.className = 'm-modal-overlay active';
+    popup.id = 'mC4CatPopup';
+    popup.innerHTML = `
+        <div class="m-modal" style="max-width:300px">
+            <div class="m-modal-title">New Category</div>
+            <input class="m-modal-input" id="mC4NewCatInput" placeholder="Category name" maxlength="40">
+            <div class="m-modal-btns">
+                <button class="m-modal-btn cancel" id="mC4CatCancelBtn">Cancel</button>
+                <button class="m-modal-btn save" id="mC4CatSaveBtn">Add</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    const closePopup = () => popup.remove();
+    const confirmFn = async () => {
+        const val = document.getElementById('mC4NewCatInput')?.value.trim();
+        if (!val) { alert('Enter a name.'); return; }
+        if (mC4.categories.some(c => c.toLowerCase() === val.toLowerCase())) { alert('Category already exists.'); return; }
+        mC4.categories.push(val);
+        mC4.modalCat = val;
+        await _c4Save();
+        closePopup();
+        _c4RenderModalCats();
+    };
+    popup.addEventListener('click', e => { if (e.target === popup) closePopup(); });
+    document.getElementById('mC4CatCancelBtn').addEventListener('click', closePopup);
+    document.getElementById('mC4CatSaveBtn').addEventListener('click', confirmFn);
+    document.getElementById('mC4NewCatInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') confirmFn();
+        if (e.key === 'Escape') closePopup();
+    });
+    setTimeout(() => document.getElementById('mC4NewCatInput')?.focus(), 100);
 }

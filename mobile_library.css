@@ -211,7 +211,31 @@
 .m-c5-btn.danger { border-color: var(--danger); color: var(--danger); }
 .m-c5-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-/* ===== C4 TASKS ===== */
+/* ===== C4 OBSERVATIONS ===== */
+.m-c4-filter-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+.m-c4-filter-bar::-webkit-scrollbar { display: none; }
+
+.m-c4-chip {
+    flex-shrink: 0;
+    padding: 5px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.m-c4-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 .m-c4-note {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -219,16 +243,87 @@
     padding: 12px;
     margin-bottom: 8px;
 }
+.m-c4-note.starred { border-left: 3px solid #f59e0b; }
 .m-c4-note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .m-c4-note-cat { font-size: 11px; font-weight: 600; color: var(--accent); background: rgba(59,130,246,0.1); padding: 2px 8px; border-radius: 4px; }
-.m-c4-note-actions { display: flex; gap: 8px; align-items: center; }
+.m-c4-note-actions { display: flex; gap: 4px; align-items: center; }
+.m-c4-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text-muted);
+    padding: 2px 5px;
+    line-height: 1;
+    transition: color 0.15s;
+}
+.m-c4-action-btn.star.active { color: #f59e0b; }
 .m-c4-note-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .m-c4-note-title.checked { text-decoration: line-through; color: var(--text-muted); }
 .m-c4-note-body { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
 .m-c4-note-body.checked { text-decoration: line-through; }
 .m-c4-note-ts { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
-.m-c4-starred { color: #f59e0b; font-size: 14px; }
 .m-c4-check { width: 16px; height: 16px; cursor: pointer; }
+
+.m-c4-counter { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: -6px; margin-bottom: 8px; }
+
+.m-c4-cat-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.m-c4-modal-cat-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.m-c4-add-cat-btn {
+    background: none;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.m-c4-cat-list {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+.m-c4-cat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.m-c4-cat-item:last-child { border-bottom: none; }
+.m-c4-cat-item.active { background: rgba(59,130,246,0.08); }
+.m-c4-cat-name { font-size: 14px; color: var(--text); flex: 1; }
+.m-c4-cat-item.active .m-c4-cat-name { color: var(--accent); font-weight: 600; }
+.m-c4-cat-item-actions { display: flex; gap: 4px; }
+.m-c4-cat-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 2px 5px;
+    line-height: 1;
+}
+.m-c4-cat-action.del { color: var(--danger); }
+.m-c4-cat-action.confirm { color: var(--success); }
+.m-c4-cat-rename-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: inherit;
+    min-width: 0;
+}
 
 .m-add-note-btn {
     width: 100%;
