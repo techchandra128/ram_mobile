@@ -23,7 +23,6 @@ const mState = {
 
     libSort: 'default',
     sdSort: 'default',
-    libView: 'list',
     libRootSort: 'name-asc',
     activeDash: 'heatmap',
 

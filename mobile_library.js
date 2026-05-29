@@ -27,25 +27,6 @@ function sortLibItems(items) {
     });
 }
 
-// ===== LIBRARY: VIEW SWITCH =====
-function switchLibView(view) {
-    mState.libView = view;
-    const icon = document.getElementById('mLibViewIcon');
-    if (view === 'list') {
-        // In list mode — icon shows grid (tap to switch to grid)
-        icon.innerHTML = '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>';
-    } else {
-        // In grid mode — icon shows list (tap to switch to list)
-        icon.innerHTML = '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>';
-    }
-    const active = document.querySelector('#pagLibrary .m-screen.active');
-    if (active?.id === 'screenLibraryRoot') renderLibraryRoot();
-    else if (active?.id === 'screenLibraryFolder') {
-        const top = mState.libStack[mState.libStack.length - 1];
-        if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
-    }
-}
-
 // ===== LIBRARY: SORT SHEET =====
 function openLibSortSheet() {
     document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
@@ -61,9 +42,6 @@ function closeLibSortSheet() {
 // ===== LIBRARY: TOOLBAR BIND =====
 function bindLibRootToolbar() {
     document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
-    document.getElementById('mLibViewBtn').addEventListener('click', () => {
-        switchLibView(mState.libView === 'list' ? 'grid' : 'list');
-    });
     document.querySelector('#mLibSortSheet .m-sort-backdrop').addEventListener('click', closeLibSortSheet);
     document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -130,67 +108,6 @@ function makeListFileCard(file) {
     return card;
 }
 
-// ===== GRID VIEW: FOLDER =====
-function makeGridFolderItem(folder, ringBg) {
-    const pct = Math.round(folder.progress || 0);
-    const color = getLibProgressColor(pct);
-    const deg = Math.round((pct / 100) * 360);
-    const item = document.createElement('div');
-    item.className = 'm-grid-item';
-    const circle = document.createElement('div');
-    circle.className = 'm-prog-circle';
-    circle.style.background = `conic-gradient(${color} ${deg}deg, ${ringBg} ${deg}deg)`;
-    const inner = document.createElement('div');
-    inner.className = 'm-prog-circle-inner';
-    inner.textContent = pct + '%';
-    inner.style.color = color;
-    circle.appendChild(inner);
-    item.appendChild(circle);
-    const name = document.createElement('div');
-    name.className = 'm-grid-name';
-    name.textContent = folder.name;
-    name.title = folder.name;
-    item.appendChild(name);
-    item.addEventListener('click', () => {
-        pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
-        renderFolderFiles(folder.name, folder.contents);
-    });
-    return item;
-}
-
-// ===== GRID VIEW: FILE =====
-function makeGridFileItem(file, ringBg) {
-    const pct = Math.round(file.progress || 0);
-    const color = getLibProgressColor(pct);
-    const deg = Math.round((pct / 100) * 360);
-    const item = document.createElement('div');
-    item.className = 'm-grid-item';
-    const rect = document.createElement('div');
-    rect.className = 'm-prog-rect';
-    rect.style.background = `conic-gradient(${color} ${deg}deg, ${ringBg} ${deg}deg)`;
-    const inner = document.createElement('div');
-    inner.className = 'm-prog-rect-inner';
-    inner.textContent = pct + '%';
-    inner.style.color = color;
-    rect.appendChild(inner);
-    item.appendChild(rect);
-    const name = document.createElement('div');
-    name.className = 'm-grid-name';
-    name.textContent = file.name;
-    name.title = file.name;
-    item.appendChild(name);
-    item.addEventListener('click', () => {
-        mState.currentFileId = file.id;
-        mState.currentFileName = file.name;
-        mState.currentContext = 'lib';
-        pushLibStack({ screen: 'screenSections', title: file.name });
-        renderSectionList('lib');
-        showLibScreen('screenSections');
-        bindLibSort();
-    });
-    return item;
-}
-
 // ===== LIBRARY: ROOT =====
 function renderLibraryRoot() {
     const container = document.getElementById('mLibraryList');
@@ -208,17 +125,8 @@ function renderLibraryRoot() {
     const sortedFolders = sortLibItems(folders);
     const sortedFiles = sortLibItems(files);
 
-    if (mState.libView === 'grid') {
-        const grid = document.createElement('div');
-        grid.className = 'm-lib-grid';
-        const ringBg = getComputedStyle(document.body).getPropertyValue('--bg3').trim() || '#1e293b';
-        sortedFolders.forEach(folder => grid.appendChild(makeGridFolderItem(folder, ringBg)));
-        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file, ringBg)));
-        container.appendChild(grid);
-    } else {
-        sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
-        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
-    }
+    sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
+    sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
 }
 
 // ===== LIBRARY: FOLDER FILES =====
@@ -232,15 +140,7 @@ function renderFolderFiles(folderName, contents) {
         return;
     }
     const sortedFiles = sortLibItems(files);
-    if (mState.libView === 'grid') {
-        const grid = document.createElement('div');
-        grid.className = 'm-lib-grid';
-        const ringBg = getComputedStyle(document.body).getPropertyValue('--bg3').trim() || '#1e293b';
-        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file, ringBg)));
-        container.appendChild(grid);
-    } else {
-        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
-    }
+    sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
     showLibScreen('screenLibraryFolder');
 }
 
@@ -318,24 +218,24 @@ function renderSectionList(context) {
 
     container.innerHTML = '';
 
-    const navItem = document.createElement('div');
-    navItem.className = 'm-section-item';
-    navItem.innerHTML = `
-        <div class="m-sec-left"><span class="m-section-num">NAV</span></div>
-        <div class="m-sec-right">
-            <div class="m-section-title">Table of Contents</div>
+    const navCard = document.createElement('div');
+    navCard.className = 'm-file-card m-section-card';
+    navCard.innerHTML = `
+        <div class="m-file-icon">📋</div>
+        <div class="m-file-info">
+            <div class="m-file-name">Table of Contents</div>
+            <div class="m-file-meta">Navigation</div>
         </div>
-        <div class="m-file-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     `;
-    navItem.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
-    container.appendChild(navItem);
+    navCard.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
+    container.appendChild(navCard);
 
     const sort = context === 'lib' ? mState.libSort : mState.sdSort;
     renderSectionItems(container, sections, c5Store, sort, context);
 }
 
 function renderSectionItems(container, sections, c5Store, sort, context) {
-    Array.from(container.querySelectorAll('.m-section-item:not(:first-child)')).forEach(el => el.remove());
+    Array.from(container.querySelectorAll('.m-file-card:not(:first-child), .m-empty')).forEach(el => el.remove());
 
     const realSections = sections.filter(s => s.type === 'real');
     if (realSections.length === 0) {
@@ -350,25 +250,27 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
 
     sorted.forEach(section => {
         const c5 = c5Store[section.id];
-        const item = document.createElement('div');
-        item.className = 'm-section-item';
+        const pct = c5?.proficiency || 0;
+        const color = getLibProgressColor(pct);
 
-        const badges = [];
-        if (c5?.isCompleted) badges.push('<span class="m-badge completed">✓</span>');
-        if (c5 && isStudiedToday(c5)) badges.push('<span class="m-badge studied">Today</span>');
+        const card = document.createElement('div');
+        card.className = 'm-file-card m-section-card';
 
-        item.innerHTML = `
-            <div class="m-sec-left">
-                <span class="m-section-num">${escHtml(section.number || '')}</span>
+        const metaParts = [];
+        if (section.number) metaParts.push(section.number);
+        if (c5?.isCompleted) metaParts.push('✓ Done');
+        if (c5 && isStudiedToday(c5)) metaParts.push('Today');
+
+        card.innerHTML = `
+            <div class="m-file-icon">🔖</div>
+            <div class="m-file-info">
+                <div class="m-file-name">${escHtml(section.title)}</div>
+                ${metaParts.length ? `<div class="m-file-meta">${escHtml(metaParts.join(' · '))}</div>` : ''}
             </div>
-            <div class="m-sec-right">
-                <div class="m-section-title">${escHtml(section.title)}</div>
-                ${badges.length ? `<div class="m-section-badges">${badges.join('')}</div>` : ''}
-            </div>
-            <div class="m-file-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
         `;
-        item.addEventListener('click', () => openSection(section.id, section.title, context));
-        container.appendChild(item);
+        card.addEventListener('click', () => openSection(section.id, section.title, context));
+        container.appendChild(card);
     });
 }
 
