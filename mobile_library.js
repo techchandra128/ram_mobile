@@ -93,7 +93,6 @@ function makeListFolderCard(folder) {
             <div class="m-file-meta">${fileCount} file${fileCount !== 1 ? 's' : ''}</div>
         </div>
         <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     `;
     card.addEventListener('click', () => {
         pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
@@ -118,7 +117,6 @@ function makeListFileCard(file) {
             <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
         </div>
         <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     `;
     card.addEventListener('click', () => {
         mState.currentFileId = file.id;
