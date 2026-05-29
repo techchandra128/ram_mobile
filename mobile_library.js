@@ -1,5 +1,180 @@
 // mobile_library.js — library rendering, section list, section detail, notes, tasks, progress
 
+// ===== LIBRARY: PROGRESS HELPERS =====
+function getLibProgressClass(pct) {
+    if (pct <= 25) return 'p-novice';
+    if (pct <= 50) return 'p-ab';
+    if (pct <= 75) return 'p-competent';
+    return 'p-proficient';
+}
+function getLibProgressColor(pct) {
+    if (pct <= 25) return '#94a3b8';
+    if (pct <= 50) return '#f59e0b';
+    if (pct <= 75) return '#f97316';
+    return '#22c55e';
+}
+function getLibDeg(pct) { return Math.round((pct / 100) * 360) + 'deg'; }
+
+// ===== LIBRARY: SORT =====
+function sortLibItems(items) {
+    const s = mState.libRootSort;
+    return [...items].sort((a, b) => {
+        if (s === 'name-asc')      return a.name.localeCompare(b.name);
+        if (s === 'name-desc')     return b.name.localeCompare(a.name);
+        if (s === 'progress-desc') return (b.progress || 0) - (a.progress || 0);
+        if (s === 'progress-asc')  return (a.progress || 0) - (b.progress || 0);
+        return 0;
+    });
+}
+
+// ===== LIBRARY: VIEW SWITCH =====
+function switchLibView(view) {
+    mState.libView = view;
+    document.querySelectorAll('[id^="mViewList"]').forEach(btn => btn.classList.toggle('active', view === 'list'));
+    document.querySelectorAll('[id^="mViewGrid"]').forEach(btn => btn.classList.toggle('active', view === 'grid'));
+    const active = document.querySelector('#pagLibrary .m-screen.active');
+    if (active?.id === 'screenLibraryRoot') {
+        renderLibraryRoot();
+    } else if (active?.id === 'screenLibraryFolder') {
+        const top = mState.libStack[mState.libStack.length - 1];
+        if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
+    }
+}
+
+// ===== LIBRARY: TOOLBAR BIND =====
+function bindLibRootToolbar() {
+    const syncSort = (val) => {
+        mState.libRootSort = val;
+        document.getElementById('mLibRootSort').value = val;
+        document.getElementById('mLibFolderSort').value = val;
+    };
+    document.getElementById('mLibRootSort').addEventListener('change', e => {
+        syncSort(e.target.value);
+        renderLibraryRoot();
+    });
+    document.getElementById('mLibFolderSort').addEventListener('change', e => {
+        syncSort(e.target.value);
+        const top = mState.libStack[mState.libStack.length - 1];
+        if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
+    });
+    document.getElementById('mViewListRoot').addEventListener('click', () => switchLibView('list'));
+    document.getElementById('mViewGridRoot').addEventListener('click', () => switchLibView('grid'));
+    document.getElementById('mViewListFolder').addEventListener('click', () => switchLibView('list'));
+    document.getElementById('mViewGridFolder').addEventListener('click', () => switchLibView('grid'));
+}
+
+// ===== LIST VIEW: FOLDER CARD =====
+function makeListFolderCard(folder) {
+    const pct = folder.progress || 0;
+    const color = getLibProgressColor(pct);
+    const fileCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const card = document.createElement('div');
+    card.className = 'm-file-card m-folder-card';
+    card.innerHTML = `
+        <div class="m-file-icon">📁</div>
+        <div class="m-file-info">
+            <div class="m-file-name">${escHtml(folder.name)}</div>
+            <div class="m-file-meta">${fileCount} file${fileCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+    `;
+    card.addEventListener('click', () => {
+        pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
+        renderFolderFiles(folder.name, folder.contents);
+    });
+    return card;
+}
+
+// ===== LIST VIEW: FILE CARD =====
+function makeListFileCard(file) {
+    const fileData = getFileData(file.id);
+    const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
+    const sectionCount = sections.filter(s => s.type === 'real').length;
+    const pct = file.progress || 0;
+    const color = getLibProgressColor(pct);
+    const card = document.createElement('div');
+    card.className = 'm-file-card';
+    card.innerHTML = `
+        <div class="m-file-icon">📖</div>
+        <div class="m-file-info">
+            <div class="m-file-name">${escHtml(file.name)}</div>
+            <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+    `;
+    card.addEventListener('click', () => {
+        mState.currentFileId = file.id;
+        mState.currentFileName = file.name;
+        mState.currentContext = 'lib';
+        pushLibStack({ screen: 'screenSections', title: file.name });
+        renderSectionList('lib');
+        showLibScreen('screenSections');
+        bindLibSort();
+    });
+    return card;
+}
+
+// ===== GRID VIEW: FOLDER =====
+function makeGridFolderItem(folder) {
+    const pct = folder.progress || 0;
+    const pClass = getLibProgressClass(pct);
+    const deg = getLibDeg(pct);
+    const item = document.createElement('div');
+    item.className = 'm-grid-item';
+    const circle = document.createElement('div');
+    circle.className = `m-prog-circle ${pClass}`;
+    circle.style.setProperty('--deg', deg);
+    const inner = document.createElement('div');
+    inner.className = 'm-prog-circle-inner';
+    inner.textContent = pct + '%';
+    circle.appendChild(inner);
+    item.appendChild(circle);
+    const name = document.createElement('div');
+    name.className = 'm-grid-name';
+    name.textContent = folder.name;
+    name.title = folder.name;
+    item.appendChild(name);
+    item.addEventListener('click', () => {
+        pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
+        renderFolderFiles(folder.name, folder.contents);
+    });
+    return item;
+}
+
+// ===== GRID VIEW: FILE =====
+function makeGridFileItem(file) {
+    const pct = file.progress || 0;
+    const pClass = getLibProgressClass(pct);
+    const deg = getLibDeg(pct);
+    const item = document.createElement('div');
+    item.className = 'm-grid-item';
+    const rect = document.createElement('div');
+    rect.className = `m-prog-rect ${pClass}`;
+    rect.style.setProperty('--deg', deg);
+    const inner = document.createElement('div');
+    inner.className = 'm-prog-rect-inner';
+    inner.textContent = pct + '%';
+    rect.appendChild(inner);
+    item.appendChild(rect);
+    const name = document.createElement('div');
+    name.className = 'm-grid-name';
+    name.textContent = file.name;
+    name.title = file.name;
+    item.appendChild(name);
+    item.addEventListener('click', () => {
+        mState.currentFileId = file.id;
+        mState.currentFileName = file.name;
+        mState.currentContext = 'lib';
+        pushLibStack({ screen: 'screenSections', title: file.name });
+        renderSectionList('lib');
+        showLibScreen('screenSections');
+        bindLibSort();
+    });
+    return item;
+}
+
 // ===== LIBRARY: ROOT =====
 function renderLibraryRoot() {
     const container = document.getElementById('mLibraryList');
@@ -14,27 +189,19 @@ function renderLibraryRoot() {
         return;
     }
 
-    folders.forEach(folder => {
-        const card = document.createElement('div');
-        card.className = 'm-file-card m-folder-card';
-        card.innerHTML = `
-            <div class="m-file-icon">📁</div>
-            <div class="m-file-info">
-                <div class="m-file-name">${escHtml(folder.name)}</div>
-                <div class="m-file-meta">${Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length} files</div>
-            </div>
-            <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-        `;
-        card.addEventListener('click', () => {
-            pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
-            renderFolderFiles(folder.name, folder.contents);
-        });
-        container.appendChild(card);
-    });
+    const sortedFolders = sortLibItems(folders);
+    const sortedFiles = sortLibItems(files);
 
-    files.forEach(file => {
-        container.appendChild(makeFileCard(file, 'lib'));
-    });
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'm-lib-grid';
+        sortedFolders.forEach(folder => grid.appendChild(makeGridFolderItem(folder)));
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file)));
+        container.appendChild(grid);
+    } else {
+        sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
+        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    }
 }
 
 // ===== LIBRARY: FOLDER FILES =====
@@ -44,9 +211,18 @@ function renderFolderFiles(folderName, contents) {
     const { files } = collectFoldersAndFiles(contents);
     if (files.length === 0) {
         container.innerHTML = '<div class="m-empty">No files in this folder.</div>';
+        showLibScreen('screenLibraryFolder');
         return;
     }
-    files.forEach(file => container.appendChild(makeFileCard(file, 'lib')));
+    const sortedFiles = sortLibItems(files);
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'm-lib-grid';
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file)));
+        container.appendChild(grid);
+    } else {
+        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    }
     showLibScreen('screenLibraryFolder');
 }
 
@@ -59,11 +235,16 @@ function pushLibStack(entry) {
 function restoreLibStack() {
     if (mState.libStack.length === 0) {
         showLibScreen('screenLibraryRoot');
+        renderLibraryRoot();
         updateTopbar();
         return;
     }
     const top = mState.libStack[mState.libStack.length - 1];
-    showLibScreen(top.screen);
+    if (top.screen === 'screenLibraryFolder' && top.folder) {
+        renderFolderFiles(top.title, top.folder.contents);
+    } else {
+        showLibScreen(top.screen);
+    }
     updateTopbar();
 }
 

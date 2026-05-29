@@ -53,6 +53,22 @@
 
             <!-- SCREEN: ROOT (folders + files) -->
             <div class="m-screen active" id="screenLibraryRoot">
+                <div class="m-lib-toolbar">
+                    <select class="m-sort-select" id="mLibRootSort">
+                        <option value="name-asc">Name A → Z</option>
+                        <option value="name-desc">Name Z → A</option>
+                        <option value="progress-desc">Progress High</option>
+                        <option value="progress-asc">Progress Low</option>
+                    </select>
+                    <div class="m-view-toggle">
+                        <button class="m-view-btn active" id="mViewListRoot" title="List view">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        </button>
+                        <button class="m-view-btn" id="mViewGridRoot" title="Grid view">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="m-list" id="mLibraryList">
                     <div class="m-empty">Loading...</div>
                 </div>
@@ -60,6 +76,22 @@
 
             <!-- SCREEN: INSIDE FOLDER -->
             <div class="m-screen" id="screenLibraryFolder">
+                <div class="m-lib-toolbar">
+                    <select class="m-sort-select" id="mLibFolderSort">
+                        <option value="name-asc">Name A → Z</option>
+                        <option value="name-desc">Name Z → A</option>
+                        <option value="progress-desc">Progress High</option>
+                        <option value="progress-asc">Progress Low</option>
+                    </select>
+                    <div class="m-view-toggle">
+                        <button class="m-view-btn active" id="mViewListFolder" title="List view">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        </button>
+                        <button class="m-view-btn" id="mViewGridFolder" title="Grid view">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="m-list" id="mFolderFileList"></div>
             </div>
 

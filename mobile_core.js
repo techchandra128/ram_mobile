@@ -23,6 +23,8 @@ const mState = {
 
     libSort: 'default',
     sdSort: 'default',
+    libView: 'list',
+    libRootSort: 'name-asc',
     activeDash: 'heatmap',
 
     theme: localStorage.getItem('ram_mobile_theme') || 'dark',
@@ -35,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindBottomNav();
     bindBackButton();
     loadSyncData();
+    bindLibRootToolbar();
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw_mobile.js').catch(() => {});
     }
@@ -270,8 +273,8 @@ function collectFoldersAndFiles(node) {
     const files = [];
     if (!node || typeof node !== 'object') return { folders, files };
     Object.entries(node).forEach(([key, item]) => {
-        if (item.type === 'folder') folders.push({ name: key, contents: item.contents || {} });
-        else if (item.type === 'file') files.push({ id: item.fileId, name: key });
+        if (item.type === 'folder') folders.push({ name: key, contents: item.contents || {}, progress: item.progress || 0 });
+        else if (item.type === 'file') files.push({ id: item.fileId, name: key, progress: item.progress || 0 });
     });
     return { folders, files };
 }
