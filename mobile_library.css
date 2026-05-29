@@ -33,26 +33,6 @@
 
 .m-file-arrow { color: var(--text-muted); flex-shrink: 0; }
 
-/* ===== SECTION TOOLBAR ===== */
-.m-section-toolbar {
-    padding: 10px 12px 0;
-    display: flex;
-    gap: 8px;
-}
-
-.m-sort-select {
-    flex: 1;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-size: 13px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
-}
-.m-sort-select:focus { outline: none; border-color: var(--accent); }
-
 /* ===== SECTION CARD ===== */
 .m-section-card { border-left: 3px solid var(--accent); }
 

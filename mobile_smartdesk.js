@@ -23,13 +23,3 @@ function renderSDFileList() {
     files.forEach(file => container.appendChild(makeFileCard(file, 'sd')));
 }
 
-function bindSDSort() {
-    document.getElementById('mSDSortSelect').addEventListener('change', (e) => {
-        mState.sdSort = e.target.value;
-        const sections = mState._sdSections;
-        const c5Store = mState._sdC5Store;
-        if (sections && c5Store) {
-            renderSectionItems(document.getElementById('mSDSectionList'), sections, c5Store, mState.sdSort, 'sd');
-        }
-    });
-}

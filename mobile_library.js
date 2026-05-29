@@ -29,19 +29,40 @@ function sortLibItems(items) {
 
 // ===== LIBRARY: SORT SHEET =====
 function openLibSortSheet() {
-    document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.sort === mState.libRootSort);
-    });
-    document.getElementById('mLibSortSheet').classList.add('active');
+    const libTop = mState.libStack[mState.libStack.length - 1];
+    const onSections = mState.activePage === 'Library' && libTop?.screen === 'screenSections';
+    const onSDSections = mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections';
+    if (onSections || onSDSections) {
+        openSecSortSheet();
+    } else {
+        document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sort === mState.libRootSort);
+        });
+        document.getElementById('mLibSortSheet').classList.add('active');
+    }
 }
 
 function closeLibSortSheet() {
     document.getElementById('mLibSortSheet').classList.remove('active');
 }
 
+function openSecSortSheet() {
+    const isSD = mState.activePage === 'SmartDesk';
+    const currentSort = isSD ? mState.sdSort : mState.libSort;
+    document.querySelectorAll('#mSecSortSheet .m-sort-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === currentSort);
+    });
+    document.getElementById('mSecSortSheet').classList.add('active');
+}
+
+function closeSecSortSheet() {
+    document.getElementById('mSecSortSheet').classList.remove('active');
+}
+
 // ===== LIBRARY: TOOLBAR BIND =====
 function bindLibRootToolbar() {
     document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
+
     document.querySelector('#mLibSortSheet .m-sort-backdrop').addEventListener('click', closeLibSortSheet);
     document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -53,6 +74,25 @@ function bindLibRootToolbar() {
                 const top = mState.libStack[mState.libStack.length - 1];
                 if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
             }
+        });
+    });
+
+    document.querySelector('#mSecSortSheet .m-sort-backdrop').addEventListener('click', closeSecSortSheet);
+    document.querySelectorAll('#mSecSortSheet .m-sort-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const isSD = mState.activePage === 'SmartDesk';
+            if (isSD) {
+                mState.sdSort = btn.dataset.sort;
+                const sections = mState._sdSections;
+                const c5Store = mState._sdC5Store;
+                if (sections && c5Store) {
+                    renderSectionItems(document.getElementById('mSDSectionList'), sections, c5Store, mState.sdSort, 'sd');
+                }
+            } else {
+                mState.libSort = btn.dataset.sort;
+                renderSectionList('lib');
+            }
+            closeSecSortSheet();
         });
     });
 }
@@ -103,7 +143,7 @@ function makeListFileCard(file) {
         pushLibStack({ screen: 'screenSections', title: file.name });
         renderSectionList('lib');
         showLibScreen('screenSections');
-        bindLibSort();
+        updateTopbar();
     });
     return card;
 }
@@ -195,7 +235,7 @@ function makeFileCard(file, context) {
             pushLibStack({ screen: 'screenSections', title: file.name });
             renderSectionList('lib');
             showLibScreen('screenSections');
-            bindLibSort();
+            updateTopbar();
         } else {
             renderSectionList('sd');
             showSDScreen('screenSDSections');
@@ -262,7 +302,7 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
         if (c5 && isStudiedToday(c5)) metaParts.push('Today');
 
         card.innerHTML = `
-            <div class="m-file-icon">🔖</div>
+            <div class="m-file-icon">📋</div>
             <div class="m-file-info">
                 <div class="m-file-name">${escHtml(section.title)}</div>
                 ${metaParts.length ? `<div class="m-file-meta">${escHtml(metaParts.join(' · '))}</div>` : ''}
@@ -303,15 +343,6 @@ function sortSections(sections, c5Store, sort) {
         });
         default: return arr;
     }
-}
-
-function bindLibSort() {
-    const sel = document.getElementById('mSortSelect');
-    sel.value = mState.libSort;
-    sel.onchange = (e) => {
-        mState.libSort = e.target.value;
-        renderSectionList('lib');
-    };
 }
 
 // ===== OPEN SECTION =====

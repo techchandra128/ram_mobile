@@ -114,10 +114,11 @@ function updateTopbar() {
     const titleEl = document.getElementById('mTopbarTitle');
     const depth = getNavDepth();
 
-    // Show lib sort/view controls only on root or folder screens
+    // Show sort button on root, folder, and sections screens
     const libTop = mState.libStack[mState.libStack.length - 1];
-    const showLibCtrl = mState.activePage === 'Library' &&
-        (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder');
+    const showLibCtrl = (mState.activePage === 'Library' &&
+        (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder' || libTop?.screen === 'screenSections'))
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections');
     document.querySelectorAll('.m-lib-ctrl').forEach(el => {
         el.style.display = showLibCtrl ? 'flex' : 'none';
     });
@@ -173,7 +174,6 @@ function switchPage(page) {
     if (page === 'SmartDesk' && !mState.sdInit) {
         mState.sdInit = true;
         renderSDFileList();
-        bindSDSort();
     }
 }
 

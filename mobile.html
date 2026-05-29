@@ -70,19 +70,6 @@
 
             <!-- SCREEN: SECTION LIST -->
             <div class="m-screen" id="screenSections">
-                <div class="m-section-toolbar">
-                    <select class="m-sort-select" id="mSortSelect">
-                        <option value="default">Sort: Default</option>
-                        <option value="alpha-asc">A &rarr; Z</option>
-                        <option value="alpha-desc">Z &rarr; A</option>
-                        <option value="studied-first">Studied First</option>
-                        <option value="unstudied-first">Unstudied First</option>
-                        <option value="completed-first">Completed First</option>
-                        <option value="incomplete-first">Incomplete First</option>
-                        <option value="proficiency-high">Proficiency High &darr;</option>
-                        <option value="proficiency-low">Proficiency Low &uarr;</option>
-                    </select>
-                </div>
                 <div class="m-list" id="mSectionList"></div>
             </div>
 
@@ -110,19 +97,6 @@
 
             <!-- SCREEN: SECTION LIST -->
             <div class="m-screen" id="screenSDSections">
-                <div class="m-section-toolbar">
-                    <select class="m-sort-select" id="mSDSortSelect">
-                        <option value="default">Sort: Default</option>
-                        <option value="alpha-asc">A &rarr; Z</option>
-                        <option value="alpha-desc">Z &rarr; A</option>
-                        <option value="studied-first">Studied First</option>
-                        <option value="unstudied-first">Unstudied First</option>
-                        <option value="completed-first">Completed First</option>
-                        <option value="incomplete-first">Incomplete First</option>
-                        <option value="proficiency-high">Proficiency High &darr;</option>
-                        <option value="proficiency-low">Proficiency Low &uarr;</option>
-                    </select>
-                </div>
                 <div class="m-list" id="mSDSectionList"></div>
             </div>
 
@@ -207,6 +181,23 @@
             <button class="m-sort-option" data-sort="name-desc">Name Z → A</button>
             <button class="m-sort-option" data-sort="progress-desc">Progress High → Low</button>
             <button class="m-sort-option" data-sort="progress-asc">Progress Low → High</button>
+        </div>
+    </div>
+
+    <!-- SECTION SORT SHEET -->
+    <div class="m-sort-sheet" id="mSecSortSheet">
+        <div class="m-sort-backdrop"></div>
+        <div class="m-sort-sheet-inner" style="max-height:80vh;overflow-y:auto">
+            <div class="m-sort-sheet-title">Sort Sections</div>
+            <button class="m-sort-option" data-sort="default">Default Order</button>
+            <button class="m-sort-option" data-sort="alpha-asc">Name A → Z</button>
+            <button class="m-sort-option" data-sort="alpha-desc">Name Z → A</button>
+            <button class="m-sort-option" data-sort="proficiency-high">Proficiency High → Low</button>
+            <button class="m-sort-option" data-sort="proficiency-low">Proficiency Low → High</button>
+            <button class="m-sort-option" data-sort="studied-first">Studied First</button>
+            <button class="m-sort-option" data-sort="unstudied-first">Unstudied First</button>
+            <button class="m-sort-option" data-sort="completed-first">Completed First</button>
+            <button class="m-sort-option" data-sort="incomplete-first">Incomplete First</button>
         </div>
     </div>
 

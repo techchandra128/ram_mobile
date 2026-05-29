@@ -1,6 +1,6 @@
-// sw_mobile.js - RAM Mobile Service Worker
+﻿// sw_mobile.js - RAM Mobile Service Worker
 
-const CACHE = 'ram-mobile-v9';
+const CACHE = 'ram-mobile-v10';
 const STATIC = [
     '/ram_mobile/mobile.html',
     '/ram_mobile/mobile_core.css',
@@ -44,7 +44,7 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Network-first for HTML — always get the latest version from server
+    // Network-first for HTML â€” always get the latest version from server
     if (url.pathname === '/ram_mobile/' || url.pathname === '/ram_mobile/mobile.html') {
         e.respondWith(
             fetch(e.request)
