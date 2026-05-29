@@ -2,6 +2,7 @@
 .m-file-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
+    border-left: 3px solid var(--success);
     border-radius: 12px;
     padding: 14px 16px;
     cursor: pointer;
