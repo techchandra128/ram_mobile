@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindBackButton();
     loadSyncData();
     bindLibRootToolbar();
+    updateTopbar();
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw_mobile.js').catch(() => {});
     }
@@ -113,6 +114,14 @@ function updateTopbar() {
     const backBtn = document.getElementById('mBackBtn');
     const titleEl = document.getElementById('mTopbarTitle');
     const depth = getNavDepth();
+
+    // Show lib sort/view controls only on root or folder screens
+    const libTop = mState.libStack[mState.libStack.length - 1];
+    const showLibCtrl = mState.activePage === 'Library' &&
+        (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder');
+    document.querySelectorAll('.m-lib-ctrl').forEach(el => {
+        el.style.display = showLibCtrl ? 'flex' : 'none';
+    });
 
     if (depth === 0) {
         backBtn.style.display = 'none';

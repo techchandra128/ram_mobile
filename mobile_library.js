@@ -30,37 +30,53 @@ function sortLibItems(items) {
 // ===== LIBRARY: VIEW SWITCH =====
 function switchLibView(view) {
     mState.libView = view;
-    document.querySelectorAll('[id^="mViewList"]').forEach(btn => btn.classList.toggle('active', view === 'list'));
-    document.querySelectorAll('[id^="mViewGrid"]').forEach(btn => btn.classList.toggle('active', view === 'grid'));
+    const icon = document.getElementById('mLibViewIcon');
+    if (view === 'list') {
+        // In list mode — icon shows grid (tap to switch to grid)
+        icon.innerHTML = '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>';
+    } else {
+        // In grid mode — icon shows list (tap to switch to list)
+        icon.innerHTML = '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>';
+    }
     const active = document.querySelector('#pagLibrary .m-screen.active');
-    if (active?.id === 'screenLibraryRoot') {
-        renderLibraryRoot();
-    } else if (active?.id === 'screenLibraryFolder') {
+    if (active?.id === 'screenLibraryRoot') renderLibraryRoot();
+    else if (active?.id === 'screenLibraryFolder') {
         const top = mState.libStack[mState.libStack.length - 1];
         if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
     }
 }
 
+// ===== LIBRARY: SORT SHEET =====
+function openLibSortSheet() {
+    document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === mState.libRootSort);
+    });
+    document.getElementById('mLibSortSheet').classList.add('active');
+}
+
+function closeLibSortSheet() {
+    document.getElementById('mLibSortSheet').classList.remove('active');
+}
+
 // ===== LIBRARY: TOOLBAR BIND =====
 function bindLibRootToolbar() {
-    const syncSort = (val) => {
-        mState.libRootSort = val;
-        document.getElementById('mLibRootSort').value = val;
-        document.getElementById('mLibFolderSort').value = val;
-    };
-    document.getElementById('mLibRootSort').addEventListener('change', e => {
-        syncSort(e.target.value);
-        renderLibraryRoot();
+    document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
+    document.getElementById('mLibViewBtn').addEventListener('click', () => {
+        switchLibView(mState.libView === 'list' ? 'grid' : 'list');
     });
-    document.getElementById('mLibFolderSort').addEventListener('change', e => {
-        syncSort(e.target.value);
-        const top = mState.libStack[mState.libStack.length - 1];
-        if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
+    document.querySelector('#mLibSortSheet .m-sort-backdrop').addEventListener('click', closeLibSortSheet);
+    document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            mState.libRootSort = btn.dataset.sort;
+            closeLibSortSheet();
+            const active = document.querySelector('#pagLibrary .m-screen.active');
+            if (active?.id === 'screenLibraryRoot') renderLibraryRoot();
+            else if (active?.id === 'screenLibraryFolder') {
+                const top = mState.libStack[mState.libStack.length - 1];
+                if (top?.folder) renderFolderFiles(top.title, top.folder.contents);
+            }
+        });
     });
-    document.getElementById('mViewListRoot').addEventListener('click', () => switchLibView('list'));
-    document.getElementById('mViewGridRoot').addEventListener('click', () => switchLibView('grid'));
-    document.getElementById('mViewListFolder').addEventListener('click', () => switchLibView('list'));
-    document.getElementById('mViewGridFolder').addEventListener('click', () => switchLibView('grid'));
 }
 
 // ===== LIST VIEW: FOLDER CARD =====
@@ -117,18 +133,19 @@ function makeListFileCard(file) {
 }
 
 // ===== GRID VIEW: FOLDER =====
-function makeGridFolderItem(folder) {
-    const pct = folder.progress || 0;
-    const pClass = getLibProgressClass(pct);
-    const deg = getLibDeg(pct);
+function makeGridFolderItem(folder, ringBg) {
+    const pct = Math.round(folder.progress || 0);
+    const color = getLibProgressColor(pct);
+    const deg = Math.round((pct / 100) * 360);
     const item = document.createElement('div');
     item.className = 'm-grid-item';
     const circle = document.createElement('div');
-    circle.className = `m-prog-circle ${pClass}`;
-    circle.style.setProperty('--deg', deg);
+    circle.className = 'm-prog-circle';
+    circle.style.background = `conic-gradient(${color} ${deg}deg, ${ringBg} ${deg}deg)`;
     const inner = document.createElement('div');
     inner.className = 'm-prog-circle-inner';
     inner.textContent = pct + '%';
+    inner.style.color = color;
     circle.appendChild(inner);
     item.appendChild(circle);
     const name = document.createElement('div');
@@ -144,18 +161,19 @@ function makeGridFolderItem(folder) {
 }
 
 // ===== GRID VIEW: FILE =====
-function makeGridFileItem(file) {
-    const pct = file.progress || 0;
-    const pClass = getLibProgressClass(pct);
-    const deg = getLibDeg(pct);
+function makeGridFileItem(file, ringBg) {
+    const pct = Math.round(file.progress || 0);
+    const color = getLibProgressColor(pct);
+    const deg = Math.round((pct / 100) * 360);
     const item = document.createElement('div');
     item.className = 'm-grid-item';
     const rect = document.createElement('div');
-    rect.className = `m-prog-rect ${pClass}`;
-    rect.style.setProperty('--deg', deg);
+    rect.className = 'm-prog-rect';
+    rect.style.background = `conic-gradient(${color} ${deg}deg, ${ringBg} ${deg}deg)`;
     const inner = document.createElement('div');
     inner.className = 'm-prog-rect-inner';
     inner.textContent = pct + '%';
+    inner.style.color = color;
     rect.appendChild(inner);
     item.appendChild(rect);
     const name = document.createElement('div');
@@ -195,8 +213,9 @@ function renderLibraryRoot() {
     if (mState.libView === 'grid') {
         const grid = document.createElement('div');
         grid.className = 'm-lib-grid';
-        sortedFolders.forEach(folder => grid.appendChild(makeGridFolderItem(folder)));
-        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file)));
+        const ringBg = getComputedStyle(document.body).getPropertyValue('--bg3').trim() || '#1e293b';
+        sortedFolders.forEach(folder => grid.appendChild(makeGridFolderItem(folder, ringBg)));
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file, ringBg)));
         container.appendChild(grid);
     } else {
         sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
@@ -218,7 +237,8 @@ function renderFolderFiles(folderName, contents) {
     if (mState.libView === 'grid') {
         const grid = document.createElement('div');
         grid.className = 'm-lib-grid';
-        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file)));
+        const ringBg = getComputedStyle(document.body).getPropertyValue('--bg3').trim() || '#1e293b';
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileItem(file, ringBg)));
         container.appendChild(grid);
     } else {
         sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));

@@ -567,6 +567,59 @@
 .p-proficient { background: conic-gradient(#22c55e 0deg var(--deg, 0deg), var(--border) var(--deg, 0deg) 360deg); }
 .p-proficient .m-prog-circle-inner, .p-proficient .m-prog-rect-inner { color: #22c55e; }
 
+/* ===== SORT BOTTOM SHEET ===== */
+.m-sort-sheet {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.m-sort-sheet.active { display: flex; }
+
+.m-sort-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+}
+
+.m-sort-sheet-inner {
+    position: relative;
+    background: var(--bg2);
+    border-radius: 20px 20px 0 0;
+    padding: 16px 16px 36px;
+    z-index: 1;
+}
+
+.m-sort-sheet-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+}
+
+.m-sort-option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+}
+.m-sort-option:active { background: var(--bg3); }
+.m-sort-option.active { color: var(--accent); font-weight: 600; background: rgba(59,130,246,0.08); }
+
 /* ===== TABLET ===== */
 @media (min-width: 768px) {
     .m-file-card { padding: 16px 20px; }
