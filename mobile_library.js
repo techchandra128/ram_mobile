@@ -1,5 +1,18 @@
 // mobile_library.js — library rendering, section list, section detail, notes, tasks, progress
 
+// ===== SECTION NUMBERING =====
+function generateNumbers(sections) {
+    const counters = [0, 0, 0, 0, 0];
+    return sections.map(section => {
+        const level = section.level || 1;
+        counters[level]++;
+        for (let l = level + 1; l <= 4; l++) counters[l] = 0;
+        let num = '';
+        for (let l = 1; l <= level; l++) num += (l === 1 ? '' : '.') + counters[l];
+        return num;
+    });
+}
+
 // ===== LIBRARY: PROGRESS HELPERS =====
 function getLibProgressClass(pct) {
     if (pct <= 25) return 'p-novice';
@@ -266,7 +279,7 @@ function renderSectionList(context) {
     navCard.innerHTML = `
         <div class="m-file-icon">📋</div>
         <div class="m-file-info">
-            <div class="m-file-name">Table of Contents</div>
+            <div class="m-file-name">0. Table of Contents</div>
         </div>
         <div class="m-pct-badge" style="color:${navColor};border-color:${navColor}">${navPct}%</div>
     `;
@@ -280,8 +293,13 @@ function renderSectionList(context) {
 function renderSectionItems(container, sections, c5Store, sort, context) {
     Array.from(container.querySelectorAll('.m-file-card:not(:first-child), .m-empty')).forEach(el => el.remove());
 
-    const realSections = sections.filter(s => s.type === 'real');
-    if (realSections.length === 0) {
+    // Build numMap from ALL sections including dummies (order matters for numbering)
+    const numbers = generateNumbers(sections);
+    const numMap = {};
+    sections.forEach((s, i) => { numMap[s.id] = numbers[i]; });
+
+    const hasReal = sections.some(s => s.type === 'real');
+    if (!hasReal) {
         const empty = document.createElement('div');
         empty.className = 'm-empty';
         empty.textContent = 'No sections yet.';
@@ -289,38 +307,51 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
         return;
     }
 
-    const sorted = sortSections(realSections, c5Store, sort);
+    // Outline sort: show real + dummy in original order
+    // Other sorts: real sections only, sorted (dummies are positional, meaningless when reordered)
+    const isOutline = !sort || sort === 'outline';
+    const displaySections = isOutline
+        ? sections
+        : sortSections(sections.filter(s => s.type === 'real'), c5Store, sort, numMap);
 
-    sorted.forEach(section => {
-        const c5 = c5Store[section.id];
-        const pct = c5?.proficiency || 0;
-        const color = getLibProgressColor(pct);
+    displaySections.forEach(section => {
+        const isDummy = section.type === 'dummy';
+        const num = numMap[section.id] || '';
+        const titleDisplay = num ? `${num}. ${escHtml(section.title)}` : escHtml(section.title);
 
         const card = document.createElement('div');
-        card.className = 'm-file-card m-section-card';
 
-        const titleDisplay = section.number
-            ? `${escHtml(section.number)}. ${escHtml(section.title)}`
-            : escHtml(section.title);
-
-        const metaParts = [];
-        if (c5?.isCompleted) metaParts.push('✓ Done');
-        if (c5 && isStudiedToday(c5)) metaParts.push('Today');
-
-        card.innerHTML = `
-            <div class="m-file-icon">📋</div>
-            <div class="m-file-info">
-                <div class="m-file-name">${titleDisplay}</div>
-                ${metaParts.length ? `<div class="m-file-meta">${metaParts.join(' · ')}</div>` : ''}
-            </div>
-            <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-        `;
-        card.addEventListener('click', () => openSection(section.id, section.title, context));
+        if (isDummy) {
+            card.className = 'm-file-card m-section-card m-dummy-card';
+            card.innerHTML = `
+                <div class="m-file-icon">📋</div>
+                <div class="m-file-info">
+                    <div class="m-file-name">${titleDisplay}</div>
+                </div>
+            `;
+        } else {
+            card.className = 'm-file-card m-section-card';
+            const c5 = c5Store[section.id];
+            const pct = c5?.proficiency || 0;
+            const color = getLibProgressColor(pct);
+            const metaParts = [];
+            if (c5?.isCompleted) metaParts.push('✓ Done');
+            if (c5 && isStudiedToday(c5)) metaParts.push('Today');
+            card.innerHTML = `
+                <div class="m-file-icon">📋</div>
+                <div class="m-file-info">
+                    <div class="m-file-name">${titleDisplay}</div>
+                    ${metaParts.length ? `<div class="m-file-meta">${metaParts.join(' · ')}</div>` : ''}
+                </div>
+                <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+            `;
+            card.addEventListener('click', () => openSection(section.id, section.title, context));
+        }
         container.appendChild(card);
     });
 }
 
-function sortSections(sections, c5Store, sort) {
+function sortSections(sections, c5Store, sort, numMap) {
     const arr = [...sections];
     const diffOrder = { 'Easy': 1, 'Moderate': 2, 'Challenging': 3, 'Hard': 4 };
     const prioOrder = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
@@ -330,9 +361,13 @@ function sortSections(sections, c5Store, sort) {
             return arr.sort((a, b) => a.title.localeCompare(b.title));
         case 'section-count': {
             const getSubCount = s => {
-                if (!s.number) return 0;
-                const prefix = s.number + '.';
-                return arr.filter(x => x.number && x.number.startsWith(prefix)).length;
+                const num = numMap?.[s.id];
+                if (!num) return 0;
+                const prefix = num + '.';
+                return arr.filter(x => {
+                    const xNum = numMap?.[x.id];
+                    return xNum && xNum.startsWith(prefix);
+                }).length;
             };
             return arr.sort((a, b) => getSubCount(b) - getSubCount(a));
         }

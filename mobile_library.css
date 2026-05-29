@@ -36,6 +36,7 @@
 
 /* ===== SECTION CARD ===== */
 .m-section-card { border-left: 3px solid var(--accent); }
+.m-dummy-card { cursor: default; opacity: 0.5; }
 
 /* ===== TAB BAR ===== */
 .m-tab-bar {
