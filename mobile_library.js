@@ -453,6 +453,111 @@ function renderDetailTab(tab, contentId) {
     if (tab === 'notes') renderNotesTab(content);
     else if (tab === 'c5') renderC5Tab(content);
     else if (tab === 'c4') renderC4Tab(content);
+    renderDetailFooter(tab);
+}
+
+// ===== DETAIL FOOTER =====
+function renderDetailFooter(tab) {
+    const footer = document.getElementById('mDetailFooter');
+    if (!footer) return;
+    footer.innerHTML = '';
+
+    if (tab === 'notes') {
+        const allSectionsData = getFileData(mState.currentFileId);
+        const allSections = allSectionsData?.c12_sections
+            ? JSON.parse(allSectionsData.c12_sections).filter(s => s.type === 'real')
+            : [];
+        const currentIdx = allSections.findIndex(s => String(s.id) === String(mState.currentSectionId));
+
+        const fileData = getFileData(mState.currentFileId);
+        const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
+        const c5 = c5Store[mState.currentSectionId];
+        const studiedToday = c5 && isStudiedToday(c5);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'm-df-notes';
+
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'm-df-prev';
+        prevBtn.textContent = 'Prev';
+        prevBtn.disabled = currentIdx <= 0;
+        prevBtn.addEventListener('click', () => {
+            if (currentIdx > 0) {
+                const prev = allSections[currentIdx - 1];
+                mState.currentSectionId = prev.id;
+                mState.currentSection = { id: prev.id, title: prev.title };
+                const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
+                if (mState.currentContext === 'lib') mState.libStack[mState.libStack.length - 1].title = prev.title;
+                updateTopbar();
+                renderDetailTab('notes', contentId);
+            }
+        });
+
+        const studiedBtn = document.createElement('button');
+        studiedBtn.className = 'm-df-studied' + (studiedToday ? ' studied' : '');
+        studiedBtn.textContent = studiedToday ? '✓ Studied' : 'Mark as Studied';
+        studiedBtn.addEventListener('click', () => markAsStudied());
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'm-df-next';
+        nextBtn.textContent = 'Next';
+        nextBtn.disabled = currentIdx >= allSections.length - 1;
+        nextBtn.addEventListener('click', () => {
+            if (currentIdx < allSections.length - 1) {
+                const next = allSections[currentIdx + 1];
+                mState.currentSectionId = next.id;
+                mState.currentSection = { id: next.id, title: next.title };
+                const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
+                if (mState.currentContext === 'lib') mState.libStack[mState.libStack.length - 1].title = next.title;
+                updateTopbar();
+                renderDetailTab('notes', contentId);
+            }
+        });
+
+        wrap.appendChild(prevBtn);
+        wrap.appendChild(studiedBtn);
+        wrap.appendChild(nextBtn);
+        footer.appendChild(wrap);
+
+    } else if (tab === 'c4') {
+        const wrap = document.createElement('div');
+        wrap.className = 'm-df-obs';
+        const btn = document.createElement('button');
+        btn.className = 'm-df-pill-dashed';
+        btn.textContent = '+ Add Observation';
+        btn.addEventListener('click', () => _c4OpenModal(null));
+        wrap.appendChild(btn);
+        footer.appendChild(wrap);
+
+    } else if (tab === 'c5') {
+        const fileData = getFileData(mState.currentFileId);
+        const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
+        const c5 = c5Store[mState.currentSectionId];
+        const isCompleted = c5?.isCompleted || false;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'm-df-prog';
+        const btn = document.createElement('button');
+        btn.className = 'm-df-pill-solid' + (isCompleted ? ' completed' : '');
+        btn.textContent = isCompleted ? '✓ Completed' : 'Mark as Completed';
+        btn.addEventListener('click', async () => {
+            const fd = getFileData(mState.currentFileId);
+            const store = fd?.c5_sectionStore ? JSON.parse(fd.c5_sectionStore) : {};
+            if (!store[mState.currentSectionId]) {
+                store[mState.currentSectionId] = {
+                    isCompleted: false, difficulty: 'Easy', priority: 'Low',
+                    revisions: Array(12).fill(null).map(() => ({ date: null, year: null })),
+                    totalSlots: 12, activatedCount: 4, page: 0
+                };
+            }
+            store[mState.currentSectionId].isCompleted = !store[mState.currentSectionId].isCompleted;
+            await saveC5(store);
+            const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
+            renderDetailTab('c5', contentId);
+        });
+        wrap.appendChild(btn);
+        footer.appendChild(wrap);
+    }
 }
 
 // ===== NOTES TAB =====
@@ -460,10 +565,6 @@ function renderNotesTab(container) {
     const fileData = getFileData(mState.currentFileId);
     const c3Data = fileData?.c3_data ? JSON.parse(fileData.c3_data) : {};
     const sectionData = c3Data[mState.currentSectionId] || c3Data[String(mState.currentSectionId)] || c3Data[Number(mState.currentSectionId)];
-
-    const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
-    const c5 = c5Store[mState.currentSectionId];
-    const studiedToday = c5 && isStudiedToday(c5);
 
     const LEVELS = [
         { id: 'crisp',       label: 'Crisp',       icon: '⚡', sub: 'Key points only' },
@@ -538,62 +639,6 @@ function renderNotesTab(container) {
         container.appendChild(empty);
     }
 
-    const allSectionsData = getFileData(mState.currentFileId);
-    const allSections = allSectionsData?.c12_sections ? JSON.parse(allSectionsData.c12_sections).filter(s => s.type === 'real') : [];
-    const currentIdx = allSections.findIndex(s => String(s.id) === String(mState.currentSectionId));
-
-    const bottomBar = document.createElement('div');
-    bottomBar.className = 'm-notes-bottom';
-
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'm-prev-next-btn';
-    prevBtn.innerHTML = '&#8592; Prev';
-    prevBtn.disabled = currentIdx <= 0;
-    prevBtn.addEventListener('click', () => {
-        if (currentIdx > 0) {
-            const prev = allSections[currentIdx - 1];
-            mState.currentSectionId = prev.id;
-            mState.currentSection = { id: prev.id, title: prev.title };
-            if (mState.currentContext === 'lib') {
-                mState.libStack[mState.libStack.length - 1].title = prev.title;
-                updateTopbar();
-                renderDetailTab('notes', 'mTabContent');
-            } else {
-                updateTopbar();
-                renderDetailTab('notes', 'mSDTabContent');
-            }
-        }
-    });
-
-    const studiedBtn = document.createElement('button');
-    studiedBtn.className = 'm-studied-btn' + (studiedToday ? ' studied' : '');
-    studiedBtn.textContent = studiedToday ? '✓ Studied' : 'Mark Studied';
-    studiedBtn.addEventListener('click', () => markAsStudied());
-
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'm-prev-next-btn';
-    nextBtn.innerHTML = 'Next &#8594;';
-    nextBtn.disabled = currentIdx >= allSections.length - 1;
-    nextBtn.addEventListener('click', () => {
-        if (currentIdx < allSections.length - 1) {
-            const next = allSections[currentIdx + 1];
-            mState.currentSectionId = next.id;
-            mState.currentSection = { id: next.id, title: next.title };
-            if (mState.currentContext === 'lib') {
-                mState.libStack[mState.libStack.length - 1].title = next.title;
-                updateTopbar();
-                renderDetailTab('notes', 'mTabContent');
-            } else {
-                updateTopbar();
-                renderDetailTab('notes', 'mSDTabContent');
-            }
-        }
-    });
-
-    bottomBar.appendChild(prevBtn);
-    bottomBar.appendChild(studiedBtn);
-    bottomBar.appendChild(nextBtn);
-    container.appendChild(bottomBar);
 }
 
 function renderNoteContent(version) {
@@ -615,20 +660,24 @@ function renderNoteContent(version) {
         const type = cell.type;
         const rows = cell.rows || [];
         if (type === 'header') {
-            return `<div class="m-note-header">${escHtml(rows[0]?.content || '')}</div>`;
+            return rows.map(r => {
+                const bg = r.bg ? ` style="background:${r.bg}"` : '';
+                return `<div class="m-note-header"${bg}>${escHtml(r.content || '')}</div>`;
+            }).join('') || `<div class="m-note-header">${escHtml(cell.content || '')}</div>`;
         }
         if (type === 'code') {
-            return `<pre class="m-note-code">${rows.map(r => escHtml(r.content || '')).join('\n')}</pre>`;
+            return `<pre class="m-note-code">${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`;
         }
         if (type === 'cornell' || type === 'header-cornell') {
+            const isHC = type === 'header-cornell';
             return rows.map(r => {
                 const left = stripHtml(r.left || '');
                 const right = stripHtml(r.right || '');
                 if (!left && !right) return '';
-                if (type === 'header-cornell') {
-                    return `<div class="m-note-hcornell"><span class="m-note-hcornell-left">${escHtml(left)}</span><span class="m-note-hcornell-right">${escHtml(right)}</span></div>`;
-                }
-                return `<div class="m-note-cornell"><div class="m-note-cornell-left">${escHtml(left)}</div><div class="m-note-cornell-right">${escHtml(right)}</div></div>`;
+                const lStyle = r.bgLeft ? ` style="background:${r.bgLeft}"` : '';
+                const rStyle = r.bgRight ? ` style="background:${r.bgRight}"` : '';
+                const cls = isHC ? 'm-note-cornell m-note-hcornell' : 'm-note-cornell';
+                return `<div class="${cls}"><div class="m-note-cornell-left"${lStyle}>${escHtml(left)}</div><div class="m-note-cornell-right"${rStyle}>${escHtml(right)}</div></div>`;
             }).filter(Boolean).join('');
         }
         if (type === 'normal') {
@@ -846,26 +895,35 @@ function renderC4Tab(container) {
     notesList.id = 'mC4NotesList';
     _c4RenderNotes(notesList);
     container.appendChild(notesList);
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'm-add-note-btn';
-    addBtn.textContent = '+ Add Observation';
-    addBtn.addEventListener('click', () => _c4OpenModal(null));
-    container.appendChild(addBtn);
 }
 
 function _c4RenderChips(bar) {
     bar.innerHTML = '';
-    ['All', ...mC4.categories].forEach(cat => {
+    const sectionId = mState.currentSectionId;
+    const notes = mC4.allNotes[sectionId] || [];
+    const counts = {};
+    notes.forEach(n => { counts[n.category] = (counts[n.category] || 0) + 1; });
+    const total = notes.length;
+
+    // Reset selected cat if it no longer has notes
+    if (mC4.selectedCat !== 'All' && (counts[mC4.selectedCat] || 0) === 0) mC4.selectedCat = 'All';
+
+    const makeChip = (label, cat) => {
         const chip = document.createElement('button');
         chip.className = 'm-c4-chip' + (cat === mC4.selectedCat ? ' active' : '');
-        chip.textContent = cat;
+        chip.textContent = label;
         chip.addEventListener('click', () => {
             mC4.selectedCat = cat;
             _c4RenderChips(document.getElementById('mC4FilterBar'));
             _c4RenderNotes(document.getElementById('mC4NotesList'));
         });
         bar.appendChild(chip);
+    };
+
+    makeChip(`All (${total})`, 'All');
+    mC4.categories.forEach(cat => {
+        const count = counts[cat] || 0;
+        if (count > 0) makeChip(`${cat} (${count})`, cat);
     });
 }
 
@@ -967,15 +1025,15 @@ function _c4OpenModal(editId) {
     overlay.innerHTML = `
         <div class="m-modal">
             <div class="m-modal-title">${editId != null ? 'Edit' : 'Add'} Observation</div>
+            <div class="m-c4-cat-selector-row">
+                <button class="m-c4-cat-dropdown-btn" id="mC4CatDropBtn"><span>${escHtml(mC4.modalCat)}</span><span>▾</span></button>
+                <button class="m-c4-add-cat-icon-btn" id="mC4AddCatBtn" title="Add category">+</button>
+            </div>
+            <div class="m-c4-cat-list" id="mC4CatList" style="display:none"></div>
             <input class="m-modal-input" id="mC4TitleInput" placeholder="Title" maxlength="80" value="${escHtml(note?.title || '')}">
             <div class="m-c4-counter" id="mC4TitleCounter">${(note?.title || '').length}/80</div>
             <textarea class="m-modal-input m-modal-textarea" id="mC4ContentInput" placeholder="Content" maxlength="280">${escHtml(note?.content || '')}</textarea>
             <div class="m-c4-counter" id="mC4ContentCounter">${(note?.content || '').length}/280</div>
-            <div class="m-c4-cat-label-row">
-                <span class="m-c4-modal-cat-label">Category</span>
-                <button class="m-c4-add-cat-btn" id="mC4AddCatBtn">+ Add</button>
-            </div>
-            <div class="m-c4-cat-list" id="mC4CatList"></div>
             <div class="m-modal-btns">
                 <button class="m-modal-btn cancel" id="mC4CancelBtn">Cancel</button>
                 <button class="m-modal-btn save" id="mC4SaveBtn">Save</button>
@@ -989,6 +1047,11 @@ function _c4OpenModal(editId) {
     document.getElementById('mC4CancelBtn').addEventListener('click', _c4CloseModal);
     document.getElementById('mC4SaveBtn').addEventListener('click', _c4SaveNote);
     document.getElementById('mC4AddCatBtn').addEventListener('click', _c4OpenAddCatPopup);
+    document.getElementById('mC4CatDropBtn').addEventListener('click', () => {
+        const list = document.getElementById('mC4CatList');
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+        if (list.style.display === 'block') _c4RenderModalCats();
+    });
     document.getElementById('mC4TitleInput').addEventListener('input', () => {
         document.getElementById('mC4TitleCounter').textContent = `${document.getElementById('mC4TitleInput').value.length}/80`;
     });
@@ -1015,6 +1078,10 @@ function _c4RenderModalCats() {
         `;
         item.querySelector('.m-c4-cat-name').addEventListener('click', () => {
             mC4.modalCat = cat;
+            const dropBtn = document.getElementById('mC4CatDropBtn');
+            if (dropBtn) dropBtn.querySelector('span').textContent = cat;
+            const list2 = document.getElementById('mC4CatList');
+            if (list2) list2.style.display = 'none';
             _c4RenderModalCats();
         });
         if (!isGeneral) {

@@ -140,6 +140,13 @@ function updateTopbar() {
             else titleEl.textContent = mState.currentFileName || 'Sections';
         }
     }
+    const libTopForDetail = mState.libStack[mState.libStack.length - 1];
+    const onDetail = (mState.activePage === 'Library' && libTopForDetail?.screen === 'screenDetail')
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDDetail');
+    document.querySelector('.m-bottom-nav').style.display = onDetail ? 'none' : '';
+    const detailFooter = document.getElementById('mDetailFooter');
+    if (detailFooter) detailFooter.style.display = onDetail ? 'flex' : 'none';
+
     window.scrollTo(0, 0);
 }
 
