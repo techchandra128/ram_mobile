@@ -671,14 +671,15 @@ function renderNoteContent(version) {
         }
         if (type === 'cornell' || type === 'header-cornell') {
             const isHC = type === 'header-cornell';
+            const toLines = html => stripHtml(html).split('\n').map(l => l.trim().replace(/^[•·‣⁃\-\*○●>\s]+/, '')).filter(Boolean).map(escHtml).join('<br>');
             return rows.map(r => {
-                const left = stripHtml(r.left || '');
-                const right = stripHtml(r.right || '');
+                const left = stripHtml(r.left || '').trim();
+                const right = stripHtml(r.right || '').trim();
                 if (!left && !right) return '';
                 const lStyle = r.bgLeft ? ` style="background:${r.bgLeft}"` : '';
                 const rStyle = r.bgRight ? ` style="background:${r.bgRight}"` : '';
                 const cls = isHC ? 'm-note-cornell m-note-hcornell' : 'm-note-cornell';
-                return `<div class="${cls}"><div class="m-note-cornell-left"${lStyle}>${escHtml(left)}</div><div class="m-note-cornell-right"${rStyle}>${escHtml(right)}</div></div>`;
+                return `<div class="${cls}"><div class="m-note-cornell-left"${lStyle}>${toLines(r.left || '')}</div><div class="m-note-cornell-right"${rStyle}>${toLines(r.right || '')}</div></div>`;
             }).filter(Boolean).join('');
         }
         if (type === 'normal') {
