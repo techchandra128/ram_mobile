@@ -2,8 +2,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --topbar-h: 52px;
-    --bottomnav-h: 62px;
+    --topbar-h: 50px;
+    --bottomnav-h: 50px;
     --syncbar-h: 30px;
     --tab-h: 44px;
 }
