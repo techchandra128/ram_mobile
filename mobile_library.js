@@ -666,7 +666,8 @@ function renderNoteContent(version) {
             }).join('') || `<div class="m-note-header">${escHtml(stripHtml(cell.content || ''))}</div>`;
         }
         if (type === 'code') {
-            return `<pre class="m-note-code">${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`;
+            const bg = cell.bg ? ` style="background:${cell.bg}"` : '';
+            return `<pre class="m-note-code"${bg}>${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`;
         }
         if (type === 'cornell' || type === 'header-cornell') {
             const isHC = type === 'header-cornell';

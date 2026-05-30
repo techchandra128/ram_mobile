@@ -92,7 +92,7 @@
     word-break: break-word;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .m-notes-empty {
@@ -422,14 +422,18 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--text);
-    background: var(--bg3);
+    background: var(--note-header-bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 8px 10px;
 }
 
+.m-note-cornell.m-note-hcornell .m-note-cornell-left {
+    background: var(--note-header-bg);
+}
+
 .m-note-code {
-    background: var(--bg3);
+    background: var(--note-code-bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 10px 12px;
@@ -438,7 +442,6 @@
     white-space: pre-wrap;
     word-break: break-all;
     color: var(--text);
-    margin: 6px 0;
 }
 
 .m-note-cornell {
@@ -452,7 +455,6 @@
 
 .m-note-cornell.m-note-hcornell .m-note-cornell-left {
     font-weight: 700;
-    color: var(--accent);
 }
 
 .m-note-cornell-left {
@@ -474,7 +476,7 @@
 }
 
 .m-notes-content p {
-    margin: 4px 0;
+    margin: 0;
     font-size: 13px;
     color: var(--text);
     white-space: pre-wrap;
@@ -484,7 +486,6 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
-    margin: 8px 0;
     font-size: 13px;
 }
 

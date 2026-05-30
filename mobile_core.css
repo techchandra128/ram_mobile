@@ -23,6 +23,8 @@
     --danger:       #ef4444;
     --card-bg:      #1e293b;
     --card-border:  #334155;
+    --note-header-bg: #1a3a5c;
+    --note-code-bg:   #1e1e1e;
 }
 
 [data-theme="light"] {
@@ -39,6 +41,8 @@
     --danger:       #dc2626;
     --card-bg:      #ffffff;
     --card-border:  #e2e8f0;
+    --note-header-bg: #eff6ff;
+    --note-code-bg:   #f8fafc;
 }
 
 body {
