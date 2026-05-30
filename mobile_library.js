@@ -662,8 +662,8 @@ function renderNoteContent(version) {
         if (type === 'header') {
             return rows.map(r => {
                 const bg = r.bg ? ` style="background:${r.bg}"` : '';
-                return `<div class="m-note-header"${bg}>${escHtml(r.content || '')}</div>`;
-            }).join('') || `<div class="m-note-header">${escHtml(cell.content || '')}</div>`;
+                return `<div class="m-note-header"${bg}>${escHtml(stripHtml(r.content || ''))}</div>`;
+            }).join('') || `<div class="m-note-header">${escHtml(stripHtml(cell.content || ''))}</div>`;
         }
         if (type === 'code') {
             return `<pre class="m-note-code">${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`;
