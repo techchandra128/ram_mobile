@@ -495,7 +495,7 @@ function renderDetailFooter(tab) {
 
         const studiedBtn = document.createElement('button');
         studiedBtn.className = 'm-df-studied' + (studiedToday ? ' studied' : '');
-        studiedBtn.textContent = studiedToday ? '✓ Studied' : 'Mark as Studied';
+        studiedBtn.textContent = studiedToday ? 'Studied Today ✓' : 'Mark as Studied';
         studiedBtn.addEventListener('click', () => markAsStudied());
 
         const nextBtn = document.createElement('button');
@@ -521,10 +521,10 @@ function renderDetailFooter(tab) {
 
     } else if (tab === 'c4') {
         const wrap = document.createElement('div');
-        wrap.className = 'm-df-obs';
+        wrap.className = 'm-df-notes';
         const btn = document.createElement('button');
-        btn.className = 'm-df-pill-dashed';
-        btn.textContent = '+ Add Observation';
+        btn.className = 'm-df-studied';
+        btn.textContent = 'Add Observation';
         btn.addEventListener('click', () => _c4OpenModal(null));
         wrap.appendChild(btn);
         footer.appendChild(wrap);
@@ -536,9 +536,9 @@ function renderDetailFooter(tab) {
         const isCompleted = c5?.isCompleted || false;
 
         const wrap = document.createElement('div');
-        wrap.className = 'm-df-prog';
+        wrap.className = 'm-df-notes';
         const btn = document.createElement('button');
-        btn.className = 'm-df-pill-solid' + (isCompleted ? ' completed' : '');
+        btn.className = 'm-df-studied' + (isCompleted ? ' studied' : '');
         btn.textContent = isCompleted ? '✓ Completed' : 'Mark as Completed';
         btn.addEventListener('click', async () => {
             const fd = getFileData(mState.currentFileId);
@@ -582,22 +582,28 @@ function renderNotesTab(container) {
         const controls = document.createElement('div');
         controls.className = 'm-notes-controls';
 
-        const levelSelect = document.createElement('select');
-        levelSelect.className = 'm-notes-select';
-        levelSelect.id = 'mNoteLevelSelect';
-        notesWithContent.forEach(l => {
-            const opt = document.createElement('option');
-            opt.value = l.id;
-            opt.textContent = l.icon + ' ' + l.label;
-            levelSelect.appendChild(opt);
-        });
+        function makeDropdown() {
+            const wrap = document.createElement('div');
+            wrap.className = 'm-notes-dropdown-wrap';
+            const trigger = document.createElement('button');
+            trigger.className = 'm-notes-trigger';
+            const menu = document.createElement('div');
+            menu.className = 'm-notes-menu';
+            trigger.addEventListener('click', e => {
+                e.stopPropagation();
+                document.querySelectorAll('.m-notes-dropdown-wrap.active').forEach(w => { if (w !== wrap) w.classList.remove('active'); });
+                wrap.classList.toggle('active');
+            });
+            wrap.appendChild(trigger);
+            wrap.appendChild(menu);
+            return { wrap, trigger, menu };
+        }
 
-        const versionSelect = document.createElement('select');
-        versionSelect.className = 'm-notes-select';
-        versionSelect.id = 'mNoteVersionSelect';
+        const { wrap: lWrap, trigger: lTrigger, menu: lMenu } = makeDropdown();
+        const { wrap: vWrap, trigger: vTrigger, menu: vMenu } = makeDropdown();
 
-        controls.appendChild(levelSelect);
-        controls.appendChild(versionSelect);
+        controls.appendChild(lWrap);
+        controls.appendChild(vWrap);
         container.appendChild(controls);
 
         const noteContentArea = document.createElement('div');
@@ -605,17 +611,8 @@ function renderNotesTab(container) {
         noteContentArea.id = 'mNoteContentArea';
         container.appendChild(noteContentArea);
 
-        function populateVersions(levelId) {
-            const ld = sectionData.notes[levelId];
-            versionSelect.innerHTML = '';
-            ld.versions.forEach((v, i) => {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = v.label || `Version ${i + 1}`;
-                if (i === ld.currentVersion) opt.selected = true;
-                versionSelect.appendChild(opt);
-            });
-            showNoteContent(levelId, ld.currentVersion || 0);
+        function setLabel(trigger, text) {
+            trigger.innerHTML = `<span>${text}</span><span style="font-size:9px">▼</span>`;
         }
 
         function showNoteContent(levelId, versionIdx) {
@@ -624,11 +621,44 @@ function renderNotesTab(container) {
             noteContentArea.innerHTML = version ? renderNoteContent(version) : '<div class="m-notes-empty">No content.</div>';
         }
 
-        levelSelect.addEventListener('change', () => {
-            populateVersions(levelSelect.value);
+        function populateVersions(levelId) {
+            const level = notesWithContent.find(l => l.id === levelId);
+            setLabel(lTrigger, level.icon + ' ' + level.label);
+            const ld = sectionData.notes[levelId];
+            vMenu.innerHTML = '';
+            const cur = ld.currentVersion || 0;
+            ld.versions.forEach((v, i) => {
+                const opt = document.createElement('div');
+                opt.className = 'm-notes-menu-option' + (i === cur ? ' selected' : '');
+                opt.textContent = v.label || `V${i + 1}`;
+                opt.addEventListener('click', () => {
+                    vMenu.querySelectorAll('.m-notes-menu-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    setLabel(vTrigger, v.label || `V${i + 1}`);
+                    vWrap.classList.remove('active');
+                    showNoteContent(levelId, i);
+                });
+                vMenu.appendChild(opt);
+            });
+            setLabel(vTrigger, ld.versions[cur]?.label || `V${cur + 1}`);
+            showNoteContent(levelId, cur);
+        }
+
+        notesWithContent.forEach((l, idx) => {
+            const opt = document.createElement('div');
+            opt.className = 'm-notes-menu-option' + (idx === 0 ? ' selected' : '');
+            opt.textContent = l.icon + ' ' + l.label;
+            opt.addEventListener('click', () => {
+                lMenu.querySelectorAll('.m-notes-menu-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                lWrap.classList.remove('active');
+                populateVersions(l.id);
+            });
+            lMenu.appendChild(opt);
         });
-        versionSelect.addEventListener('change', () => {
-            showNoteContent(levelSelect.value, parseInt(versionSelect.value));
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.m-notes-dropdown-wrap.active').forEach(w => w.classList.remove('active'));
         });
 
         populateVersions(notesWithContent[0].id);
@@ -747,16 +777,16 @@ async function markAsStudied() {
     const today = new Date();
     const dateStr = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}`;
     const year = today.getFullYear();
-    const alreadyStudied = c5.revisions.some(r => r.date === dateStr && r.year === year);
-    if (alreadyStudied) {
-        hideSyncBarAfter('Already studied today', 'success', 2000);
-        return;
+    const studiedIdx = c5.revisions.findIndex(r => r.date === dateStr && r.year === year);
+    if (studiedIdx >= 0) {
+        c5.revisions[studiedIdx] = { date: null, year: null };
+    } else {
+        let filled = false;
+        for (let i = 0; i < c5.activatedCount; i++) {
+            if (!c5.revisions[i].date) { c5.revisions[i] = { date: dateStr, year }; filled = true; break; }
+        }
+        if (!filled) { hideSyncBarAfter('All revision slots filled', 'error', 2000); return; }
     }
-    let filled = false;
-    for (let i = 0; i < c5.activatedCount; i++) {
-        if (!c5.revisions[i].date) { c5.revisions[i] = { date: dateStr, year }; filled = true; break; }
-    }
-    if (!filled) { hideSyncBarAfter('All revision slots filled', 'error', 2000); return; }
     showSyncBar('Saving...', 'default');
     const c5Key = `c5_sectionStore_${mState.currentFileId}`;
     localStorage.setItem(c5Key, JSON.stringify(c5Store));
@@ -774,33 +804,83 @@ function renderC5Tab(container) {
     const c5 = c5Store[mState.currentSectionId];
     if (!c5) { container.innerHTML = '<div class="m-empty">No progress data yet.</div>'; return; }
 
+    const diffColors = { Easy:'#22c55e', Moderate:'#f59e0b', Challenging:'#f97316', Hard:'#ef4444' };
+    const prioColors = { Low:'#94a3b8', Medium:'#3b82f6', High:'#f97316', Critical:'#ef4444' };
+
+    function makeC5Dropdown(options, current, colors, onSelect) {
+        const wrap = document.createElement('div');
+        wrap.className = 'm-c5-dropdown';
+        const dot = document.createElement('span');
+        dot.className = 'm-c5-dot';
+        dot.style.background = colors[current];
+        const lbl = document.createElement('span');
+        lbl.textContent = current;
+        const arrow = document.createElement('span');
+        arrow.style.cssText = 'font-size:10px;color:#94a3b8;margin-left:auto;';
+        arrow.textContent = '▼';
+        const menu = document.createElement('div');
+        menu.className = 'm-c5-menu';
+        options.forEach(opt => {
+            const item = document.createElement('div');
+            item.className = 'm-c5-option' + (opt === current ? ' selected' : '');
+            const itemDot = document.createElement('span');
+            itemDot.className = 'm-c5-dot';
+            itemDot.style.background = colors[opt];
+            item.appendChild(itemDot);
+            item.appendChild(document.createTextNode(opt));
+            item.addEventListener('click', e => {
+                e.stopPropagation();
+                dot.style.background = colors[opt];
+                lbl.textContent = opt;
+                menu.querySelectorAll('.m-c5-option').forEach(o => o.classList.remove('selected'));
+                item.classList.add('selected');
+                wrap.classList.remove('active');
+                onSelect(opt);
+            });
+            menu.appendChild(item);
+        });
+        wrap.addEventListener('click', e => {
+            e.stopPropagation();
+            document.querySelectorAll('.m-c5-dropdown.active').forEach(d => { if (d !== wrap) d.classList.remove('active'); });
+            wrap.classList.toggle('active');
+        });
+        wrap.appendChild(dot);
+        wrap.appendChild(lbl);
+        wrap.appendChild(arrow);
+        wrap.appendChild(menu);
+        return wrap;
+    }
+
     const card = document.createElement('div');
     card.className = 'm-c5-card';
-    card.innerHTML = `
-        <div class="m-c5-row">
-            <span class="m-c5-label">Status</span>
-            <span class="m-c5-value" style="color:${c5.isCompleted ? 'var(--success)' : 'var(--text-muted)'}">
-                ${c5.isCompleted ? '✓ Completed' : 'In Progress'}
-            </span>
-        </div>
-        <div class="m-c5-row">
-            <span class="m-c5-label">Difficulty</span>
-            <select class="m-c5-select" id="mDiffSelect">
-                ${['Easy','Moderate','Challenging','Hard'].map(d => `<option value="${d}" ${c5.difficulty===d?'selected':''}>${d}</option>`).join('')}
-            </select>
-        </div>
-        <div class="m-c5-row">
-            <span class="m-c5-label">Priority</span>
-            <select class="m-c5-select" id="mPrioSelect">
-                ${['Low','Medium','High','Critical'].map(p => `<option value="${p}" ${c5.priority===p?'selected':''}>${p}</option>`).join('')}
-            </select>
-        </div>
-        <div class="m-c5-row">
-            <span class="m-c5-label">Revisions</span>
-            <span class="m-c5-value">${c5.revisions.filter(r=>r.date).length} / ${c5.activatedCount}</span>
-        </div>
-    `;
+
+    const statusRow = document.createElement('div');
+    statusRow.className = 'm-c5-row';
+    statusRow.innerHTML = `<span class="m-c5-label">Status</span><span class="m-c5-value" style="color:${c5.isCompleted ? 'var(--success)' : 'var(--text-muted)'}">${c5.isCompleted ? '✓ Completed' : 'In Progress'}</span>`;
+    card.appendChild(statusRow);
+
+    const diffRow = document.createElement('div');
+    diffRow.className = 'm-c5-row';
+    diffRow.innerHTML = '<span class="m-c5-label">Difficulty</span>';
+    diffRow.appendChild(makeC5Dropdown(['Easy','Moderate','Challenging','Hard'], c5.difficulty||'Easy', diffColors, async val => { c5.difficulty = val; await saveC5(c5Store); }));
+    card.appendChild(diffRow);
+
+    const prioRow = document.createElement('div');
+    prioRow.className = 'm-c5-row';
+    prioRow.innerHTML = '<span class="m-c5-label">Priority</span>';
+    prioRow.appendChild(makeC5Dropdown(['Low','Medium','High','Critical'], c5.priority||'Low', prioColors, async val => { c5.priority = val; await saveC5(c5Store); }));
+    card.appendChild(prioRow);
+
+    const revRow = document.createElement('div');
+    revRow.className = 'm-c5-row';
+    revRow.innerHTML = `<span class="m-c5-label">Revisions</span><span class="m-c5-value">${c5.revisions.filter(r=>r.date).length} / ${c5.activatedCount}</span>`;
+    card.appendChild(revRow);
+
     container.appendChild(card);
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.m-c5-dropdown.active').forEach(d => d.classList.remove('active'));
+    });
 
     const gridTitle = document.createElement('div');
     gridTitle.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-muted);margin:12px 0 8px;padding:0 2px';
@@ -829,8 +909,6 @@ function renderC5Tab(container) {
     `;
     container.appendChild(btns);
 
-    document.getElementById('mDiffSelect').addEventListener('change', async (e) => { c5.difficulty = e.target.value; await saveC5(c5Store); });
-    document.getElementById('mPrioSelect').addEventListener('change', async (e) => { c5.priority = e.target.value; await saveC5(c5Store); });
     document.getElementById('mMarkCompleteBtn').addEventListener('click', async () => {
         c5.isCompleted = !c5.isCompleted;
         await saveC5(c5Store);
