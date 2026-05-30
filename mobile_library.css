@@ -459,7 +459,7 @@
 
 .m-note-cornell-left {
     background: var(--bg3);
-    padding: 8px 10px;
+    padding: 8px 6px;
     font-size: 13px;
     font-weight: 600;
     color: var(--text);
@@ -469,7 +469,7 @@
 
 .m-note-cornell-right {
     background: var(--bg2);
-    padding: 8px 10px;
+    padding: 8px 6px;
     font-size: 13px;
     color: var(--text);
     white-space: pre-wrap;
