@@ -7,6 +7,7 @@ const MD_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','
 const mdState = {
     allEntries: [],
     tbcEntries: [],
+    currentEntries: [],
     selectedWeekKey: null,
     mode: 'tbc',
 };
@@ -345,9 +346,11 @@ function mdRenderContent() {
         return;
     }
 
+    mdState.currentEntries = entries;
+
     const list = document.createElement('div');
     list.className = 'md-diary-list';
-    entries.forEach(e => list.appendChild(mdMakeEntryCard(e)));
+    entries.forEach((e, i) => list.appendChild(mdMakeEntryCard(e, i)));
     container.appendChild(list);
 }
 
@@ -363,7 +366,7 @@ function mdGetTBCForWeek() {
     return mdState.tbcEntries.filter(e => e.scheduledWeek === selW && e.scheduledYear === selY);
 }
 
-function mdMakeEntryCard(entry) {
+function mdMakeEntryCard(entry, entryIdx) {
     const diffColor = MD_DIFF_COLORS[entry.difficulty] || '#94a3b8';
     const prioColor = MD_PRIO_COLORS[entry.priority] || '#94a3b8';
     const profColor = entry.progress <= 25 ? '#94a3b8'
@@ -389,6 +392,8 @@ function mdMakeEntryCard(entry) {
         mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
         mState.currentFileName = entry.fileName;
         mState.diaryReturn = true;
+        mState.diaryEntries = mdState.currentEntries;
+        mState.diaryEntryIndex = entryIdx;
         switchPage('Library');
         openSection(entry.sectionId, entry.sectionTitle, 'lib');
     });

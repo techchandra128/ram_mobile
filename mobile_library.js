@@ -463,12 +463,6 @@ function renderDetailFooter(tab) {
     footer.innerHTML = '';
 
     if (tab === 'notes') {
-        const allSectionsData = getFileData(mState.currentFileId);
-        const allSections = allSectionsData?.c12_sections
-            ? JSON.parse(allSectionsData.c12_sections).filter(s => s.type === 'real')
-            : [];
-        const currentIdx = allSections.findIndex(s => String(s.id) === String(mState.currentSectionId));
-
         const fileData = getFileData(mState.currentFileId);
         const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
         const c5 = c5Store[mState.currentSectionId];
@@ -480,18 +474,6 @@ function renderDetailFooter(tab) {
         const prevBtn = document.createElement('button');
         prevBtn.className = 'm-df-prev';
         prevBtn.textContent = 'Prev';
-        prevBtn.disabled = currentIdx <= 0;
-        prevBtn.addEventListener('click', () => {
-            if (currentIdx > 0) {
-                const prev = allSections[currentIdx - 1];
-                mState.currentSectionId = prev.id;
-                mState.currentSection = { id: prev.id, title: prev.title };
-                const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
-                if (mState.currentContext === 'lib') mState.libStack[mState.libStack.length - 1].title = prev.title;
-                updateTopbar();
-                renderDetailTab('notes', contentId);
-            }
-        });
 
         const studiedBtn = document.createElement('button');
         studiedBtn.className = 'm-df-studied' + (studiedToday ? ' studied' : '');
@@ -501,18 +483,69 @@ function renderDetailFooter(tab) {
         const nextBtn = document.createElement('button');
         nextBtn.className = 'm-df-next';
         nextBtn.textContent = 'Next';
-        nextBtn.disabled = currentIdx >= allSections.length - 1;
-        nextBtn.addEventListener('click', () => {
-            if (currentIdx < allSections.length - 1) {
-                const next = allSections[currentIdx + 1];
-                mState.currentSectionId = next.id;
-                mState.currentSection = { id: next.id, title: next.title };
-                const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
-                if (mState.currentContext === 'lib') mState.libStack[mState.libStack.length - 1].title = next.title;
-                updateTopbar();
-                renderDetailTab('notes', contentId);
-            }
-        });
+
+        if (mState.diaryReturn) {
+            const entries = mState.diaryEntries || [];
+            const idx = mState.diaryEntryIndex ?? 0;
+            prevBtn.disabled = idx <= 0;
+            prevBtn.addEventListener('click', () => {
+                if (idx > 0) {
+                    const prev = entries[idx - 1];
+                    mState.diaryEntryIndex = idx - 1;
+                    mState.currentFileId = prev.fileId.startsWith('f_') ? prev.fileId : `f_${prev.fileId}`;
+                    mState.currentFileName = prev.fileName;
+                    mState.currentSectionId = prev.sectionId;
+                    mState.currentSection = { id: prev.sectionId, title: prev.sectionTitle };
+                    mState.libStack[mState.libStack.length - 1].title = prev.sectionTitle;
+                    updateTopbar();
+                    renderDetailTab('notes', 'mTabContent');
+                }
+            });
+            nextBtn.disabled = idx >= entries.length - 1;
+            nextBtn.addEventListener('click', () => {
+                if (idx < entries.length - 1) {
+                    const next = entries[idx + 1];
+                    mState.diaryEntryIndex = idx + 1;
+                    mState.currentFileId = next.fileId.startsWith('f_') ? next.fileId : `f_${next.fileId}`;
+                    mState.currentFileName = next.fileName;
+                    mState.currentSectionId = next.sectionId;
+                    mState.currentSection = { id: next.sectionId, title: next.sectionTitle };
+                    mState.libStack[mState.libStack.length - 1].title = next.sectionTitle;
+                    updateTopbar();
+                    renderDetailTab('notes', 'mTabContent');
+                }
+            });
+        } else {
+            const allSectionsData = getFileData(mState.currentFileId);
+            const allSections = allSectionsData?.c12_sections
+                ? JSON.parse(allSectionsData.c12_sections).filter(s => s.type === 'real')
+                : [];
+            const currentIdx = allSections.findIndex(s => String(s.id) === String(mState.currentSectionId));
+            prevBtn.disabled = currentIdx <= 0;
+            prevBtn.addEventListener('click', () => {
+                if (currentIdx > 0) {
+                    const prev = allSections[currentIdx - 1];
+                    mState.currentSectionId = prev.id;
+                    mState.currentSection = { id: prev.id, title: prev.title };
+                    const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
+                    if (mState.currentContext === 'lib') mState.libStack[mState.libStack.length - 1].title = prev.title;
+                    updateTopbar();
+                    renderDetailTab('notes', contentId);
+                }
+            });
+            nextBtn.disabled = currentIdx >= allSections.length - 1;
+            nextBtn.addEventListener('click', () => {
+                if (currentIdx < allSections.length - 1) {
+                    const next = allSections[currentIdx + 1];
+                    mState.currentSectionId = next.id;
+                    mState.currentSection = { id: next.id, title: next.title };
+                    const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
+                    if (mState.currentContext === 'lib') mState.libStack[mState.libStack.length - 1].title = next.title;
+                    updateTopbar();
+                    renderDetailTab('notes', contentId);
+                }
+            });
+        }
 
         wrap.appendChild(prevBtn);
         wrap.appendChild(studiedBtn);
