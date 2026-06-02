@@ -57,7 +57,7 @@
 }
 
 .md-wn-week {
-    padding: 5px 14px;
+    padding: 4px 10px;
     height: 26px;
     font-size: 11px;
     font-weight: 600;
@@ -81,10 +81,7 @@
 }
 .md-wn-week.current-week {
     background: var(--bg3);
-    border-top: 1px solid #3b82f6;
-    border-left: 1px solid #3b82f6;
-    border-right: 1px solid #3b82f6;
-    border-bottom: none;
+    border: 1px solid #3b82f6;
     color: var(--text);
 }
 .md-wn-week.active.current-week {
@@ -93,8 +90,8 @@
 }
 
 .md-wn-count {
-    padding: 2px 4px;
-    height: 20px;
+    padding: 4px 10px;
+    height: 26px;
     font-size: 10px;
     font-weight: 600;
     font-family: 'JetBrains Mono', monospace;
@@ -114,6 +111,7 @@
 .md-wn-count.current-week {
     background: var(--bg3);
     border: 1px solid #3b82f6;
+    border-top: none;
     color: var(--text);
 }
 

@@ -76,6 +76,11 @@ function navigateBack() {
     if (mState.activePage === 'Library') {
         if (mState.libStack.length > 0) {
             mState.libStack.pop();
+            if (mState.libStack.length === 0 && mState.diaryReturn) {
+                mState.diaryReturn = false;
+                switchPage('Diary');
+                return;
+            }
             restoreLibStack();
         }
     } else if (mState.activePage === 'SmartDesk') {

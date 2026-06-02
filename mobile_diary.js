@@ -319,7 +319,7 @@ function mdRenderContent() {
     if (isCurrent) {
         const toggle = document.createElement('div');
         toggle.className = 'md-mode-toggle';
-        [['completed', 'Completed'], ['tbc', 'To Be Done']].forEach(([m, label]) => {
+        [['completed', 'Completed'], ['tbc', 'To Be Completed']].forEach(([m, label]) => {
             const btn = document.createElement('button');
             btn.className = 'md-mode-btn' + (mdState.mode === m ? ' active' : '');
             btn.textContent = label;
@@ -344,11 +344,6 @@ function mdRenderContent() {
         container.appendChild(empty);
         return;
     }
-
-    const countEl = document.createElement('div');
-    countEl.className = 'md-entry-count';
-    countEl.textContent = `${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}`;
-    container.appendChild(countEl);
 
     const list = document.createElement('div');
     list.className = 'md-diary-list';
@@ -390,6 +385,13 @@ function mdMakeEntryCard(entry) {
     const card = document.createElement('div');
     card.className = 'md-entry-card';
     card.style.borderLeftColor = diffColor;
+    card.addEventListener('click', () => {
+        mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
+        mState.currentFileName = entry.fileName;
+        mState.diaryReturn = true;
+        switchPage('Library');
+        openSection(entry.sectionId, entry.sectionTitle, 'lib');
+    });
     card.innerHTML = `
         <div class="md-entry-top">
             <div class="md-entry-title">${escHtml(entry.sectionTitle)}</div>
