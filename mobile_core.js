@@ -182,6 +182,10 @@ function switchPage(page) {
         mState.sdInit = true;
         renderSDFileList();
     }
+
+    if (page === 'Diary') {
+        mdDiaryInit();
+    }
 }
 
 // ===== SYNC =====
