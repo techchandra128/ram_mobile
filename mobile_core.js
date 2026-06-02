@@ -167,6 +167,7 @@ function bindBottomNav() {
 
 function switchPage(page) {
     mState.activePage = page;
+    mState.diaryReturn = false;
 
     document.querySelectorAll('.m-page').forEach(p => p.classList.remove('active'));
     document.getElementById('pag' + page).classList.add('active');

@@ -391,10 +391,10 @@ function mdMakeEntryCard(entry, entryIdx) {
     card.addEventListener('click', () => {
         mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
         mState.currentFileName = entry.fileName;
-        mState.diaryReturn = true;
         mState.diaryEntries = mdState.currentEntries;
         mState.diaryEntryIndex = entryIdx;
         switchPage('Library');
+        mState.diaryReturn = true;
         openSection(entry.sectionId, entry.sectionTitle, 'lib');
     });
     card.innerHTML = `
