@@ -718,7 +718,9 @@ function parseCornellRight(html) {
         } else if (node.nodeName === 'P') {
             const t = node.textContent.trim();
             if (!t || node.innerHTML.replace(/\s/g,'') === '<br>') { items.push({ type: 'gap' }); return; }
-            const isDebulleted = node.classList.contains('c3-debulleted') || !!node.style.paddingLeft;
+            const isDebulleted = node.classList.contains('c3-debulleted')
+                || Array.from(node.classList).some(c => c.startsWith('docx-indent'))
+                || !!node.style.paddingLeft;
             if (isDebulleted && !/^[•·‣⁃]/.test(t)) { items.push({ type: 'indent', text: t }); return; }
             if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
             items.push({ type: 'text', text: t });
