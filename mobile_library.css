@@ -544,7 +544,7 @@
 .mn-h1 { font-size: 17px; font-weight: 700; color: var(--text); margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
 .mn-h1:first-child { margin-top: 0; }
 .mn-h2 { font-size: 15px; font-weight: 700; color: var(--text); margin: 14px 0 4px; }
-.mn-h3 { font-size: 13px; font-weight: 700; color: #cbd5e1; margin: 12px 0 3px; }
+.mn-h3 { font-size: 13px; font-weight: 700; color: #b8c5d6; margin: 12px 0 3px; }
 .mn-bullet { padding-left: 24px; position: relative; color: var(--text); font-size: 14px; margin: 2px 0; line-height: 1.5; }
 .mn-bullet::before { content: '•'; position: absolute; left: 10.75px; }
 .mn-indent { padding-left: 24px; color: var(--text); font-size: 14px; margin: 2px 0; line-height: 1.5; }
