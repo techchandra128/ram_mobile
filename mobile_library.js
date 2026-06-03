@@ -712,8 +712,10 @@ function parseCornellRight(html) {
     let inlineBuf = '';
 
     function flushInline() {
-        const t = inlineBuf.trim();
-        if (t) items.push({ type: 'text', text: t });
+        inlineBuf.split('\n').forEach(line => {
+            const t = line.trim();
+            if (t) items.push({ type: 'text', text: t });
+        });
         inlineBuf = '';
     }
 
@@ -753,7 +755,7 @@ function renderMobileRight(html) {
         if (item.type === 'bullet') return `<div class="mn-bullet">${escHtml(item.text)}</div>`;
         if (item.type === 'indent') return `<div class="mn-indent">${escHtml(item.text)}</div>`;
         if (item.type === 'gap')    return `<div class="mn-gap"></div>`;
-        return `<div class="mn-para">${escHtml(item.text)}</div>`;
+        return `<div class="mn-indent">${escHtml(item.text)}</div>`;
     }).join('');
 }
 
