@@ -720,14 +720,30 @@ function parseCornellRight(html) {
     }
 
     function processBlock(node) {
-        const t = node.textContent.trim();
-        if (!t || node.innerHTML.replace(/\s/g, '') === '<br>') { items.push({ type: 'gap' }); return; }
+        // Walk block content, treating <br> as line separators
+        const lines = [];
+        let cur = '';
+        function walk(n) {
+            if (n.nodeType === 3) { cur += n.textContent; return; }
+            if (n.nodeType !== 1) return;
+            if (n.nodeName === 'BR') { lines.push(cur); cur = ''; return; }
+            Array.from(n.childNodes).forEach(walk);
+        }
+        Array.from(node.childNodes).forEach(walk);
+        if (cur) lines.push(cur);
+
+        const nonEmpty = lines.map(l => l.trim()).filter(l => l);
+        if (!nonEmpty.length) { items.push({ type: 'gap' }); return; }
+
         const isDebulleted = node.classList.contains('c3-debulleted')
             || Array.from(node.classList).some(c => c.startsWith('docx-indent'))
             || !!node.style.paddingLeft;
-        if (isDebulleted && !/^[•·‣⁃]/.test(t)) { items.push({ type: 'indent', text: t }); return; }
-        if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
-        items.push({ type: 'text', text: t });
+
+        nonEmpty.forEach(t => {
+            if (isDebulleted && !/^[•·‣⁃]/.test(t)) { items.push({ type: 'indent', text: t }); return; }
+            if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
+            items.push({ type: 'text', text: t });
+        });
     }
 
     Array.from(doc.body.childNodes).forEach(node => {
