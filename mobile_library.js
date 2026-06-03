@@ -709,6 +709,11 @@ function parseCornellRight(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const items = [];
     Array.from(doc.body.childNodes).forEach(node => {
+        if (node.nodeType === 3) {
+            const t = node.textContent.trim();
+            if (t) items.push({ type: 'text', text: t });
+            return;
+        }
         if (node.nodeType !== 1) return;
         if (node.nodeName === 'UL' || node.nodeName === 'OL') {
             node.querySelectorAll('li').forEach(li => {
