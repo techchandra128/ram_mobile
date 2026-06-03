@@ -708,29 +708,43 @@ function parseCornellRight(html) {
     if (!html) return [];
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const items = [];
+    const BLOCK = new Set(['P', 'DIV', 'UL', 'OL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE']);
+    let inlineBuf = '';
+
+    function flushInline() {
+        const t = inlineBuf.trim();
+        if (t) items.push({ type: 'text', text: t });
+        inlineBuf = '';
+    }
+
+    function processBlock(node) {
+        const t = node.textContent.trim();
+        if (!t || node.innerHTML.replace(/\s/g, '') === '<br>') { items.push({ type: 'gap' }); return; }
+        const isDebulleted = node.classList.contains('c3-debulleted')
+            || Array.from(node.classList).some(c => c.startsWith('docx-indent'))
+            || !!node.style.paddingLeft;
+        if (isDebulleted && !/^[•·‣⁃]/.test(t)) { items.push({ type: 'indent', text: t }); return; }
+        if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
+        items.push({ type: 'text', text: t });
+    }
+
     Array.from(doc.body.childNodes).forEach(node => {
-        if (node.nodeType === 3) {
-            const t = node.textContent.trim();
-            if (t) items.push({ type: 'text', text: t });
-            return;
-        }
+        if (node.nodeType === 3) { inlineBuf += node.textContent; return; }
         if (node.nodeType !== 1) return;
         if (node.nodeName === 'UL' || node.nodeName === 'OL') {
+            flushInline();
             node.querySelectorAll('li').forEach(li => {
                 const t = li.textContent.trim();
                 if (t) items.push({ type: 'bullet', text: t });
             });
+        } else if (BLOCK.has(node.nodeName)) {
+            flushInline();
+            processBlock(node);
         } else {
-            const t = node.textContent.trim();
-            if (!t || node.innerHTML.replace(/\s/g,'') === '<br>') { items.push({ type: 'gap' }); return; }
-            const isDebulleted = node.classList.contains('c3-debulleted')
-                || Array.from(node.classList).some(c => c.startsWith('docx-indent'))
-                || !!node.style.paddingLeft;
-            if (isDebulleted && !/^[•·‣⁃]/.test(t)) { items.push({ type: 'indent', text: t }); return; }
-            if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
-            items.push({ type: 'text', text: t });
+            inlineBuf += node.textContent;
         }
     });
+    flushInline();
     return items;
 }
 
