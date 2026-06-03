@@ -543,8 +543,8 @@
 .mn-wrap { display: block; }
 .mn-h1 { font-size: 17px; font-weight: 700; color: var(--text); margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 2px solid var(--text-muted); }
 .mn-h1:first-child { margin-top: 0; }
-.mn-h2 { font-size: 15px; font-weight: 700; color: var(--text); margin: 14px 0 8px; padding-left: 29px; border-left: 2px solid var(--accent); }
-.mn-h3 { font-size: 15px; font-weight: 700; color: var(--text); margin: 14px 0 8px; padding-left: 29px; border-left: 2px solid var(--text-muted); }
+.mn-h2 { font-size: 15px; font-weight: 700; color: var(--text); margin: 14px 0 8px; padding-left: 9px; border-left: 2px solid var(--accent); }
+.mn-h3 { font-size: 15px; font-weight: 700; color: var(--text); margin: 14px 0 8px; padding-left: 9px; border-left: 2px solid var(--text-muted); }
 .mn-bullet { padding-left: 24px; position: relative; color: var(--text); font-size: 15px; margin: 2px 0; line-height: 1.5; }
 .mn-bullet::before { content: '•'; position: absolute; left: 10.75px; }
 .mn-indent { padding-left: 24px; color: var(--text); font-size: 15px; margin: 2px 0; line-height: 1.5; }
