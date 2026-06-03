@@ -718,7 +718,8 @@ function parseCornellRight(html) {
         } else if (node.nodeName === 'P') {
             const t = node.textContent.trim();
             if (!t || node.innerHTML.replace(/\s/g,'') === '<br>') { items.push({ type: 'gap' }); return; }
-            if (node.classList.contains('c3-debulleted')) { items.push({ type: 'indent', text: t }); return; }
+            const isDebulleted = node.classList.contains('c3-debulleted') || !!node.style.paddingLeft;
+            if (isDebulleted && !/^[•·‣⁃]/.test(t)) { items.push({ type: 'indent', text: t }); return; }
             if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
             items.push({ type: 'text', text: t });
         }
@@ -744,14 +745,21 @@ function renderTabletRight(html) {
     }).join('');
 }
 
+function normRows(cell) {
+    if (cell.rows && cell.rows.length) return cell.rows;
+    if (cell.left !== undefined || cell.right !== undefined) return [{ left: cell.left || '', right: cell.right || '', bgLeft: cell.bgLeft || '', bgRight: cell.bgRight || '' }];
+    if (cell.content !== undefined) return [{ content: cell.content || '', bg: cell.bg || '' }];
+    return [];
+}
+
 function renderMobileNotes(cells) {
     const parts = [];
     cells.forEach((cell, i) => {
         if (i > 0) parts.push('<div class="mn-cell-gap"></div>');
         const type = cell.type;
-        const rows = cell.rows || [];
+        const rows = normRows(cell);
         if (type === 'header') {
-            parts.push(`<div class="mn-h1">${escHtml(stripHtml(rows[0]?.content || cell.content || ''))}</div>`);
+            parts.push(`<div class="mn-h1">${escHtml(stripHtml(rows[0]?.content || ''))}</div>`);
         } else if (type === 'code') {
             parts.push(`<pre class="mn-code">${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`);
         } else if (type === 'header-cornell') {
@@ -782,9 +790,9 @@ function renderTabletNotes(cells) {
     const parts = [];
     cells.forEach(cell => {
         const type = cell.type;
-        const rows = cell.rows || [];
+        const rows = normRows(cell);
         if (type === 'header') {
-            const t = escHtml(stripHtml(rows[0]?.content || cell.content || ''));
+            const t = escHtml(stripHtml(rows[0]?.content || ''));
             parts.push(`<div class="tab-cell"><div class="tab-cell-body header">${t}</div></div>`);
         } else if (type === 'code') {
             const t = rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n');
