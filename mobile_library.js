@@ -704,8 +704,111 @@ function renderNotesTab(container) {
 
 }
 
+function parseCornellRight(html) {
+    if (!html) return [];
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const items = [];
+    Array.from(doc.body.childNodes).forEach(node => {
+        if (node.nodeType !== 1) return;
+        if (node.nodeName === 'UL' || node.nodeName === 'OL') {
+            node.querySelectorAll('li').forEach(li => {
+                const t = li.textContent.trim();
+                if (t) items.push({ type: 'bullet', text: t });
+            });
+        } else if (node.nodeName === 'P') {
+            const t = node.textContent.trim();
+            if (!t || node.innerHTML.replace(/\s/g,'') === '<br>') { items.push({ type: 'gap' }); return; }
+            if (node.classList.contains('c3-debulleted')) { items.push({ type: 'indent', text: t }); return; }
+            if (/^[•·‣⁃]/.test(t)) { items.push({ type: 'bullet', text: t.replace(/^[•·‣⁃\s]+/, '') }); return; }
+            items.push({ type: 'text', text: t });
+        }
+    });
+    return items;
+}
+
+function renderMobileRight(html) {
+    return parseCornellRight(html).map(item => {
+        if (item.type === 'bullet') return `<div class="mn-bullet">${escHtml(item.text)}</div>`;
+        if (item.type === 'indent') return `<div class="mn-indent">${escHtml(item.text)}</div>`;
+        if (item.type === 'gap')    return `<div class="mn-gap"></div>`;
+        return `<div class="mn-para">${escHtml(item.text)}</div>`;
+    }).join('');
+}
+
+function renderTabletRight(html) {
+    return parseCornellRight(html).map(item => {
+        if (item.type === 'bullet') return `<p class="bulleted">${escHtml(item.text)}</p>`;
+        if (item.type === 'indent') return `<p class="c3-debulleted">${escHtml(item.text)}</p>`;
+        if (item.type === 'gap')    return `<p class="gap"></p>`;
+        return `<p>${escHtml(item.text)}</p>`;
+    }).join('');
+}
+
+function renderMobileNotes(cells) {
+    const parts = [];
+    cells.forEach((cell, i) => {
+        if (i > 0) parts.push('<div class="mn-cell-gap"></div>');
+        const type = cell.type;
+        const rows = cell.rows || [];
+        if (type === 'header') {
+            parts.push(`<div class="mn-h1">${escHtml(stripHtml(rows[0]?.content || cell.content || ''))}</div>`);
+        } else if (type === 'code') {
+            parts.push(`<pre class="mn-code">${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`);
+        } else if (type === 'header-cornell') {
+            rows.forEach(r => {
+                const lt = stripHtml(r.left || '').trim();
+                if (lt) parts.push(`<div class="mn-h2">${escHtml(lt)}</div>`);
+                parts.push(renderMobileRight(r.right || ''));
+            });
+        } else if (type === 'cornell') {
+            rows.forEach(r => {
+                const lt = stripHtml(r.left || '').trim();
+                if (lt) parts.push(`<div class="mn-h3">${escHtml(lt)}</div>`);
+                parts.push(renderMobileRight(r.right || ''));
+            });
+        } else if (type === 'normal') {
+            rows.forEach(r => {
+                const content = r.content || '';
+                if (content.includes('<table')) { parts.push(renderTableFromHtml(content)); return; }
+                const t = stripHtml(content);
+                if (t) parts.push(`<div class="mn-para">${escHtml(t)}</div>`);
+            });
+        }
+    });
+    return `<div class="mn-wrap">${parts.join('')}</div>`;
+}
+
+function renderTabletNotes(cells) {
+    const parts = [];
+    cells.forEach(cell => {
+        const type = cell.type;
+        const rows = cell.rows || [];
+        if (type === 'header') {
+            const t = escHtml(stripHtml(rows[0]?.content || cell.content || ''));
+            parts.push(`<div class="tab-cell"><div class="tab-cell-body header">${t}</div></div>`);
+        } else if (type === 'code') {
+            const t = rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n');
+            parts.push(`<div class="tab-cell"><div class="tab-cell-body code">${t}</div></div>`);
+        } else if (type === 'normal') {
+            const t = escHtml(rows.map(r => stripHtml(r.content || '')).filter(Boolean).join(' '));
+            if (t) parts.push(`<div class="tab-cell"><div class="tab-cell-body">${t}</div></div>`);
+        } else if (type === 'cornell' || type === 'header-cornell') {
+            const isHC = type === 'header-cornell';
+            const rowsHtml = rows.map(r => {
+                const lt = escHtml(stripHtml(r.left || '').trim());
+                const rt = renderTabletRight(r.right || '');
+                const lCls = isHC ? 'tab-cell-left hcornell' : 'tab-cell-left';
+                return `<div class="tab-cell-row"><div class="${lCls}">${lt}</div><div class="tab-cell-right">${rt}</div></div>`;
+            }).join('');
+            if (rowsHtml) parts.push(`<div class="tab-cell">${rowsHtml}</div>`);
+        }
+    });
+    return `<div class="tab-wrap">${parts.join('')}</div>`;
+}
+
 function renderNoteContent(version) {
     if (!version) return '';
+    const isTablet = window.innerWidth >= 768;
     if (version.template === 'plain' && version.html) {
         const html = version.html;
         if (html.includes('<table')) {
@@ -719,42 +822,7 @@ function renderNoteContent(version) {
         return `<p>${escHtml(stripHtml(html))}</p>`;
     }
     if (!version?.cells) return `<p>${escHtml(version?.content || '')}</p>`;
-    return version.cells.map(cell => {
-        const type = cell.type;
-        const rows = cell.rows || [];
-        if (type === 'header') {
-            return rows.map(r => {
-                const bg = r.bg ? ` style="background:${r.bg}"` : '';
-                return `<div class="m-note-header"${bg}>${escHtml(stripHtml(r.content || ''))}</div>`;
-            }).join('') || `<div class="m-note-header">${escHtml(stripHtml(cell.content || ''))}</div>`;
-        }
-        if (type === 'code') {
-            const bg = cell.bg ? ` style="background:${cell.bg}"` : '';
-            return `<pre class="m-note-code"${bg}>${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`;
-        }
-        if (type === 'cornell' || type === 'header-cornell') {
-            const isHC = type === 'header-cornell';
-            const toLines = html => stripHtml(html).split('\n').map(l => l.trim().replace(/^[•·‣⁃\-\*○●>\s]+/, '')).filter(Boolean).map(escHtml).join('<br>');
-            return rows.map(r => {
-                const left = stripHtml(r.left || '').trim();
-                const right = stripHtml(r.right || '').trim();
-                if (!left && !right) return '';
-                const lStyle = r.bgLeft ? ` style="background:${r.bgLeft}"` : '';
-                const rStyle = r.bgRight ? ` style="background:${r.bgRight}"` : '';
-                const cls = isHC ? 'm-note-cornell m-note-hcornell' : 'm-note-cornell';
-                return `<div class="${cls}"><div class="m-note-cornell-left"${lStyle}>${toLines(r.left || '')}</div><div class="m-note-cornell-right"${rStyle}>${toLines(r.right || '')}</div></div>`;
-            }).filter(Boolean).join('');
-        }
-        if (type === 'normal') {
-            return rows.map(r => {
-                const content = r.content || '';
-                if (content.includes('<table')) return renderTableFromHtml(content);
-                const text = stripHtml(content);
-                return text ? `<p>${escHtml(text)}</p>` : '';
-            }).filter(Boolean).join('');
-        }
-        return '';
-    }).join('');
+    return isTablet ? renderTabletNotes(version.cells) : renderMobileNotes(version.cells);
 }
 
 function stripHtml(html) {
@@ -820,14 +888,12 @@ async function markAsStudied() {
         }
         if (!filled) { hideSyncBarAfter('All revision slots filled', 'error', 2000); return; }
     }
-    showSyncBar('Saving...', 'default');
     const c5Key = `c5_sectionStore_${mState.currentFileId}`;
     localStorage.setItem(c5Key, JSON.stringify(c5Store));
     localStorage.setItem(`__ts_${c5Key}`, Date.now().toString());
-    await pushToSupabase(c5Key, JSON.stringify(c5Store));
-    hideSyncBarAfter('Saved ✓', 'success', 2000);
     const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
     renderDetailTab('notes', contentId);
+    pushToSupabase(c5Key, JSON.stringify(c5Store));
 }
 
 // ===== C5 TAB =====
@@ -962,12 +1028,10 @@ function renderC5Tab(container) {
 }
 
 async function saveC5(c5Store) {
-    showSyncBar('Saving...', 'default');
     const c5Key = `c5_sectionStore_${mState.currentFileId}`;
     localStorage.setItem(c5Key, JSON.stringify(c5Store));
     localStorage.setItem(`__ts_${c5Key}`, Date.now().toString());
     await pushToSupabase(c5Key, JSON.stringify(c5Store));
-    hideSyncBarAfter('Saved ✓', 'success', 2000);
 }
 
 // ===== C4 OBSERVATIONS STATE =====
@@ -1112,7 +1176,6 @@ function _c4FormatTs(note) {
 }
 
 async function _c4Save() {
-    showSyncBar('Saving...', 'default');
     const notesKey = `c4_allSectionNotes_${mState.currentFileId}`;
     const catsKey = `c4_categories_${mState.currentFileId}`;
     localStorage.setItem(notesKey, JSON.stringify(mC4.allNotes));
@@ -1121,7 +1184,6 @@ async function _c4Save() {
     localStorage.setItem(`__ts_${catsKey}`, Date.now().toString());
     await pushToSupabase(notesKey, JSON.stringify(mC4.allNotes));
     await pushToSupabase(catsKey, JSON.stringify(mC4.categories));
-    hideSyncBarAfter('Saved ✓', 'success', 2000);
 }
 
 // ===== C4 ADD/EDIT MODAL =====

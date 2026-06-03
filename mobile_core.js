@@ -9,7 +9,7 @@ const GLOBAL_KEYS = ['ram_theme', 'ram_homepage', 'ram_smartDesk', 'ram_mobile_t
 // ===== STATE =====
 const mState = {
     syncData: null,
-    activePage: 'Library',   // Library | SmartDesk | Diary | Dashboard
+    activePage: 'Diary',   // Library | SmartDesk | Diary | Dashboard
 
     // Library navigation stack: [{screen, title, extra}]
     libStack: [],
@@ -196,7 +196,7 @@ function switchPage(page) {
 
 // ===== SYNC =====
 async function loadSyncData(manual = false) {
-    showSyncBar('Syncing...', 'default');
+    if (manual) showSyncBar('Syncing...', 'default');
     try {
         const [syncRes, globalRes] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/sync_data?select=key,value,updated_at`, { headers: SB_HEADERS }),
@@ -223,9 +223,10 @@ async function loadSyncData(manual = false) {
         mState.syncData.fileSystem = fsRow ? (typeof fsRow.value === 'string' ? fsRow.value : JSON.stringify(fsRow.value)) : localStorage.getItem('ram_fileSystem');
         mState.syncData.files = {};
 
-        hideSyncBarAfter('Synced ✓', 'success', 2000);
+        if (manual) hideSyncBarAfter('Synced ✓', 'success', 2000);
         renderLibraryRoot();
         renderSDFileList();
+        mdDiaryInit();
         hideLoading();
     } catch(e) {
         hideSyncBarAfter('Sync failed.', 'error', 3000);
