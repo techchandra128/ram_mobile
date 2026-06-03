@@ -715,7 +715,7 @@ function parseCornellRight(html) {
                 const t = li.textContent.trim();
                 if (t) items.push({ type: 'bullet', text: t });
             });
-        } else if (node.nodeName === 'P') {
+        } else {
             const t = node.textContent.trim();
             if (!t || node.innerHTML.replace(/\s/g,'') === '<br>') { items.push({ type: 'gap' }); return; }
             const isDebulleted = node.classList.contains('c3-debulleted')
