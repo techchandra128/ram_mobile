@@ -802,14 +802,16 @@ function renderMobileNotes(cells) {
         } else if (type === 'code') {
             parts.push(`<pre class="mn-code">${rows.map(r => escHtml(stripHtml(r.content || ''))).join('\n')}</pre>`);
         } else if (type === 'header-cornell') {
-            rows.forEach(r => {
+            rows.forEach((r, ri) => {
                 const lt = stripHtml(r.left || '').trim();
+                if (ri > 0 && !lt) parts.push('<div class="mn-gap"></div>');
                 if (lt) parts.push(`<div class="mn-h2">${escHtml(lt)}</div>`);
                 parts.push(renderMobileRight(r.right || ''));
             });
         } else if (type === 'cornell') {
-            rows.forEach(r => {
+            rows.forEach((r, ri) => {
                 const lt = stripHtml(r.left || '').trim();
+                if (ri > 0 && !lt) parts.push('<div class="mn-gap"></div>');
                 if (lt) parts.push(`<div class="mn-h3">${escHtml(lt)}</div>`);
                 parts.push(renderMobileRight(r.right || ''));
             });
