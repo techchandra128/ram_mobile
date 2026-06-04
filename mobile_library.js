@@ -1091,10 +1091,10 @@ function renderC5Tab(container) {
         topChip.textContent = ordinal(i + 1);
         box.appendChild(topChip);
 
-        if (state !== 'locked' && state !== 'activated') {
+        if ((state === 'filled' || state === 'filled-past') && rev.date) {
             const dateEl = document.createElement('span');
             dateEl.className = 'm-c5-box-date';
-            dateEl.textContent = state === 'editable' ? 'Tap' : rev.date;
+            dateEl.textContent = rev.date;
             box.appendChild(dateEl);
         }
 
@@ -1105,19 +1105,31 @@ function renderC5Tab(container) {
             box.appendChild(botChip);
         }
 
-        if (state === 'editable') {
+        if (state === 'editable' || state === 'filled') {
             box.addEventListener('click', () => {
-                const dateStr = prompt('Enter study date (DD/MM):');
-                if (!dateStr) return;
-                const yr = prompt('Enter year:') || String(new Date().getFullYear());
-                c5.revisions[i] = { date: dateStr.trim(), year: yr.trim() };
-                saveC5(c5Store).then(rerender);
-            });
-        } else if (state === 'filled') {
-            box.addEventListener('click', () => {
-                if (!confirm('Clear this revision date?')) return;
-                c5.revisions[i] = { date: null, year: null };
-                saveC5(c5Store).then(rerender);
+                const dp = document.createElement('input');
+                dp.type = 'date';
+                dp.style.cssText = 'position:fixed;opacity:0;pointer-events:none;top:0;left:0;width:1px;height:1px;';
+                if (rev.date) {
+                    const [d, m] = rev.date.split('/');
+                    const y = rev.year || new Date().getFullYear();
+                    dp.value = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                }
+                document.body.appendChild(dp);
+                dp.addEventListener('change', async () => {
+                    const val = dp.value;
+                    if (document.body.contains(dp)) document.body.removeChild(dp);
+                    if (!val) return;
+                    const [yr, mo, dy] = val.split('-');
+                    c5.revisions[i] = { date: `${dy}/${mo}`, year: yr };
+                    await saveC5(c5Store);
+                    rerender();
+                });
+                dp.addEventListener('blur', () => {
+                    setTimeout(() => { if (document.body.contains(dp)) document.body.removeChild(dp); }, 500);
+                });
+                dp.click();
+                dp.focus();
             });
         }
 

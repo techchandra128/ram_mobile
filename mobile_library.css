@@ -290,6 +290,30 @@
 
 /* ===== C5 — NEW PROGRESS TAB ===== */
 
+/* C5 box theme variables */
+[data-theme="dark"] {
+    --c5-box-bg: #1a2436;
+    --c5-box-border: #333333;
+    --c5-chip-bg: #151e2d;
+    --c5-chip-color: #6b6b6b;
+    --c5-box-text: #e8e8e8;
+    --c5-activated-bg: #1a3a5c;
+    --c5-filled-bg: #1a2e1a;
+    --c5-act-blue-bg: #1a3a5c;
+    --c5-act-red-bg: #2e1a1a;
+}
+[data-theme="light"] {
+    --c5-box-bg: #e8f0f8;
+    --c5-box-border: #94a3b8;
+    --c5-chip-bg: #d1dce8;
+    --c5-chip-color: #64748b;
+    --c5-box-text: #1e293b;
+    --c5-activated-bg: #dbeafe;
+    --c5-filled-bg: #dcfce7;
+    --c5-act-blue-bg: #dbeafe;
+    --c5-act-red-bg: #fef2f2;
+}
+
 /* Ring card */
 .m-c5-ring-card {
     background: var(--card-bg);
@@ -346,46 +370,45 @@
 /* Base box */
 .m-c5-box {
     position: relative; height: 52px;
-    border: 1px solid #333333; border-radius: 8px; background: #1a2436;
+    border: 1px solid var(--c5-box-border); border-radius: 8px; background: var(--c5-box-bg);
     display: flex; align-items: center; justify-content: center;
     cursor: default; overflow: visible;
 }
 .m-c5-box-top {
     position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-    background: #151e2d; border: 1px solid #333333; border-radius: 4px;
-    padding: 0 4px; font-size: 9px; font-weight: 600; color: #6b6b6b;
+    background: var(--c5-chip-bg); border: 1px solid var(--c5-box-border); border-radius: 4px;
+    padding: 0 4px; font-size: 9px; font-weight: 600; color: var(--c5-chip-color);
     white-space: nowrap; line-height: 16px; height: 16px; pointer-events: none;
 }
-.m-c5-box-date { font-size: 13px; font-weight: 700; color: #e8e8e8; line-height: 1; }
+.m-c5-box-date { font-size: 13px; font-weight: 700; color: var(--c5-box-text); line-height: 1; }
 .m-c5-box-bottom {
     position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-    background: #151e2d; border: 1px solid #333333; border-radius: 4px;
-    padding: 0 4px; font-size: 9px; font-weight: 500; color: #6b6b6b;
+    background: var(--c5-chip-bg); border: 1px solid var(--c5-box-border); border-radius: 4px;
+    padding: 0 4px; font-size: 9px; font-weight: 500; color: var(--c5-chip-color);
     white-space: nowrap; line-height: 16px; height: 16px; pointer-events: none;
 }
 .m-c5-box.locked { opacity: 0.5; cursor: not-allowed; }
-.m-c5-box.activated { background: #1a3a5c; border: 2px dashed #4d9fec; }
-.m-c5-box.activated .m-c5-box-top { background: #1a3a5c; border-color: #4d9fec; color: #4d9fec; }
-.m-c5-box.editable { background: #1a3a5c; border: 2px dashed #4d9fec; cursor: pointer; }
-.m-c5-box.editable .m-c5-box-top { background: #1a3a5c; border-color: #4d9fec; color: #4d9fec; }
-.m-c5-box.editable .m-c5-box-date { font-size: 10px; color: #4d9fec; }
-.m-c5-box.filled-past { background: #1a2e1a; border-color: #166534; opacity: 0.6; }
-.m-c5-box.filled-past .m-c5-box-top { background: #1a2e1a; border-color: #166534; color: #166534; }
-.m-c5-box.filled-past .m-c5-box-bottom { background: #1a2e1a; border-color: #166534; color: #166534; }
-.m-c5-box.filled { background: #1a2e1a; border-color: #4ec994; cursor: pointer; }
-.m-c5-box.filled .m-c5-box-top { background: #1a2e1a; border-color: #4ec994; color: #4ec994; }
-.m-c5-box.filled .m-c5-box-bottom { background: #1a2e1a; border-color: #4ec994; color: #4ec994; }
+.m-c5-box.activated { background: var(--c5-activated-bg); border: 2px dashed #4d9fec; }
+.m-c5-box.activated .m-c5-box-top { background: var(--c5-activated-bg); border-color: #4d9fec; color: #4d9fec; }
+.m-c5-box.editable { background: var(--c5-activated-bg); border: 2px dashed #4d9fec; cursor: pointer; }
+.m-c5-box.editable .m-c5-box-top { background: var(--c5-activated-bg); border-color: #4d9fec; color: #4d9fec; }
+.m-c5-box.filled-past { background: var(--c5-filled-bg); border-color: #166534; opacity: 0.6; }
+.m-c5-box.filled-past .m-c5-box-top { background: var(--c5-filled-bg); border-color: #166534; color: #166634; }
+.m-c5-box.filled-past .m-c5-box-bottom { background: var(--c5-filled-bg); border-color: #166534; color: #166634; }
+.m-c5-box.filled { background: var(--c5-filled-bg); border-color: #4ec994; cursor: pointer; }
+.m-c5-box.filled .m-c5-box-top { background: var(--c5-filled-bg); border-color: #4ec994; color: #4ec994; }
+.m-c5-box.filled .m-c5-box-bottom { background: var(--c5-filled-bg); border-color: #4ec994; color: #4ec994; }
 
 /* Action buttons */
-.m-c5-act-row { display: flex; gap: 8px; padding: 8px 10px 12px; }
+.m-c5-act-row { display: flex; gap: 8px; padding: 8px 10px 12px; border-top: 1px solid var(--card-border); }
 .m-c5-act-btn {
     flex: 1; padding: 8px 6px; border-radius: 7px; font-size: 12px; font-weight: 600;
     cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
     color: var(--text-muted); font-family: inherit;
 }
 .m-c5-act-btn:disabled { opacity: 0.35; cursor: default; }
-.m-c5-act-btn.blue { background: #1a3a5c; border-color: #4d9fec; color: #4d9fec; }
-.m-c5-act-btn.red { background: #2e1a1a; border-color: #f47067; color: #f47067; }
+.m-c5-act-btn.blue { background: var(--c5-act-blue-bg); border-color: #4d9fec; color: #4d9fec; }
+.m-c5-act-btn.red { background: var(--c5-act-red-bg); border-color: #f47067; color: #f47067; }
 
 /* Difficulty + Priority card */
 .m-c5-dp-card {
