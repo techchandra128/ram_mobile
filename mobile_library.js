@@ -1196,7 +1196,8 @@ function renderC5Tab(container) {
     const diffColors = { Easy:'#22c55e', Moderate:'#f59e0b', Challenging:'#f97316', Hard:'#ef4444' };
     const prioColors = { Low:'#94a3b8', Medium:'#3b82f6', High:'#f97316', Critical:'#ef4444' };
 
-    function makeDropdown(options, current, colors, onSelect) {
+    function makeDropdown(options, current, colors, onSelect, labelMap) {
+        const label = key => (labelMap && labelMap[key]) || key;
         const wrap = document.createElement('div');
         wrap.className = 'm-c5-dp-trigger';
         const dot = document.createElement('span');
@@ -1204,7 +1205,7 @@ function renderC5Tab(container) {
         dot.style.background = colors[current] || '#94a3b8';
         const lbl = document.createElement('span');
         lbl.className = 'm-c5-dp-val';
-        lbl.textContent = current;
+        lbl.textContent = label(current);
         const arrow = document.createElement('span');
         arrow.className = 'm-c5-dp-arrow';
         arrow.textContent = '▼';
@@ -1217,11 +1218,11 @@ function renderC5Tab(container) {
             itemDot.className = 'm-c5-dp-dot';
             itemDot.style.background = colors[opt];
             item.appendChild(itemDot);
-            item.appendChild(document.createTextNode(opt));
+            item.appendChild(document.createTextNode(label(opt)));
             item.addEventListener('click', e => {
                 e.stopPropagation();
                 dot.style.background = colors[opt];
-                lbl.textContent = opt;
+                lbl.textContent = label(opt);
                 menu.querySelectorAll('.m-c5-dp-option').forEach(o => o.classList.remove('selected'));
                 item.classList.add('selected');
                 wrap.classList.remove('active');
@@ -1267,47 +1268,24 @@ function renderC5Tab(container) {
     // ===== 4. SCHEDULE CARD =====
     const seriesColors = { prime:'#4d9fec', fibonacci:'#4ec994', triangular:'#ddb56a', regular:'#e8834a', custom:'#a78bfa' };
     const seriesNames  = { prime:'Prime', fibonacci:'Fibonacci', triangular:'Triangular', regular:'Regular', custom:'Custom' };
-    const curSeries = c5.scheduleType || 'prime';
 
     const schedCard = document.createElement('div');
     schedCard.className = 'm-c5-sched-card';
 
-    // Revision Series row — opens series modal
+    // Revision Series row — simple dropdown
     const seriesRow = document.createElement('div');
     seriesRow.className = 'm-c5-sched-row';
     const seriesRowLabel = document.createElement('span');
     seriesRowLabel.className = 'm-c5-sched-label';
     seriesRowLabel.textContent = 'Revision Series';
-    const seriesBtn = document.createElement('div');
-    seriesBtn.className = 'm-c5-dp-trigger';
-    seriesBtn.innerHTML = `
-        <span class="m-c5-dp-dot" style="background:${seriesColors[curSeries]||'#4d9fec'}"></span>
-        <span class="m-c5-dp-val">${seriesNames[curSeries]||'Prime'}</span>
-        <span class="m-c5-dp-arrow">&#9660;</span>
-    `;
-    seriesBtn.addEventListener('click', () => {
-        if (typeof window.openSeriesModal !== 'function') return;
-        window.openSeriesModal({
-            revisions: c5.revisions,
-            scheduleType: c5.scheduleType || 'prime',
-            scheduleN: c5.scheduleN,
-            smCustomGaps: c5.smCustomGaps,
-            smRpw: c5.smRpw,
-            smPerSlotRpw: c5.smPerSlotRpw,
-            mode: 'settings',
-            onSave: async saved => {
-                if (saved.scheduleType) c5.scheduleType = saved.scheduleType;
-                if (saved.scheduleN !== undefined) c5.scheduleN = saved.scheduleN;
-                if (saved.smCustomGaps) c5.smCustomGaps = saved.smCustomGaps;
-                if (saved.smRpw !== undefined) c5.smRpw = saved.smRpw;
-                if (saved.smPerSlotRpw) c5.smPerSlotRpw = saved.smPerSlotRpw;
-                if (saved.revisions) c5.revisions = saved.revisions;
-                await saveC5(c5Store); rerender();
-            }
-        });
-    });
     seriesRow.appendChild(seriesRowLabel);
-    seriesRow.appendChild(seriesBtn);
+    seriesRow.appendChild(makeDropdown(
+        ['prime','fibonacci','triangular','regular','custom'],
+        c5.scheduleType || 'prime',
+        seriesColors,
+        async val => { c5.scheduleType = val; await saveC5(c5Store); rerender(); },
+        seriesNames
+    ));
     schedCard.appendChild(seriesRow);
 
     // Badge Status row
@@ -1315,9 +1293,10 @@ function renderC5Tab(container) {
     try {
         const badge = window.smGetCurrentWeekBadge ? window.smGetCurrentWeekBadge(c5) : null;
         if (badge) {
-            if (badge.status === 'done')           { badgeText = `Slot ${badge.slot} — Done ✅`; badgeClass = 'done'; }
-            else if (badge.status === 'scheduled') { badgeText = `Slot ${badge.slot} — Due`; badgeClass = 'scheduled'; }
-            else if (badge.status === 'missed')    { badgeText = `Slot ${badge.slot} — Missed`; badgeClass = 'missed'; }
+            badgeText = badge.label || badge.type;
+            if (badge.type === 'done')                                         badgeClass = 'done';
+            else if (badge.type === 'scheduled' || badge.type === 'in-progress' || badge.type === 'hunting-current' || badge.type === 'defending-current') badgeClass = 'scheduled';
+            else if (badge.type === 'missed' || badge.type === 'partial' || badge.type === 'not-done') badgeClass = 'missed';
         }
     } catch(e) {}
     const badgeRow = document.createElement('div');
