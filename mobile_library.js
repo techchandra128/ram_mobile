@@ -1148,12 +1148,25 @@ function renderC5Tab(container) {
     const actRow = document.createElement('div');
     actRow.className = 'm-c5-act-row';
 
+    const allActivatedFilled = c5.revisions.slice(0, activatedCount).every(r => r?.date);
+
     const activateBtn = document.createElement('button');
     activateBtn.className = 'm-c5-act-btn blue';
     activateBtn.textContent = 'Activate More';
-    activateBtn.disabled = activatedCount >= totalSlots;
+    activateBtn.disabled = !allActivatedFilled;
     activateBtn.addEventListener('click', async () => {
-        c5.activatedCount = Math.min(activatedCount + 4, totalSlots);
+        const curActivated = c5.activatedCount;
+        if (!c5.revisions.slice(0, curActivated).every(r => r?.date)) return;
+        if (curActivated < c5.totalSlots) {
+            c5.activatedCount = Math.min(curActivated + 4, c5.totalSlots);
+        } else {
+            const newSlots = Array(12).fill(null).map(() => ({ date: null, year: null }));
+            c5.revisions.push(...newSlots);
+            c5.totalSlots += 12;
+            c5.activatedCount += 4;
+            c5.page = Math.floor((c5.totalSlots - 12) / 12);
+        }
+        c5.isCompleted = false;
         await saveC5(c5Store); rerender();
     });
 
