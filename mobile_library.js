@@ -949,30 +949,239 @@ async function markAsStudied() {
 function renderC5Tab(container) {
     const fileData = getFileData(mState.currentFileId);
     const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
-    const c5 = c5Store[mState.currentSectionId];
-    if (!c5) { container.innerHTML = '<div class="m-empty">No progress data yet.</div>'; return; }
+    const sectionId = mState.currentSectionId;
+    if (!c5Store[sectionId]) {
+        c5Store[sectionId] = {
+            isCompleted: false, difficulty: 'Easy', priority: 'Low',
+            revisions: Array(12).fill(null).map(() => ({ date: null, year: null })),
+            totalSlots: 12, activatedCount: 4, page: 0,
+            scheduleType: 'prime', revisionOn: true
+        };
+    }
+    const c5 = c5Store[sectionId];
+    if (!c5.scheduleType) c5.scheduleType = 'prime';
+    if (c5.revisionOn === undefined) c5.revisionOn = true;
 
+    const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
+    function rerender() { renderDetailTab('c5', contentId); }
+
+    function ordinal(n) {
+        const s = ['th','st','nd','rd'], v = n % 100;
+        return n + (s[(v-20)%10] || s[v] || s[0]);
+    }
+
+    // ===== COMPUTED VALUES =====
+    const filledCount = c5.revisions.filter(r => r?.date).length;
+    const activatedCount = c5.activatedCount || 4;
+    const pct = activatedCount > 0 ? Math.round(filledCount / activatedCount * 100) : 0;
+
+    function getProficiency(p) {
+        if (p === 0) return { label: 'No Data', color: 'var(--text-muted)' };
+        if (p <= 20) return { label: 'Beginner', color: '#f97316' };
+        if (p <= 40) return { label: 'Developing', color: '#f59e0b' };
+        if (p <= 60) return { label: 'Competent', color: '#f97316' };
+        if (p <= 80) return { label: 'Proficient', color: '#3b82f6' };
+        return { label: 'Mastered', color: '#22c55e' };
+    }
+    function getRingColor(p) {
+        if (p === 0) return '#334155';
+        if (p <= 40) return '#f97316';
+        if (p <= 70) return '#f59e0b';
+        if (p <= 90) return '#3b82f6';
+        return '#22c55e';
+    }
+    function getLastStudy() {
+        const today = new Date(); let latest = null;
+        c5.revisions.forEach(r => {
+            if (!r?.date) return;
+            const [d, m] = r.date.split('/');
+            const dt = new Date(r.year || today.getFullYear(), m-1, d);
+            if (!latest || dt > latest) latest = dt;
+        });
+        if (!latest) return 'Never';
+        const days = Math.floor((today - latest) / 86400000);
+        if (days === 0) return 'Today';
+        if (days === 1) return '1d ago';
+        if (days < 7) return days + 'd ago';
+        const wks = Math.floor(days / 7);
+        if (wks < 5) return wks + 'w ago';
+        return Math.floor(days / 30) + 'mo ago';
+    }
+
+    const proficiency = getProficiency(pct);
+    const ringColor = getRingColor(pct);
+    const circumference = 408.4;
+    const dashOffset = circumference - (circumference * pct / 100);
+
+    // ===== 1. RING CARD =====
+    const ringCard = document.createElement('div');
+    ringCard.className = 'm-c5-ring-card';
+    ringCard.innerHTML = `
+        <div class="m-c5-ring-wrap">
+            <svg viewBox="0 0 148 148" width="148" height="148" style="transform:rotate(-90deg)">
+                <circle class="m-c5-ring-bg" cx="74" cy="74" r="65"/>
+                <circle class="m-c5-ring-fill" cx="74" cy="74" r="65"
+                    style="stroke:${ringColor};stroke-dashoffset:${dashOffset}"/>
+            </svg>
+            <div class="m-c5-ring-center">
+                <div class="m-c5-ring-pct">${pct}%</div>
+                <div class="m-c5-ring-label">Section</div>
+            </div>
+        </div>
+        <div class="m-c5-stats-row">
+            <div class="m-c5-stat-chip">
+                <div class="m-c5-stat-val">${String(filledCount).padStart(2,'0')}</div>
+                <div class="m-c5-stat-key">Revisions</div>
+            </div>
+            <div class="m-c5-stat-chip">
+                <div class="m-c5-stat-val" style="color:${proficiency.color}">${proficiency.label}</div>
+                <div class="m-c5-stat-key">Proficiency</div>
+            </div>
+            <div class="m-c5-stat-chip">
+                <div class="m-c5-stat-val">${getLastStudy()}</div>
+                <div class="m-c5-stat-key">Last Study</div>
+            </div>
+        </div>
+    `;
+    container.appendChild(ringCard);
+
+    // ===== 2. REVISION BOXES =====
+    const page = c5.page || 0;
+    const totalSlots = c5.totalSlots || 12;
+    const pageSize = 12;
+    const totalPages = Math.ceil(totalSlots / pageSize);
+    const startIdx = page * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalSlots);
+    const lastFilledIdx = c5.revisions.reduce((max, r, i) => r?.date ? i : max, -1);
+
+    const revSection = document.createElement('div');
+    revSection.className = 'm-c5-rev-section';
+    revSection.innerHTML = `
+        <div class="m-c5-rev-header">
+            <span class="m-c5-rev-title">Revision Dates</span>
+            <div class="m-c5-pag-row">
+                <button class="m-c5-pag-btn" id="mc5PagPrev" ${page === 0 ? 'disabled' : ''}>&#8249;</button>
+                <span class="m-c5-pag-info">${page+1} / ${totalPages}</span>
+                <button class="m-c5-pag-btn" id="mc5PagNext" ${page >= totalPages-1 ? 'disabled' : ''}>&#8250;</button>
+            </div>
+        </div>
+    `;
+
+    const boxesGrid = document.createElement('div');
+    boxesGrid.className = 'm-c5-boxes-grid';
+
+    for (let i = startIdx; i < endIdx; i++) {
+        const rev = c5.revisions[i] || { date: null, year: null };
+        const isActivated = i < activatedCount;
+        const isFilled = !!rev.date;
+        const isLastFilled = i === lastFilledIdx;
+        const isEditable = !isFilled && isActivated && i === lastFilledIdx + 1;
+
+        let state = 'locked';
+        if (isFilled && !isLastFilled) state = 'filled-past';
+        else if (isFilled && isLastFilled) state = 'filled';
+        else if (isEditable) state = 'editable';
+        else if (isActivated) state = 'activated';
+
+        const box = document.createElement('div');
+        box.className = `m-c5-box ${state}`;
+
+        const topChip = document.createElement('span');
+        topChip.className = 'm-c5-box-top';
+        topChip.textContent = ordinal(i + 1);
+        box.appendChild(topChip);
+
+        if (state !== 'locked' && state !== 'activated') {
+            const dateEl = document.createElement('span');
+            dateEl.className = 'm-c5-box-date';
+            dateEl.textContent = state === 'editable' ? 'Tap' : rev.date;
+            box.appendChild(dateEl);
+        }
+
+        if (isFilled) {
+            const botChip = document.createElement('span');
+            botChip.className = 'm-c5-box-bottom';
+            botChip.textContent = rev.year || '';
+            box.appendChild(botChip);
+        }
+
+        if (state === 'editable') {
+            box.addEventListener('click', () => {
+                const dateStr = prompt('Enter study date (DD/MM):');
+                if (!dateStr) return;
+                const yr = prompt('Enter year:') || String(new Date().getFullYear());
+                c5.revisions[i] = { date: dateStr.trim(), year: yr.trim() };
+                saveC5(c5Store).then(rerender);
+            });
+        } else if (state === 'filled') {
+            box.addEventListener('click', () => {
+                if (!confirm('Clear this revision date?')) return;
+                c5.revisions[i] = { date: null, year: null };
+                saveC5(c5Store).then(rerender);
+            });
+        }
+
+        boxesGrid.appendChild(box);
+    }
+    revSection.appendChild(boxesGrid);
+
+    const actRow = document.createElement('div');
+    actRow.className = 'm-c5-act-row';
+
+    const activateBtn = document.createElement('button');
+    activateBtn.className = 'm-c5-act-btn blue';
+    activateBtn.textContent = 'Activate More';
+    activateBtn.disabled = activatedCount >= totalSlots;
+    activateBtn.addEventListener('click', async () => {
+        c5.activatedCount = Math.min(activatedCount + 4, totalSlots);
+        await saveC5(c5Store); rerender();
+    });
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'm-c5-act-btn red';
+    resetBtn.textContent = 'Reset';
+    resetBtn.addEventListener('click', async () => {
+        if (!confirm('Reset all revision data?')) return;
+        c5.revisions = Array(12).fill(null).map(() => ({ date: null, year: null }));
+        c5.activatedCount = 4; c5.totalSlots = 12; c5.page = 0; c5.isCompleted = false;
+        await saveC5(c5Store); rerender();
+    });
+
+    actRow.appendChild(activateBtn);
+    actRow.appendChild(resetBtn);
+    revSection.appendChild(actRow);
+    container.appendChild(revSection);
+
+    revSection.querySelector('#mc5PagPrev')?.addEventListener('click', async () => {
+        if (c5.page > 0) { c5.page--; await saveC5(c5Store); rerender(); }
+    });
+    revSection.querySelector('#mc5PagNext')?.addEventListener('click', async () => {
+        if (c5.page < totalPages - 1) { c5.page++; await saveC5(c5Store); rerender(); }
+    });
+
+    // ===== 3. DIFFICULTY + PRIORITY CARD =====
     const diffColors = { Easy:'#22c55e', Moderate:'#f59e0b', Challenging:'#f97316', Hard:'#ef4444' };
     const prioColors = { Low:'#94a3b8', Medium:'#3b82f6', High:'#f97316', Critical:'#ef4444' };
 
-    function makeC5Dropdown(options, current, colors, onSelect) {
+    function makeDropdown(options, current, colors, onSelect) {
         const wrap = document.createElement('div');
-        wrap.className = 'm-c5-dropdown';
+        wrap.className = 'm-c5-dp-trigger';
         const dot = document.createElement('span');
-        dot.className = 'm-c5-dot';
-        dot.style.background = colors[current];
+        dot.className = 'm-c5-dp-dot';
+        dot.style.background = colors[current] || '#94a3b8';
         const lbl = document.createElement('span');
+        lbl.className = 'm-c5-dp-val';
         lbl.textContent = current;
         const arrow = document.createElement('span');
-        arrow.style.cssText = 'font-size:10px;color:#94a3b8;margin-left:auto;';
+        arrow.className = 'm-c5-dp-arrow';
         arrow.textContent = '▼';
         const menu = document.createElement('div');
-        menu.className = 'm-c5-menu';
+        menu.className = 'm-c5-dp-menu';
         options.forEach(opt => {
             const item = document.createElement('div');
-            item.className = 'm-c5-option' + (opt === current ? ' selected' : '');
+            item.className = 'm-c5-dp-option' + (opt === current ? ' selected' : '');
             const itemDot = document.createElement('span');
-            itemDot.className = 'm-c5-dot';
+            itemDot.className = 'm-c5-dp-dot';
             itemDot.style.background = colors[opt];
             item.appendChild(itemDot);
             item.appendChild(document.createTextNode(opt));
@@ -980,7 +1189,7 @@ function renderC5Tab(container) {
                 e.stopPropagation();
                 dot.style.background = colors[opt];
                 lbl.textContent = opt;
-                menu.querySelectorAll('.m-c5-option').forEach(o => o.classList.remove('selected'));
+                menu.querySelectorAll('.m-c5-dp-option').forEach(o => o.classList.remove('selected'));
                 item.classList.add('selected');
                 wrap.classList.remove('active');
                 onSelect(opt);
@@ -989,7 +1198,7 @@ function renderC5Tab(container) {
         });
         wrap.addEventListener('click', e => {
             e.stopPropagation();
-            document.querySelectorAll('.m-c5-dropdown.active').forEach(d => { if (d !== wrap) d.classList.remove('active'); });
+            document.querySelectorAll('.m-c5-dp-trigger.active').forEach(d => { if (d !== wrap) d.classList.remove('active'); });
             wrap.classList.toggle('active');
         });
         wrap.appendChild(dot);
@@ -999,80 +1208,116 @@ function renderC5Tab(container) {
         return wrap;
     }
 
-    const card = document.createElement('div');
-    card.className = 'm-c5-card';
+    const dpCard = document.createElement('div');
+    dpCard.className = 'm-c5-dp-card';
 
-    const statusRow = document.createElement('div');
-    statusRow.className = 'm-c5-row';
-    statusRow.innerHTML = `<span class="m-c5-label">Status</span><span class="m-c5-value" style="color:${c5.isCompleted ? 'var(--success)' : 'var(--text-muted)'}">${c5.isCompleted ? '✓ Completed' : 'In Progress'}</span>`;
-    card.appendChild(statusRow);
+    const diffCell = document.createElement('div');
+    diffCell.className = 'm-c5-dp-cell';
+    const diffLabel = document.createElement('span');
+    diffLabel.className = 'm-c5-dp-label';
+    diffLabel.textContent = 'Difficulty';
+    diffCell.appendChild(diffLabel);
+    diffCell.appendChild(makeDropdown(['Easy','Moderate','Challenging','Hard'], c5.difficulty||'Easy', diffColors, async val => { c5.difficulty = val; await saveC5(c5Store); }));
+    dpCard.appendChild(diffCell);
 
-    const diffRow = document.createElement('div');
-    diffRow.className = 'm-c5-row';
-    diffRow.innerHTML = '<span class="m-c5-label">Difficulty</span>';
-    diffRow.appendChild(makeC5Dropdown(['Easy','Moderate','Challenging','Hard'], c5.difficulty||'Easy', diffColors, async val => { c5.difficulty = val; await saveC5(c5Store); }));
-    card.appendChild(diffRow);
+    const prioCell = document.createElement('div');
+    prioCell.className = 'm-c5-dp-cell';
+    const prioLabel = document.createElement('span');
+    prioLabel.className = 'm-c5-dp-label';
+    prioLabel.textContent = 'Priority';
+    prioCell.appendChild(prioLabel);
+    prioCell.appendChild(makeDropdown(['Low','Medium','High','Critical'], c5.priority||'Low', prioColors, async val => { c5.priority = val; await saveC5(c5Store); }));
+    dpCard.appendChild(prioCell);
 
-    const prioRow = document.createElement('div');
-    prioRow.className = 'm-c5-row';
-    prioRow.innerHTML = '<span class="m-c5-label">Priority</span>';
-    prioRow.appendChild(makeC5Dropdown(['Low','Medium','High','Critical'], c5.priority||'Low', prioColors, async val => { c5.priority = val; await saveC5(c5Store); }));
-    card.appendChild(prioRow);
+    container.appendChild(dpCard);
 
-    const revRow = document.createElement('div');
-    revRow.className = 'm-c5-row';
-    revRow.innerHTML = `<span class="m-c5-label">Revisions</span><span class="m-c5-value">${c5.revisions.filter(r=>r.date).length} / ${c5.activatedCount}</span>`;
-    card.appendChild(revRow);
+    // ===== 4. SCHEDULE CARD =====
+    const seriesColors = { prime:'#4d9fec', fibonacci:'#4ec994', triangular:'#ddb56a', regular:'#e8834a', custom:'#a78bfa' };
+    const seriesNames  = { prime:'Prime', fibonacci:'Fibonacci', triangular:'Triangular', regular:'Regular', custom:'Custom' };
+    const curSeries = c5.scheduleType || 'prime';
 
-    container.appendChild(card);
+    const schedCard = document.createElement('div');
+    schedCard.className = 'm-c5-sched-card';
+
+    // Revision Series row — opens series modal
+    const seriesRow = document.createElement('div');
+    seriesRow.className = 'm-c5-sched-row';
+    const seriesRowLabel = document.createElement('span');
+    seriesRowLabel.className = 'm-c5-sched-label';
+    seriesRowLabel.textContent = 'Revision Series';
+    const seriesBtn = document.createElement('div');
+    seriesBtn.className = 'm-c5-dp-trigger';
+    seriesBtn.innerHTML = `
+        <span class="m-c5-dp-dot" style="background:${seriesColors[curSeries]||'#4d9fec'}"></span>
+        <span class="m-c5-dp-val">${seriesNames[curSeries]||'Prime'}</span>
+        <span class="m-c5-dp-arrow">&#9660;</span>
+    `;
+    seriesBtn.addEventListener('click', () => {
+        if (typeof window.openSeriesModal !== 'function') return;
+        window.openSeriesModal({
+            revisions: c5.revisions,
+            scheduleType: c5.scheduleType || 'prime',
+            scheduleN: c5.scheduleN,
+            smCustomGaps: c5.smCustomGaps,
+            smRpw: c5.smRpw,
+            smPerSlotRpw: c5.smPerSlotRpw,
+            mode: 'settings',
+            onSave: async saved => {
+                if (saved.scheduleType) c5.scheduleType = saved.scheduleType;
+                if (saved.scheduleN !== undefined) c5.scheduleN = saved.scheduleN;
+                if (saved.smCustomGaps) c5.smCustomGaps = saved.smCustomGaps;
+                if (saved.smRpw !== undefined) c5.smRpw = saved.smRpw;
+                if (saved.smPerSlotRpw) c5.smPerSlotRpw = saved.smPerSlotRpw;
+                if (saved.revisions) c5.revisions = saved.revisions;
+                await saveC5(c5Store); rerender();
+            }
+        });
+    });
+    seriesRow.appendChild(seriesRowLabel);
+    seriesRow.appendChild(seriesBtn);
+    schedCard.appendChild(seriesRow);
+
+    // Badge Status row
+    let badgeText = 'No Badge', badgeClass = '';
+    try {
+        const badge = window.smGetCurrentWeekBadge ? window.smGetCurrentWeekBadge(c5) : null;
+        if (badge) {
+            if (badge.status === 'done')           { badgeText = `Slot ${badge.slot} — Done ✅`; badgeClass = 'done'; }
+            else if (badge.status === 'scheduled') { badgeText = `Slot ${badge.slot} — Due`; badgeClass = 'scheduled'; }
+            else if (badge.status === 'missed')    { badgeText = `Slot ${badge.slot} — Missed`; badgeClass = 'missed'; }
+        }
+    } catch(e) {}
+    const badgeRow = document.createElement('div');
+    badgeRow.className = 'm-c5-sched-row';
+    badgeRow.innerHTML = `
+        <span class="m-c5-sched-label">Badge Status</span>
+        <span class="m-c5-status-badge ${badgeClass}">${badgeText}</span>
+    `;
+    schedCard.appendChild(badgeRow);
+
+    // Revision Settings toggle row
+    const revOn = c5.revisionOn !== false;
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'm-c5-sched-row';
+    toggleRow.innerHTML = `
+        <span class="m-c5-sched-label">Revision Settings</span>
+        <div class="m-c5-toggle-wrap">
+            <div class="m-c5-toggle-pill${revOn ? '' : ' off'}" id="mc5TogglePill">
+                <div class="m-c5-toggle-knob"></div>
+            </div>
+            <span class="m-c5-toggle-text" style="color:${revOn ? 'var(--success)' : 'var(--text-muted)'}">${revOn ? 'ON' : 'OFF'}</span>
+        </div>
+    `;
+    schedCard.appendChild(toggleRow);
+    container.appendChild(schedCard);
+
+    toggleRow.querySelector('#mc5TogglePill').addEventListener('click', async () => {
+        c5.revisionOn = !c5.revisionOn;
+        await saveC5(c5Store); rerender();
+    });
 
     document.addEventListener('click', () => {
-        document.querySelectorAll('.m-c5-dropdown.active').forEach(d => d.classList.remove('active'));
-    });
-
-    const gridTitle = document.createElement('div');
-    gridTitle.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-muted);margin:12px 0 8px;padding:0 2px';
-    gridTitle.textContent = 'Revision Slots';
-    container.appendChild(gridTitle);
-
-    const grid = document.createElement('div');
-    grid.className = 'm-revision-grid';
-    for (let i = 0; i < c5.totalSlots; i++) {
-        const slot = document.createElement('div');
-        const rev = c5.revisions[i];
-        const isActive = i < c5.activatedCount;
-        const isFilled = rev?.date;
-        slot.className = 'm-rev-slot' + (isFilled ? ' filled' : '') + (!isActive ? ' inactive' : '');
-        slot.innerHTML = `<div class="m-rev-slot-num">#${i+1}</div><div class="m-rev-slot-date">${isFilled ? rev.date : (isActive ? '—' : '·')}</div>`;
-        grid.appendChild(slot);
-    }
-    container.appendChild(grid);
-
-    const btns = document.createElement('div');
-    btns.className = 'm-c5-btns';
-    btns.innerHTML = `
-        <button class="m-c5-btn primary" id="mMarkCompleteBtn">${c5.isCompleted ? 'Unmark' : 'Complete'}</button>
-        <button class="m-c5-btn" id="mActivateMoreBtn">+4 Slots</button>
-        <button class="m-c5-btn danger" id="mResetBtn">Reset</button>
-    `;
-    container.appendChild(btns);
-
-    document.getElementById('mMarkCompleteBtn').addEventListener('click', async () => {
-        c5.isCompleted = !c5.isCompleted;
-        await saveC5(c5Store);
-        const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
-        renderDetailTab('c5', contentId);
-    });
-    document.getElementById('mActivateMoreBtn').addEventListener('click', async () => {
-        if (c5.activatedCount < c5.totalSlots) { c5.activatedCount = Math.min(c5.activatedCount + 4, c5.totalSlots); await saveC5(c5Store); const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent'; renderDetailTab('c5', contentId); }
-    });
-    document.getElementById('mResetBtn').addEventListener('click', async () => {
-        if (!confirm('Reset revision data?')) return;
-        c5.revisions = Array(12).fill(null).map(() => ({ date: null, year: null }));
-        c5.activatedCount = 4; c5.isCompleted = false;
-        await saveC5(c5Store);
-        const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
-        renderDetailTab('c5', contentId);
+        document.querySelectorAll('.m-c5-dp-trigger.active').forEach(d => d.classList.remove('active'));
     });
 }
 
