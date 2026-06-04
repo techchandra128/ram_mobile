@@ -118,7 +118,7 @@ function makeListFolderCard(folder) {
     const card = document.createElement('div');
     card.className = 'm-file-card m-folder-card';
     card.innerHTML = `
-        <div class="m-file-icon">📁</div>
+        <div class="m-file-icon"><svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="5" width="28" height="18" rx="2.5" fill="#4A90D9"/><path d="M0 7.5C0 6.12 1.12 5 2.5 5H10.5L13 8H25.5C26.88 8 28 9.12 28 10.5V21.5C28 22.88 26.88 24 25.5 24H2.5C1.12 24 0 22.88 0 21.5V7.5Z" fill="#5BA8F5"/><path d="M0 8H28V10H0V8Z" fill="#4A90D9" opacity="0.3"/></svg></div>
         <div class="m-file-info">
             <div class="m-file-name">${escHtml(folder.name)}</div>
             <div class="m-file-meta">${fileCount} file${fileCount !== 1 ? 's' : ''}</div>
