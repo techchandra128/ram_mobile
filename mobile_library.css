@@ -292,6 +292,7 @@
 
 /* C5 box theme variables */
 [data-theme="dark"] {
+    --c5-ring-track: #334155;
     --c5-box-bg: #1a2436;
     --c5-box-border: #333333;
     --c5-chip-bg: #151e2d;
@@ -303,6 +304,7 @@
     --c5-act-red-bg: #2e1a1a;
 }
 [data-theme="light"] {
+    --c5-ring-track: #cbd5e1;
     --c5-box-bg: #e8f0f8;
     --c5-box-border: #94a3b8;
     --c5-chip-bg: #d1dce8;
@@ -327,7 +329,7 @@
     margin-bottom: 12px;
 }
 .m-c5-ring-wrap { position: relative; width: 148px; height: 148px; }
-.m-c5-ring-bg { fill: none; stroke: #334155; stroke-width: 11; }
+.m-c5-ring-bg { fill: none; stroke: var(--c5-ring-track); stroke-width: 11; }
 .m-c5-ring-fill { fill: none; stroke-width: 11; stroke-linecap: round; stroke-dasharray: 408.4; transition: stroke-dashoffset 0.5s ease, stroke 0.3s; }
 .m-c5-ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
 .m-c5-ring-pct { font-size: 30px; font-weight: 800; color: var(--text); line-height: 1; }
@@ -372,7 +374,7 @@
     position: relative; height: 52px;
     border: 1px solid var(--c5-box-border); border-radius: 8px; background: var(--c5-box-bg);
     display: flex; align-items: center; justify-content: center;
-    cursor: default; overflow: visible;
+    cursor: default; overflow: visible; user-select: none;
 }
 .m-c5-box-top {
     position: absolute; top: -8px; left: 50%; transform: translateX(-50%);

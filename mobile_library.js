@@ -976,12 +976,10 @@ function renderC5Tab(container) {
     const pct = activatedCount > 0 ? Math.round(filledCount / activatedCount * 100) : 0;
 
     function getProficiency(p) {
-        if (p === 0) return { label: 'No Data', color: 'var(--text-muted)' };
-        if (p <= 20) return { label: 'Beginner', color: '#f97316' };
-        if (p <= 40) return { label: 'Developing', color: '#f59e0b' };
-        if (p <= 60) return { label: 'Competent', color: '#f97316' };
-        if (p <= 80) return { label: 'Proficient', color: '#3b82f6' };
-        return { label: 'Mastered', color: '#22c55e' };
+        if (p <= 25) return { label: 'Novice', color: '#94a3b8' };
+        if (p <= 50) return { label: 'Advanced Beginner', color: '#f59e0b' };
+        if (p <= 75) return { label: 'Competent', color: '#f97316' };
+        return { label: 'Proficient', color: '#22c55e' };
     }
     function getRingColor(p) {
         if (p === 0) return '#334155';
@@ -1025,7 +1023,6 @@ function renderC5Tab(container) {
             </svg>
             <div class="m-c5-ring-center">
                 <div class="m-c5-ring-pct">${pct}%</div>
-                <div class="m-c5-ring-label">Section</div>
             </div>
         </div>
         <div class="m-c5-stats-row">
@@ -1106,31 +1103,23 @@ function renderC5Tab(container) {
         }
 
         if (state === 'editable' || state === 'filled') {
-            box.addEventListener('click', () => {
-                const dp = document.createElement('input');
-                dp.type = 'date';
-                dp.style.cssText = 'position:fixed;opacity:0;pointer-events:none;top:0;left:0;width:1px;height:1px;';
-                if (rev.date) {
-                    const [d, m] = rev.date.split('/');
-                    const y = rev.year || new Date().getFullYear();
-                    dp.value = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                }
-                document.body.appendChild(dp);
-                dp.addEventListener('change', async () => {
-                    const val = dp.value;
-                    if (document.body.contains(dp)) document.body.removeChild(dp);
-                    if (!val) return;
-                    const [yr, mo, dy] = val.split('-');
-                    c5.revisions[i] = { date: `${dy}/${mo}`, year: yr };
-                    await saveC5(c5Store);
-                    rerender();
-                });
-                dp.addEventListener('blur', () => {
-                    setTimeout(() => { if (document.body.contains(dp)) document.body.removeChild(dp); }, 500);
-                });
-                dp.click();
-                dp.focus();
+            const dp = document.createElement('input');
+            dp.type = 'date';
+            dp.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;';
+            if (rev.date) {
+                const [d, m] = rev.date.split('/');
+                const y = rev.year || new Date().getFullYear();
+                dp.value = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            }
+            dp.addEventListener('change', async () => {
+                const val = dp.value;
+                if (!val) return;
+                const [yr, mo, dy] = val.split('-');
+                c5.revisions[i] = { date: `${dy}/${mo}`, year: yr };
+                await saveC5(c5Store);
+                rerender();
             });
+            box.appendChild(dp);
         }
 
         boxesGrid.appendChild(box);
