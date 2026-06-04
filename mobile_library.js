@@ -977,7 +977,7 @@ function renderC5Tab(container) {
 
     function getProficiency(p) {
         if (p <= 25) return { label: 'Novice', color: '#94a3b8' };
-        if (p <= 50) return { label: 'Advanced Beginner', color: '#f59e0b' };
+        if (p <= 50) return { label: 'Apprentice', color: '#f59e0b' };
         if (p <= 75) return { label: 'Competent', color: '#f97316' };
         return { label: 'Proficient', color: '#22c55e' };
     }
@@ -1105,12 +1105,31 @@ function renderC5Tab(container) {
         if (state === 'editable' || state === 'filled') {
             const dp = document.createElement('input');
             dp.type = 'date';
-            dp.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;';
+            dp.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;-webkit-tap-highlight-color:transparent;outline:none;border:none;background:transparent;';
+
+            // max = today (no future dates)
+            const todayD = new Date();
+            dp.max = `${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`;
+
+            // min = previous revision date + 1 day
+            if (i > 0) {
+                const prevRev = c5.revisions[i - 1];
+                if (prevRev?.date) {
+                    const [pd, pm] = prevRev.date.split('/');
+                    const py = prevRev.year || todayD.getFullYear();
+                    const prevDate = new Date(Number(py), Number(pm) - 1, Number(pd));
+                    prevDate.setDate(prevDate.getDate() + 1);
+                    dp.min = `${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}-${String(prevDate.getDate()).padStart(2,'0')}`;
+                }
+            }
+
+            // pre-populate if box already has a date
             if (rev.date) {
                 const [d, m] = rev.date.split('/');
-                const y = rev.year || new Date().getFullYear();
+                const y = rev.year || todayD.getFullYear();
                 dp.value = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             }
+
             dp.addEventListener('change', async () => {
                 const val = dp.value;
                 if (!val) return;
