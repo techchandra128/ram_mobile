@@ -118,7 +118,7 @@ function makeListFolderCard(folder) {
     const card = document.createElement('div');
     card.className = 'm-file-card m-folder-card';
     card.innerHTML = `
-        <div class="m-file-icon"><svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="5" width="28" height="18" rx="2.5" fill="#4A90D9"/><path d="M0 7.5C0 6.12 1.12 5 2.5 5H10.5L13 8H25.5C26.88 8 28 9.12 28 10.5V21.5C28 22.88 26.88 24 25.5 24H2.5C1.12 24 0 22.88 0 21.5V7.5Z" fill="#5BA8F5"/><path d="M0 8H28V10H0V8Z" fill="#4A90D9" opacity="0.3"/></svg></div>
+        <div class="m-file-icon"><svg width="30" height="25" viewBox="0 0 30 25" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="mfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#74B4F0"/><stop offset="100%" stop-color="#4D9FEC"/></linearGradient></defs><path d="M1.8 5 L1.8 1.8 Q1.8 0 3.6 0 L9 0 Q12 0 12 2.4 L12 5 Z" fill="#7DBAF2"/><rect x="0" y="4.25" width="30" height="20.75" rx="3" fill="url(#mfg)"/><path d="M0 20.5 L0 22.2 Q0 25 3 25 L27 25 Q30 25 30 22.2 L30 20.5 Z" fill="#448CD0"/><line x1="5" y1="5.3" x2="25" y2="5.3" stroke="white" stroke-width="0.8" stroke-opacity="0.24"/></svg></div>
         <div class="m-file-info">
             <div class="m-file-name">${escHtml(folder.name)}</div>
             <div class="m-file-meta">${fileCount} file${fileCount !== 1 ? 's' : ''}</div>
@@ -142,7 +142,7 @@ function makeListFileCard(file) {
     const card = document.createElement('div');
     card.className = 'm-file-card';
     card.innerHTML = `
-        <div class="m-file-icon">📖</div>
+        <div class="m-file-icon">📘</div>
         <div class="m-file-info">
             <div class="m-file-name">${escHtml(file.name)}</div>
             <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
@@ -233,7 +233,7 @@ function makeFileCard(file, context) {
     const card = document.createElement('div');
     card.className = 'm-file-card';
     card.innerHTML = `
-        <div class="m-file-icon">📖</div>
+        <div class="m-file-icon">📘</div>
         <div class="m-file-info">
             <div class="m-file-name">${escHtml(file.name)}</div>
             <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
