@@ -66,7 +66,7 @@ function renderSDPlaylistList() {
     const container = document.getElementById('mSDPlaylistList');
     if (!container) return;
 
-    const shortcutRaw = mState.syncData?.['ram_smartDeskPlaylists'];
+    const shortcutRaw = mState.syncData?.['ram_smartDesk_playlists'];
     const shortcuts = shortcutRaw
         ? (typeof shortcutRaw === 'string' ? JSON.parse(shortcutRaw) : shortcutRaw)
         : [];
