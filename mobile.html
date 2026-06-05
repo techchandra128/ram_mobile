@@ -88,11 +88,14 @@
         <!-- ========== PAGE: SMART DESK ========== -->
         <div class="m-page" id="pagSmartDesk">
 
-            <!-- SCREEN: FILE LIST (flat, no folders) -->
+            <!-- SCREEN: FILES + PLAYLISTS (tabbed) -->
             <div class="m-screen active" id="screenSDFiles">
-                <div class="m-list" id="mSDFileList">
-                    <div class="m-empty">Loading...</div>
+                <div class="m-tab-bar" id="mSDMainTabBar">
+                    <button class="m-tab active" data-tab="files" onclick="sdSwitchMainTab('files')">Files</button>
+                    <button class="m-tab" data-tab="playlists" onclick="sdSwitchMainTab('playlists')">Playlists</button>
                 </div>
+                <div class="m-list" id="mSDFileList"></div>
+                <div class="m-list" id="mSDPlaylistList" style="display:none;"></div>
             </div>
 
             <!-- SCREEN: SECTION LIST -->
