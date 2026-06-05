@@ -66,7 +66,7 @@ function renderSDPlaylistList() {
     const container = document.getElementById('mSDPlaylistList');
     if (!container) return;
 
-    const shortcutRaw = mState.syncData?.['ram_smartDeskPlaylists'];
+    const shortcutRaw = mState.syncData?.['ram_smartDesk_playlists'];
     const shortcuts = shortcutRaw
         ? (typeof shortcutRaw === 'string' ? JSON.parse(shortcutRaw) : shortcutRaw)
         : [];
@@ -104,5 +104,57 @@ function makePlaylistCard(pl) {
         </div>
         <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     `;
+    card.addEventListener('click', () => {
+        mState.currentFileName = pl.name;
+        renderPlaylistSectionList(pl);
+        showSDScreen('screenSDSections');
+        updateTopbar();
+    });
     return card;
+}
+
+// ===== PLAYLIST SECTION LIST =====
+function renderPlaylistSectionList(pl) {
+    const container = document.getElementById('mSDSectionList');
+    container.innerHTML = '';
+
+    if (!pl.sections || pl.sections.length === 0) {
+        container.innerHTML = '<div class="m-empty">No sections in this playlist.</div>';
+        return;
+    }
+
+    const fs = getFileSystem();
+    const allFiles = fs ? collectFiles(fs) : [];
+
+    pl.sections.forEach(ref => {
+        const fileData = getFileData(ref.fileId);
+        const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
+        const section = sections.find(s => s.id === ref.sectionId || s.id === Number(ref.sectionId));
+        const title = section?.title || `Section ${ref.sectionId}`;
+
+        const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
+        const c5 = c5Store[ref.sectionId] || c5Store[String(ref.sectionId)];
+        const pct = c5?.proficiency || 0;
+        const color = getLibProgressColor(pct);
+
+        const fileObj = allFiles.find(f => f.id === ref.fileId);
+        const fileName = fileObj?.name || '';
+
+        const card = document.createElement('div');
+        card.className = 'm-file-card m-section-card';
+        card.innerHTML = `
+            <div class="m-file-icon">📄</div>
+            <div class="m-file-info">
+                <div class="m-file-name">${escHtml(title)}</div>
+                ${fileName ? `<div class="m-file-meta">${escHtml(fileName)}</div>` : ''}
+            </div>
+            <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        `;
+        card.addEventListener('click', () => {
+            mState.currentFileId = ref.fileId;
+            mState.currentFileName = fileName;
+            openSection(ref.sectionId, title, 'sd');
+        });
+        container.appendChild(card);
+    });
 }

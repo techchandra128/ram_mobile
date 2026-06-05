@@ -4,7 +4,7 @@
 const SUPABASE_URL = 'https://jqruimtvezwdkmkqnspl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxcnVpbXR2ZXp3ZGtta3Fuc3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNzkzMTUsImV4cCI6MjA5NDY1NTMxNX0.m5rrXJYhHfl6tNYI7lkRrkfzPCG2My2T9ktCj23fM2o';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' };
-const GLOBAL_KEYS = ['ram_theme', 'ram_homepage', 'ram_smartDesk', 'ram_smartDeskPlaylists', 'ram_mobile_theme', 'hm_events'];
+const GLOBAL_KEYS = ['ram_theme', 'ram_homepage', 'ram_smartDesk', 'ram_smartDesk_playlists', 'ram_mobile_theme', 'hm_events'];
 
 // ===== STATE =====
 const mState = {
