@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    height: 100%;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+}
+
+.pv-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* ===== TOOLBAR ===== */
+.pv-toolbar {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 100;
+}
+
+.pv-toolbar-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ===== TRIGGER BUTTONS ===== */
+.pv-trigger {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.pv-trigger:hover { background: var(--bg-hover); border-color: var(--border-hover); }
+
+.pv-close {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    margin-left: auto;
+}
+.pv-close:hover { border-color: #ef4444; color: #ef4444; background: #ef444418; }
+
+.pv-arrow { font-size: 8px; }
+
+/* ===== DROPDOWN ===== */
+.pv-dd-wrap { position: relative; }
+
+.pv-dd-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 1000;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s;
+    min-width: 110px;
+}
+.pv-dd-wrap.active .pv-dd-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.pv-dd-item {
+    height: 32px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.pv-dd-item:hover { background: var(--bg-hover); }
+.pv-dd-item.selected { color: var(--accent-blue); background: var(--bg-active); }
+
+/* ===== BODY ===== */
+.pv-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 4px 8px 8px;
+    background: var(--bg-primary);
+}
+
+.pv-body::-webkit-scrollbar { width: 4px; }
+.pv-body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+/* ===== COPY EXACT c3-content-body STYLES ===== */
+.pv-body table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    table-layout: fixed;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+}
+.pv-body th, .pv-body td {
+    border-right: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+    padding: 8px 12px;
+    text-align: left;
+    color: var(--text-primary);
+    vertical-align: top;
+    height: 40px;
+}
+.pv-body td p { margin: 0; padding: 0; }
+.pv-body td p.docx-indent-1 { margin-left: 18px !important; }
+.pv-body td p.c3-debulleted { padding-left: 18px !important; }
+.pv-body th:last-child, .pv-body td:last-child { border-right: none; }
+.pv-body tr:last-child td, .pv-body tr:last-child th { border-bottom: none; }
+.pv-body th { background: var(--bg-secondary); font-weight: 600; }
+.pv-body tr:nth-child(even) td { background: var(--bg-hover); }
+.pv-body table.manual-table tr:first-child td,
+.pv-body table.manual-table tr:first-child th { background: var(--bg-active) !important; font-weight: 600; }
+.pv-body table.manual-table tr:nth-child(odd) td,
+.pv-body table.manual-table tr:nth-child(odd) th { background: var(--bg-hover); }
+.pv-body table.manual-table tr:nth-child(even) td,
+.pv-body table.manual-table tr:nth-child(even) th { background: var(--bg-primary); }
+
+.pv-body > *:first-child { margin-top: 0 !important; }
+.pv-body p.docx-indent-1 { margin-left: 24px !important; }
+.pv-body p.docx-indent-2 { margin-left: 48px !important; }
+.pv-body p.docx-indent-3 { margin-left: 72px !important; }
+
+.pv-body p { margin: 6px 0; color: var(--text-primary); font-size: 13px; line-height: 1.5; font-weight: 500; }
+.pv-body h1 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 14px 0 6px; }
+.pv-body h2 { font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 12px 0 4px; }
+.pv-body h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 10px 0 4px; }
+.pv-body ul, .pv-body ol { margin: 6px 0 6px 18px; color: var(--text-primary); font-size: 13px; }
+.pv-body li { margin: 3px 0; line-height: 1.2; font-weight: 500; }
+.pv-body strong { font-weight: 700; }
+.pv-body em { font-style: italic; }
+
+/* ===== PREVIEW CELLS (exact copy from column3.css) ===== */
+.c3-preview-cell {
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    margin: 6px 0;
+    overflow: hidden;
+}
+.c3-preview-cornell-wrap { display: flex; min-height: 48px; }
+.c3-preview-cell-row { display: flex; border-top: 1px solid var(--border-default); }
+.c3-preview-cell-row:first-child { border-top: none; }
+
+.c3-preview-cornell-left {
+    width: 30%;
+    border-right: 1px solid var(--border-default);
+    padding: 10px 10px 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.5;
+    text-align: right;
+    background: var(--bg-secondary);
+    min-height: 48px;
+}
+.c3-preview-cornell-left p { margin: 0; }
+
+.c3-preview-cornell-right {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 48px;
+}
+.c3-preview-cornell-right p { margin: 0; }
+.c3-preview-cornell-right p[style*="padding-left"] { padding-left: 18px !important; }
+.c3-preview-cornell-right ul, .c3-preview-cornell-right ol { padding-left: 18px !important; margin: 0 !important; }
+.c3-preview-cornell-right p.docx-indent-1 { margin-left: 18px !important; }
+.c3-preview-cornell-right p.docx-indent-2 { margin-left: 36px !important; }
+.c3-preview-cornell-right p.docx-indent-3 { margin-left: 54px !important; }
+
+.c3-preview-cell[data-type="header-cornell"] .c3-preview-cornell-left {
+    background: var(--bg-active);
+    font-weight: 600;
+    padding-top: 10px;
+}
+
+.c3-preview-cell-body {
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.5;
+    width: 100%;
+    min-height: 48px;
+}
+.c3-preview-cell-body p { margin: 0; }
+.c3-preview-cell-body p.c3-debulleted { padding-left: 18px; }
+.c3-preview-cornell-right td p.c3-debulleted,
+.c3-preview-cornell-left td p.c3-debulleted { padding-left: 18px; }
+.c3-preview-cell-body ul, .c3-preview-cell-body ol { padding-left: 18px; margin: 0; }
+.c3-preview-cell-body.header { background: var(--bg-active); font-weight: 600; }
+.c3-preview-cell-body.code {
+    background: var(--bg-code);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.pv-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* ===== FOOTER ===== */
+.pv-footer {
+    height: 40px;
+    display: flex;
+    align-items: stretch;
+    border-top: 1px solid var(--border-default);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+    border-radius: 0 0 12px 12px;
+}
+
+.pv-footer-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: all 0.15s;
+}
+.pv-footer-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.pv-footer-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pv-footer-btn.studied { color: #22c55e; }
+.pv-footer-btn.studied:hover { color: #ef4444; background: #ef444418; }
+
+.pv-footer-divider {
+    width: 1px;
+    background: var(--border-default);
+    flex-shrink: 0;
+    margin: 6px 0;
+}
+</style>
+</head>
+<body>
+<div class="pv-wrap">
+    <div class="pv-toolbar" id="pvToolbar">
+        <span class="pv-toolbar-title" id="pvTitle"></span>
+    </div>
+    <div class="pv-body" id="pvBody"></div>
+    <div class="pv-footer">
+        <button class="pv-footer-btn" id="pvPrev" onclick="window.parent.postMessage({type:'pvNav',dir:'prev'},'*')">Prev</button>
+        <div class="pv-footer-divider"></div>
+        <button class="pv-footer-btn" id="pvStudied" onclick="window.parent.postMessage({type:'pvStudied'},'*')">Mark as Studied</button>
+        <div class="pv-footer-divider"></div>
+        <button class="pv-footer-btn" id="pvNext" onclick="window.parent.postMessage({type:'pvNav',dir:'next'},'*')">Next</button>
+    </div>
+</div>
+
+<script>
+const TABS = ['notes','memorize','visualize','analyze','test','reference'];
+const LEVELS = [
+    { id: 'crisp',      label: 'Crisp' },
+    { id: 'conceptual', label: 'Conceptual' },
+    { id: 'detailed',   label: 'Detailed' },
+    { id: 'syntopical', label: 'Syntopical' },
+];
+
+let state = { secData: {}, tab: 'notes', levelId: 'crisp', versionIdx: 0 };
+
+// ===== RECEIVE DATA =====
+window.addEventListener('message', (e) => {
+    if (e.data?.type === 'pvLoad') {
+        const { fileId, sectionId, sectionTitle, theme, isStudied, isFirst, isLast } = e.data;
+
+        document.documentElement.setAttribute('data-theme', theme || 'dark');
+        document.getElementById('pvTitle').textContent = sectionTitle || '';
+
+        const raw = localStorage.getItem(`c3_data_${fileId}`);
+        let c3All = {};
+        try { if (raw) c3All = JSON.parse(raw); } catch(e) {}
+        const sid = String(sectionId);
+        state.secData = c3All[sid] || c3All[sectionId] || {};
+
+        state.tab = TABS.find(t => hasTabContent(state.secData, t)) || 'notes';
+        state.levelId = firstFilledLevel(state.secData, state.tab);
+        state.versionIdx = 0;
+
+        document.getElementById('pvPrev').disabled = !!isFirst;
+        document.getElementById('pvNext').disabled = !!isLast;
+        const studiedBtn = document.getElementById('pvStudied');
+        pvUpdateStudiedBtn(studiedBtn, !!isStudied);
+
+        renderToolbar();
+        renderBody();
+    } else if (e.data?.type === 'pvTheme') {
+        document.documentElement.setAttribute('data-theme', e.data.theme || 'dark');
+    } else if (e.data?.type === 'pvStudiedUpdate') {
+        const studiedBtn = document.getElementById('pvStudied');
+        pvUpdateStudiedBtn(studiedBtn, !!e.data.isStudied);
+    }
+});
+
+function hasTabContent(secData, tab) {
+    const d = secData[tab];
+    if (!d) return false;
+    return Object.values(d).some(l => l && l.versions && l.versions.length > 0);
+}
+
+function firstFilledLevel(secData, tab) {
+    if (tab !== 'notes') return 'default';
+    for (const l of LEVELS) {
+        const d = secData?.notes?.[l.id];
+        if (d && d.versions && d.versions.length > 0) return l.id;
+    }
+    return 'crisp';
+}
+
+function getVersions(tab, levelId) {
+    if (tab === 'notes') return state.secData?.notes?.[levelId]?.versions || [];
+    const tabData = state.secData?.[tab] || {};
+    return tabData?.default?.versions || Object.values(tabData).flatMap(l => l?.versions || []);
+}
+
+// ===== TOOLBAR =====
+function renderToolbar() {
+    const toolbar = document.getElementById('pvToolbar');
+    // Remove old controls (keep title)
+    Array.from(toolbar.children).forEach(c => { if (!c.id) c.remove(); });
+
+    const filledTabs = TABS.filter(t => hasTabContent(state.secData, t));
+    if (filledTabs.length > 0) {
+        toolbar.appendChild(makeDD(
+            filledTabs.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) })),
+            state.tab,
+            (val) => { state.tab = val; state.levelId = firstFilledLevel(state.secData, val); state.versionIdx = 0; renderToolbar(); renderBody(); }
+        ));
+    }
+
+    // Level (notes only)
+    if (state.tab === 'notes') {
+        const filledLevels = LEVELS.filter(l => {
+            const d = state.secData?.notes?.[l.id];
+            return d && d.versions && d.versions.length > 0;
+        });
+        if (filledLevels.length > 0) {
+            toolbar.appendChild(makeDD(
+                filledLevels.map(l => ({ value: l.id, label: l.label })),
+                state.levelId,
+                (val) => { state.levelId = val; state.versionIdx = 0; renderToolbar(); renderBody(); }
+            ));
+        }
+    }
+
+    // Version
+    const versions = getVersions(state.tab, state.levelId);
+    if (versions.length > 0) {
+        toolbar.appendChild(makeDD(
+            versions.map((v, i) => ({ value: String(i), label: `V${i + 1}` })),
+            String(state.versionIdx),
+            (val) => { state.versionIdx = parseInt(val); renderBody(); }
+        ));
+    }
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'pv-close';
+    closeBtn.textContent = '✕';
+    closeBtn.onclick = () => window.parent.postMessage({ type: 'pvClose' }, '*');
+    toolbar.appendChild(closeBtn);
+}
+
+function makeDD(options, selected, onChange) {
+    const wrap = document.createElement('div');
+    wrap.className = 'pv-dd-wrap';
+
+    const sel = options.find(o => o.value === selected) || options[0];
+    const trigger = document.createElement('button');
+    trigger.className = 'pv-trigger';
+    trigger.innerHTML = `<span>${sel ? sel.label : ''}</span><span class="pv-arrow">▼</span>`;
+    trigger.onclick = (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.pv-dd-wrap.active').forEach(w => { if (w !== wrap) w.classList.remove('active'); });
+        wrap.classList.toggle('active');
+    };
+
+    const menu = document.createElement('div');
+    menu.className = 'pv-dd-menu';
+    options.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'pv-dd-item' + (opt.value === selected ? ' selected' : '');
+        item.textContent = opt.label;
+        item.onclick = () => { wrap.classList.remove('active'); onChange(opt.value); };
+        menu.appendChild(item);
+    });
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(menu);
+    return wrap;
+}
+
+document.addEventListener('mousedown', (e) => {
+    if (!e.target.closest('.pv-dd-wrap')) {
+        document.querySelectorAll('.pv-dd-wrap.active').forEach(w => w.classList.remove('active'));
+    }
+});
+
+function pvUpdateStudiedBtn(btn, isStudied) {
+    btn.classList.toggle('studied', isStudied);
+    btn.textContent = isStudied ? '✓ Studied' : 'Mark as Studied';
+    btn.onmouseenter = () => { if (isStudied) btn.textContent = 'Mark as Unstudied'; };
+    btn.onmouseleave = () => { btn.textContent = isStudied ? '✓ Studied' : 'Mark as Studied'; };
+}
+
+// Signal parent that we are ready
+window.parent.postMessage({ type: 'pvReady' }, '*');
+
+// ===== BODY =====
+function renderBody() {
+    const body = document.getElementById('pvBody');
+    const versions = getVersions(state.tab, state.levelId);
+    const vIdx = Math.min(state.versionIdx, Math.max(0, versions.length - 1));
+    const ver = versions[vIdx];
+
+    if (!ver) { body.innerHTML = '<div class="pv-empty">No content yet.</div>'; return; }
+
+    if (ver.template === 'pdf') {
+        body.innerHTML = '<div class="pv-empty">PDF — open file to view.</div>';
+    } else if (ver.template === 'plain') {
+        body.innerHTML = ver.html || '';
+    } else if (ver.template === 'cornell' && ver.cells) {
+        let html = '';
+        ver.cells.forEach(cell => {
+            const rows = cell.rows;
+            if (cell.type === 'cornell' || cell.type === 'header-cornell') {
+                html += `<div class="c3-preview-cell" data-type="${cell.type}">`;
+                if (rows && rows.length > 0) {
+                    rows.forEach(row => {
+                        html += `<div class="c3-preview-cell-row">
+                            <div class="c3-preview-cornell-left"${row.bgLeft ? ` style="background:${row.bgLeft}"` : ''}>${row.left || ''}</div>
+                            <div class="c3-preview-cornell-right"${row.bgRight ? ` style="background:${row.bgRight}"` : ''}>${row.right || ''}</div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<div class="c3-preview-cornell-wrap">
+                        <div class="c3-preview-cornell-left"${cell.bgLeft ? ` style="background:${cell.bgLeft}"` : ''}>${cell.left || ''}</div>
+                        <div class="c3-preview-cornell-right"${cell.bgRight ? ` style="background:${cell.bgRight}"` : ''}>${cell.right || ''}</div>
+                    </div>`;
+                }
+                html += `</div>`;
+            } else if (cell.type === 'code') {
+                html += `<div class="c3-preview-cell" data-type="code">`;
+                if (rows && rows.length > 0) {
+                    rows.forEach(row => { html += `<div class="c3-preview-cell-row"><div class="c3-preview-cell-body code"${row.bg ? ` style="background:${row.bg}"` : ''}>${row.content || ''}</div></div>`; });
+                } else {
+                    html += `<div class="c3-preview-cell-body code"${cell.bg ? ` style="background:${cell.bg}"` : ''}>${cell.content || ''}</div>`;
+                }
+                html += `</div>`;
+            } else if (cell.type === 'header') {
+                html += `<div class="c3-preview-cell" data-type="header">`;
+                if (rows && rows.length > 0) {
+                    rows.forEach(row => { html += `<div class="c3-preview-cell-row"><div class="c3-preview-cell-body header"${row.bg ? ` style="background:${row.bg}"` : ''}>${row.content || ''}</div></div>`; });
+                } else {
+                    html += `<div class="c3-preview-cell-body header"${cell.bg ? ` style="background:${cell.bg}"` : ''}>${cell.content || ''}</div>`;
+                }
+                html += `</div>`;
+            } else {
+                html += `<div class="c3-preview-cell" data-type="text">`;
+                if (rows && rows.length > 0) {
+                    rows.forEach(row => { html += `<div class="c3-preview-cell-row"><div class="c3-preview-cell-body"${row.bg ? ` style="background:${row.bg}"` : ''}>${row.content || ''}</div></div>`; });
+                } else {
+                    html += `<div class="c3-preview-cell-body"${cell.bg ? ` style="background:${cell.bg}"` : ''}>${cell.content || ''}</div>`;
+                }
+                html += `</div>`;
+            }
+        });
+        body.innerHTML = html;
+    } else {
+        body.innerHTML = '<div class="pv-empty">No content.</div>';
+    }
+}
+</script>
+</body>
+</html>

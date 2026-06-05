@@ -1,0 +1,519 @@
+/* uploadpdf.css - PDF Viewer Styles */
+
+/* ===== OVERLAY ===== */
+.c3-pdf-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.c3-pdf-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* ===== MODAL ===== */
+.c3-pdf-modal {
+    width: 90vw;
+    height: 92vh;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ===== TOOLBAR ===== */
+.c3-pdf-toolbar {
+    height: 48px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border-default);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    background: var(--bg-primary);
+}
+
+.c3-pdf-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.c3-pdf-toolbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.c3-pdf-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+/* Mode toggle */
+.c3-pdf-mode-toggle {
+    display: flex;
+    align-items: center;
+    background: var(--text-muted);
+    border-radius: 50px;
+    padding: 4px;
+    gap: 0;
+    flex-shrink: 0;
+}
+
+.c3-pdf-mode-pill {
+    height: 28px;
+    padding: 0 16px;
+    border-radius: 50px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    color: white;
+    white-space: nowrap;
+}
+
+.c3-pdf-mode-pill.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.c3-pdf-mode-pill:hover:not(.active) {
+    color: var(--text-secondary);
+}
+
+/* Search */
+.c3-pdf-search-wrap {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 300px;
+    height: 32px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.c3-pdf-search-input {
+    flex: 1;
+    height: 100%;
+    padding: 0 10px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.c3-pdf-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.c3-pdf-search-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+}
+
+.c3-pdf-search-btn:hover {
+    color: var(--text-primary);
+}
+
+/* Fit dropdown */
+.c3-pdf-fit-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.c3-pdf-fit-trigger {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.c3-pdf-fit-trigger:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.c3-pdf-fit-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    z-index: 200;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    min-width: 120px;
+}
+
+.c3-pdf-fit-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.c3-pdf-fit-option {
+    height: 34px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.c3-pdf-fit-option:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* Zoom */
+.c3-pdf-zoom-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.c3-pdf-zoom-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.c3-pdf-zoom-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+/* Separator */
+.c3-pdf-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border-default);
+    flex-shrink: 0;
+}
+
+/* Edit tools */
+.c3-pdf-edit-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.c3-pdf-annot-btn {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.c3-pdf-annot-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.c3-pdf-annot-btn.active {
+    background: var(--bg-active);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+/* Close button */
+.c3-pdf-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 18px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.c3-pdf-close-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* ===== PDF CONTAINER ===== */
+.c3-pdf-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    background: var(--bg-app);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ===== PAGE WRAPPER ===== */
+.c3-pdf-page-wrapper {
+    position: relative;
+    box-shadow: var(--shadow-md);
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.c3-pdf-page-wrapper canvas {
+    display: block;
+}
+
+/* ===== ANNOTATION LAYER ===== */
+.c3-pdf-annot-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.c3-pdf-annot-layer[data-edit="true"] {
+    pointer-events: all;
+    cursor: crosshair;
+}
+
+.c3-pdf-annot {
+    position: absolute;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.c3-pdf-annot-highlight {
+    background: rgba(255, 220, 0, 0.35);
+    border-radius: 2px;
+}
+
+.c3-pdf-annot-underline {
+    border-bottom: 2px solid #4d9fec;
+    background: transparent;
+}
+
+.c3-pdf-annot-strikethrough {
+    border-bottom: 2px solid #f47067;
+    background: transparent;
+    transform: translateY(-50%);
+}
+
+.c3-btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-color: var(--border-default);
+}
+
+.c3-btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* ===== SAVE ROW ===== */
+.c3-pdf-save-row {
+    height: 56px;
+    padding: 0 20px;
+    border-top: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--bg-primary);
+}
+
+/* ===== ANNOTATION COLOR PICKER ===== */
+.c3-pdf-annot-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+}
+
+.c3-pdf-annot-group.active .c3-pdf-annot-btn {
+    background: var(--bg-active);
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+
+.c3-pdf-annot-group.active .c3-pdf-color-trigger {
+    border-color: var(--accent-blue);
+    background: var(--bg-active);
+}
+
+.c3-pdf-color-wrap {
+    position: relative;
+}
+
+.c3-pdf-color-trigger {
+    height: 32px;
+    padding: 0 6px;
+    border: 1px solid var(--border-default);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.c3-pdf-color-trigger:hover {
+    background: var(--bg-hover);
+}
+
+.c3-pdf-annot-btn {
+    border-radius: 8px 0 0 8px !important;
+}
+
+.c3-pdf-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.c3-pdf-color-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    z-index: 300;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(5, 20px);
+    gap: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+}
+
+.c3-pdf-color-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.c3-pdf-color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: transform 0.1s ease;
+}
+
+.c3-pdf-color-swatch:hover {
+    transform: scale(1.2);
+}
+
+/* ===== SEARCH HIGHLIGHT ===== */
+.c3-pdf-search-highlight {
+    position: absolute;
+    background: rgba(255, 200, 0, 0.45);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ===== OPEN PDF BUTTON (in content body) ===== */
+.c3-pdf-open-btn {
+    margin: 24px auto;
+    display: block;
+    height: 40px;
+    padding: 0 24px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.c3-pdf-open-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}

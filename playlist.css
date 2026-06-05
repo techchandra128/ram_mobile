@@ -1,0 +1,17 @@
+/* playlist.css */
+
+.pl-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-app);
+}
+.pl-layer.active {
+    opacity: 1;
+    visibility: visible;
+}
