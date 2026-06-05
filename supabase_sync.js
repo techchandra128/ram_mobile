@@ -12,7 +12,7 @@ const HEADERS = {
 };
 
 // Global keys that go to global_settings table
-const GLOBAL_KEYS = ['ram_theme', 'ram_homepage', 'ram_smartDesk', 'ram_mobile_theme', 'hm_events'];
+const GLOBAL_KEYS = ['ram_theme', 'ram_homepage', 'ram_smartDesk', 'ram_smartDesk_playlists', 'ram_mobile_theme', 'hm_events'];
 
 function getTable(key) {
     return GLOBAL_KEYS.includes(key) ? 'global_settings' : 'sync_data';
