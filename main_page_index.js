@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     lucide.createIcons();
     document.getElementById('sidebar').classList.add('collapsed');
     // Load saved homepage
-    const homepage = localStorage.getItem('ram_homepage') || 'library';
+    const homepage = localStorage.getItem('ram_homepage') || 'diary';
     if (homepage === 'dashboard') showDashboard();
     else if (homepage === 'smartdesk') showSmartDesk();
     else if (homepage === 'allsections') showAllSections();
