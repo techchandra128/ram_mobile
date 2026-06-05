@@ -751,15 +751,15 @@
 .tab-cell { border: 1px solid var(--border); border-radius: 8px; margin: 6px 0; overflow: hidden; background: var(--bg2); }
 .tab-cell-row { display: flex; border-top: 1px solid var(--border); }
 .tab-cell-row:first-child { border-top: none; }
-.tab-cell-left { width: 30%; border-right: 1px solid var(--border); padding: 10px 10px 8px 10px; font-size: 14px; font-weight: 600; color: var(--text); background: var(--bg3); min-height: 48px; text-align: right; line-height: 1.5; }
+.tab-cell-left { width: 30%; border-right: 1px solid var(--border); padding: 10px 10px 8px 10px; font-size: 14px; font-weight: 600; color: var(--note-text); background: var(--bg3); min-height: 48px; text-align: right; line-height: 1.5; }
 .tab-cell-left.hcornell { background: var(--note-header-bg); }
-.tab-cell-right { flex: 1; padding: 10px; font-size: 14px; font-weight: 500; color: var(--text); min-height: 48px; line-height: 1.5; }
+.tab-cell-right { flex: 1; padding: 10px; font-size: 14px; font-weight: 500; color: var(--note-text); min-height: 48px; line-height: 1.5; }
 .tab-cell-right p { margin: 0; padding-left: 18px; }
 .tab-cell-right p.c3-debulleted { padding-left: 18px; }
 .tab-cell-right p.bulleted { padding-left: 18px; position: relative; }
 .tab-cell-right p.bulleted::before { content: '•'; position: absolute; left: 2.75px; }
 .tab-cell-right p.gap { height: 8px; padding-left: 0; }
-.tab-cell-body { padding: 8px 10px; font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.5; min-height: 48px; }
+.tab-cell-body { padding: 8px 10px; font-size: 14px; font-weight: 500; color: var(--note-text); line-height: 1.5; min-height: 48px; }
 .tab-cell-body p { margin: 0; }
 .tab-cell-body.header { background: var(--note-header-bg); font-weight: 600; }
 .tab-cell-body.code { background: var(--note-code-bg); font-family: 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; }

@@ -25,6 +25,7 @@
     --card-border:  #334155;
     --note-header-bg:      #1a3a5c;
     --note-code-bg:        #1e1e1e;
+    --note-text:           #e8e8e8;
 }
 
 [data-theme="light"] {
@@ -43,6 +44,7 @@
     --card-border:  #e2e8f0;
     --note-header-bg:      #eff6ff;
     --note-code-bg:        #f8fafc;
+    --note-text:           #1e293b;
 }
 
 body {
