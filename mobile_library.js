@@ -648,7 +648,12 @@ function renderNotesTab(container) {
             trigger.innerHTML = `<span>${text}</span><span style="font-size:9px">▼</span>`;
         }
 
+        let _curLevelId = null;
+        let _curVersionIdx = 0;
+
         function showNoteContent(levelId, versionIdx) {
+            _curLevelId = levelId;
+            _curVersionIdx = versionIdx;
             const ld = sectionData.notes[levelId];
             const version = ld?.versions?.[versionIdx];
             noteContentArea.innerHTML = version ? renderNoteContent(version) : '<div class="m-notes-empty">No content.</div>';
@@ -695,6 +700,19 @@ function renderNotesTab(container) {
         });
 
         populateVersions(notesWithContent[0].id);
+
+        let _noteResizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(_noteResizeTimer);
+            _noteResizeTimer = setTimeout(() => {
+                if (_curLevelId !== null) showNoteContent(_curLevelId, _curVersionIdx);
+            }, 200);
+        });
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (_curLevelId !== null) showNoteContent(_curLevelId, _curVersionIdx);
+            }, 350);
+        });
     } else {
         const empty = document.createElement('div');
         empty.className = 'm-empty';
@@ -857,7 +875,7 @@ function renderTabletNotes(cells) {
 
 function renderNoteContent(version) {
     if (!version) return '';
-    const isTablet = window.innerWidth >= 768;
+    const isTablet = window.innerWidth >= 600;
     if (version.template === 'plain' && version.html) {
         const html = version.html;
         if (html.includes('<table')) {
