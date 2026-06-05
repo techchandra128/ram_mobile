@@ -1,0 +1,714 @@
+/* column4.css - Notes Panel */
+
+/* ===== COLUMN 4 CONTAINER ===== */
+.col-4 {
+    width: 250px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* ===== HEADER BLOCK (wraps Row 1 + Row 2) ===== */
+.c4-header-block {
+    flex-shrink: 0;
+}
+
+/* ===== HEADER ROW 1: Notes ===== */
+.c4-header {
+    height: 40px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ===== HEADER ROW 2: Controls ===== */
+.c4-controls-row {
+    display: flex;
+    gap: 0;
+    flex-shrink: 0;
+}
+
+.c4-control-cell {
+    height: 40px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 0;
+    margin-left: -1px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.c4-control-cell:first-child {
+    border-radius: 0 0 0 8px;
+    margin-left: 0;
+}
+
+.c4-control-cell:last-child {
+    border-radius: 0 0 8px 0;
+}
+
+.c4-control-cell:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.c4-category-filter {
+    flex: 1;
+    padding: 0 10px;
+    justify-content: space-between;
+    position: relative;
+}
+
+.c4-sort-btn {
+    width: 40px;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* Category dropdown */
+.c4-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    z-index: 100;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+}
+
+.c4-category-filter.active .c4-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.c4-dropdown-option {
+    height: 36px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.c4-dropdown-option:hover {
+    background: var(--bg-hover);
+}
+
+.c4-dropdown-option.selected {
+    color: var(--accent-blue);
+    background: var(--bg-active);
+}
+
+/* ===== NOTES LIST BODY ===== */
+.c4-notes-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+.c4-notes-list::-webkit-scrollbar { width: 4px; }
+.c4-notes-list::-webkit-scrollbar-track { background: transparent; }
+.c4-notes-list::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+/* ===== NOTE CARD ===== */
+.c4-note-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    padding: 10px 12px;
+    flex-shrink: 0;
+    transition: border-color 0.15s ease;
+}
+
+.c4-note-card:hover {
+    border-color: var(--border-hover);
+}
+
+.c4-note-card.starred {
+    border-color: var(--accent-amber);
+    background: var(--bg-warning-soft);
+}
+
+/* Category row */
+.c4-note-category-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.c4-note-category-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.c4-note-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.c4-action-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.15s ease;
+    opacity: 0;
+    color: var(--text-muted);
+}
+
+.c4-note-card:hover .c4-action-icon {
+    opacity: 1;
+}
+
+.c4-action-icon:hover {
+    background: var(--bg-hover);
+}
+
+.c4-action-icon.edit {
+    color: var(--accent-amber);
+}
+
+.c4-action-icon.delete {
+    color: var(--accent-red);
+}
+
+.c4-action-icon.delete:hover {
+    background: var(--bg-danger-soft);
+}
+
+/* Star icon */
+.c4-action-icon.star {
+    opacity: 0;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--accent-amber);
+}
+
+.c4-note-card:hover .c4-action-icon.star {
+    opacity: 1;
+}
+
+.c4-action-icon.star.active {
+    opacity: 1 !important;
+    color: var(--accent-amber);
+    -webkit-text-stroke: 0;
+}
+
+/* Checkbox */
+.c4-note-checkbox {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: var(--accent-blue);
+    flex-shrink: 0;
+}
+
+/* Note content */
+.c4-note-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.c4-note-content {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.c4-note-title.checked,
+.c4-note-content.checked {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.c4-note-timestamp {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ===== FOOTER ===== */
+.c4-footer {
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-hover);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.c4-footer:hover {
+    background: var(--bg-active);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+/* ===== ADD NOTE MODAL ===== */
+.c4-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.c4-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.c4-modal {
+    width: 600px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    transform: scale(0.96);
+    transition: transform 0.2s ease;
+}
+
+.c4-modal-overlay.active .c4-modal {
+    transform: scale(1);
+}
+
+.c4-modal-header {
+    height: 56px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.c4-modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.c4-modal-close {
+    position: absolute;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 18px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.c4-modal-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.c4-modal-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-primary);
+    overflow: visible;
+}
+
+/* Form rows */
+.c4-form-row {
+    display: grid;
+    gap: 8px;
+    align-items: center;
+}
+
+.c4-form-row.category-row {
+    grid-template-columns: 90px 1fr 130px;
+}
+
+.c4-form-row.title-row {
+    grid-template-columns: 90px 1fr 60px;
+}
+
+.c4-form-row.content-row {
+    grid-template-columns: 90px 1fr 60px;
+    align-items: flex-start;
+}
+
+.c4-form-label {
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.c4-form-input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    outline: none;
+    transition: border-color 0.15s ease;
+    font-family: inherit;
+}
+
+.c4-form-input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.c4-form-textarea {
+    height: 200px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.5;
+    transition: border-color 0.15s ease;
+}
+
+.c4-form-textarea:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.c4-char-counter {
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Category dropdown in modal */
+.c4-modal-dropdown {
+    position: relative;
+}
+
+.c4-modal-dropdown-trigger {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: var(--bg-primary);
+}
+
+.c4-modal-dropdown-trigger:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.c4-modal-dropdown-trigger.active {
+    border-color: var(--accent-blue);
+}
+
+.c4-modal-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    z-index: 200;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.c4-modal-dropdown-trigger.active + .c4-modal-dropdown-menu,
+.c4-modal-dropdown-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.c4-modal-dropdown-option {
+    height: 36px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: background 0.15s ease;
+}
+
+.c4-modal-dropdown-option:hover {
+    background: var(--bg-hover);
+}
+
+.c4-modal-dropdown-option.selected {
+    color: var(--accent-blue);
+    background: var(--bg-active);
+}
+
+.c4-cat-label {
+    flex: 1;
+    cursor: pointer;
+}
+
+.c4-cat-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.c4-modal-dropdown-option:hover .c4-cat-actions {
+    opacity: 1;
+}
+
+.c4-cat-edit-btn {
+    cursor: pointer;
+    font-size: 13px;
+    color: #f97316;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.c4-cat-edit-btn:hover { background: var(--bg-hover); }
+
+.c4-cat-delete-btn {
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: var(--text-muted);
+}
+
+.c4-cat-delete-btn:hover { background: var(--bg-hover); color: #ef4444; }
+
+.c4-cat-rename-input {
+    flex: 1;
+    border: 1px solid var(--accent-blue);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 13px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.c4-cat-rename-confirm, .c4-cat-rename-cancel {
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.c4-cat-rename-confirm { color: #22c55e; }
+.c4-cat-rename-confirm:hover { background: var(--bg-hover); }
+.c4-cat-rename-cancel { color: #ef4444; }
+.c4-cat-rename-cancel:hover { background: var(--bg-hover); }
+
+/* Add Category button */
+.c4-add-category-btn {
+    height: 40px;
+    padding: 0 12px;
+    border: 2px dashed var(--border-hover);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.c4-add-category-btn:hover {
+    background: var(--bg-active);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+/* Modal footer */
+.c4-modal-footer {
+    height: 64px;
+    padding: 0 24px;
+    border-top: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+    background: var(--bg-primary);
+}
+
+.c4-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid var(--border-default);
+}
+
+.c4-btn-cancel { background: var(--bg-primary); color: var(--text-muted); }
+.c4-btn-cancel:hover { background: var(--bg-hover); }
+.c4-btn-save { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+.c4-btn-save:hover { background: var(--accent-blue-hover); }
+
+/* Add Category popup */
+.c4-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.15s ease;
+}
+
+.c4-popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.c4-popup-box {
+    background: var(--bg-primary);
+    border-radius: 10px;
+    padding: 24px;
+    width: 360px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.c4-popup-box h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.c4-popup-box input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+}
+
+.c4-popup-box input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.c4-popup-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}

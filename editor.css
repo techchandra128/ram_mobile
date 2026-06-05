@@ -1,0 +1,1183 @@
+/* editor.css - Editor Window for Column 3 */
+
+/* ===== OVERLAY ===== */
+.c3-editor-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.c3-editor-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* ===== MODAL ===== */
+.c3-editor-modal {
+    width: 1020px;
+    height: 98vh;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ===== MODE BAR (Edit / View toggle) ===== */
+.c3-editor-mode-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    height: 48px;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+    position: relative;
+    background: var(--bg-primary);
+    box-sizing: border-box;
+}
+
+.c3-mode-toggle {
+    display: flex;
+    align-items: center;
+    background: var(--text-muted);
+    border-radius: 50px;
+    padding: 4px;
+    gap: 0;
+}
+
+.c3-mode-pill-btn {
+    height: 28px;
+    padding: 0 16px;
+    border-radius: 50px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    color: white;
+}
+
+.c3-mode-pill-btn.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.c3-mode-close {
+    position: absolute;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 18px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.c3-mode-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* ===== TOOLBAR ===== */
+.c3-editor-modal-header {
+    border-bottom: none;
+    padding: 0;
+    flex-shrink: 0;
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.c3-editor-toolbar-row1 {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 0 8px;
+    width: 100%;
+    flex-wrap: nowrap;
+    height: 48px;
+    border-bottom: 1px solid var(--border-default);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.c3-toolbar-btn {
+    width: 30px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.c3-toolbar-btn.c3-undoredo-btn {
+    width: 30px;
+    color: var(--text-secondary);
+}
+
+.c3-toolbar-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-default);
+    color: var(--text-primary);
+}
+
+.c3-toolbar-btn.active {
+    background: var(--bg-active);
+    border-color: var(--border-active);
+    color: var(--accent-blue);
+}
+
+/* Cell row insert buttons */
+.c3-toolbar-btn.c3-cellrow-btn {
+    color: var(--accent-green, #22c55e);
+    width: 26px;
+}
+
+.c3-toolbar-btn.c3-cellrow-btn:hover:not(:disabled) {
+    background: rgba(34,197,94,0.1);
+    border-color: var(--accent-green, #22c55e);
+    color: var(--accent-green, #22c55e);
+}
+
+.c3-toolbar-btn.c3-cellrow-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Cell delete toolbar button */
+.c3-toolbar-btn.c3-celldelete-btn {
+    width: 26px;
+}
+
+.c3-toolbar-btn.c3-celldelete-btn:hover:not(:disabled) {
+    background: rgba(239,68,68,0.1);
+    border-color: #ef4444;
+}
+
+.c3-toolbar-btn.c3-celldelete-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.c3-toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border-default);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* Dropdown wrap */
+.c3-toolbar-dropdown-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    border: 1px solid var(--border-default);
+    border-radius: 5px;
+    padding: 0 6px;
+    gap: 4px;
+    cursor: pointer;
+    background: var(--bg-primary);
+    flex-shrink: 0;
+}
+
+.c3-toolbar-dropdown-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.c3-toolbar-dropdown-arrow {
+    font-size: 8px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.c3-toolbar-select-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+/* Color palette */
+.c3-toolbar-color-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.c3-color-arrow {
+    width: 14px !important;
+    height: 28px;
+    font-size: 8px;
+    padding: 0;
+    color: var(--text-muted);
+}
+
+.c3-color-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    width: 30px;
+    height: 28px;
+    padding: 2px;
+}
+
+.c3-color-bar {
+    width: 18px;
+    height: 3px;
+    border-radius: 1px;
+    display: block;
+}
+
+.c3-color-palette {
+    position: fixed;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: 8px;
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    width: 176px;
+}
+
+.c3-color-palette.active { display: flex; }
+
+.c3-color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+}
+
+.c3-color-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: transform 0.1s ease;
+}
+
+.c3-color-swatch:hover { transform: scale(1.2); border-color: rgba(0,0,0,0.3); }
+
+.c3-color-custom {
+    height: 26px;
+    border: 1px dashed var(--border-hover);
+    border-radius: 5px;
+    background: var(--bg-primary);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.c3-color-custom:hover { background: var(--bg-hover); border-color: var(--border-active); }
+
+.c3-color-sep { height: 1px; background: var(--bg-secondary); }
+
+/* ===== CELL ADD ROW (Cornell only) ===== */
+.c3-cell-add-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+    background: var(--bg-primary);
+    height: 48px;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.c3-cell-add-btn {
+    height: 30px;
+    padding: 0 14px;
+    border: 2px dashed var(--border-hover);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.c3-cell-add-btn:hover {
+    background: var(--bg-active);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+/* ===== EDITOR BODY ===== */
+.c3-editor-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    outline: none;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+
+}
+
+.c3-editor-modal-body::-webkit-scrollbar { width: 4px; }
+.c3-editor-modal-body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+.c3-editor-modal-body:empty::before {
+    content: 'Start typing here...';
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* Tables inside editor */
+.c3-editor-modal-body table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin: 8px 0;
+    table-layout: fixed;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+}
+
+.c3-editor-modal-body td,
+.c3-editor-modal-body th {
+    min-width: 40px;
+    height: 40px;
+    padding: 6px 8px;
+    vertical-align: top;
+    outline: none;
+    border-right: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.c3-editor-modal-body td:last-child,
+.c3-editor-modal-body th:last-child {
+    border-right: none;
+}
+
+.c3-editor-modal-body tr:last-child td,
+.c3-editor-modal-body tr:last-child th {
+    border-bottom: none;
+}
+
+.c3-editor-modal-body table.no-border td,
+.c3-editor-modal-body table.no-border th {
+    border: none;
+}
+
+/* ===== CELLS (Cornell template) ===== */
+.c3-editor-cell {
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    margin: 8px 0;
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.c3-editor-cell:focus-within { border-color: var(--accent-blue); }
+
+.c3-cell-body {
+    min-height: 80px;
+    padding: 10px 12px;
+    outline: none;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    font-weight: 500;
+    background: transparent;
+}
+
+.c3-cell-body ul, .c3-cell-body ol { padding-left: 20px; margin: 0 0 0 18px; }
+
+.c3-editor-modal-body td ul,
+.c3-editor-modal-body td ol { padding-left: 12px; margin: 0 0 0 10px; }
+.c3-editor-modal-body td li { padding-left: 2px; }
+.c3-editor-modal-body td p { margin: 0; padding-left: 24px; }
+.c3-cell-body li { padding-left: 4px; }
+
+.c3-cell-body:empty::before {
+    content: 'Start typing...';
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.c3-cell-body.header-cell {
+    background: var(--bg-active) !important;
+    font-weight: 600;
+    color: var(--text-primary);
+    width: 100%;
+    min-height: 48px;
+}
+
+
+.c3-cell-body.code {
+    background: var(--bg-code) !important;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    width: 100%;
+    min-height: 48px;
+}
+
+.c3-cell-body.code:empty::before { content: 'Write code here...'; }
+
+/* Header Cornell cell - blue left side */
+.c3-editor-cell[data-type="header-cornell"] .c3-cornell-left {
+    background: var(--bg-active) !important;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Cornell cell */
+.c3-cornell-wrap {
+    display: flex;
+    min-height: 80px;
+    overflow: hidden;
+}
+
+.c3-cornell-left {
+    width: 30%;
+    border-right: 1px solid var(--border-default);
+    padding: 10px 12px;
+    outline: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 80px;
+    text-align: right;
+    vertical-align: top;
+    background: var(--bg-secondary);
+}
+
+.c3-cornell-left:empty::before {
+    content: 'Key points...';
+    color: var(--text-muted);
+    font-weight: 400;
+    pointer-events: none;
+}
+
+.c3-cornell-right {
+    flex: 1;
+    padding: 10px 12px 10px 12px;
+    outline: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 80px;
+}
+
+.c3-cornell-right ul, .c3-cornell-right ol { padding-left: 20px; margin: 0; }
+.c3-cornell-right li { padding-left: 4px; }
+
+.c3-cornell-right:empty::before {
+    content: 'Notes...';
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* Cell row (multi-row inside a cell) */
+.c3-cell-row {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    border-top: 1px solid var(--border-default);
+    width: 100%;
+}
+
+.c3-cell-row:first-child {
+    border-top: none;
+}
+
+.c3-cell-row .c3-cell-body,
+.c3-cell-row .c3-cornell-left,
+.c3-cell-row .c3-cornell-right {
+    min-height: 48px;
+}
+
+.c3-cell-row-delete {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    z-index: 2;
+}
+
+.c3-cell-row:hover .c3-cell-row-delete { display: flex; }
+
+.c3-cell-row-delete:hover {
+    background: var(--bg-danger-soft);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+/* Cell delete button */
+.c3-cell-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.c3-editor-cell:hover .c3-cell-delete { display: none; }
+
+.c3-cell-delete:hover {
+    background: var(--bg-danger-soft);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+/* ===== VIEW PANEL ===== */
+.c3-editor-view-panel {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    font-weight: 500;
+    display: none;
+    background: var(--bg-primary);
+}
+
+.c3-view-header-cell {
+    background: var(--bg-active);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 8px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 48px;
+}
+
+.c3-editor-view-panel.active { display: block; flex: 1; min-height: 0; }
+.c3-editor-view-panel p.docx-indent-1, .c3-cornell-right p.docx-indent-1 { margin-left: 24px; }
+.c3-editor-view-panel p.docx-indent-2, .c3-cornell-right p.docx-indent-2 { margin-left: 48px; }
+.c3-editor-view-panel p.docx-indent-3, .c3-cornell-right p.docx-indent-3 { margin-left: 72px; }
+.c3-cell-body p.docx-indent-1 { margin-left: 24px; }
+.c3-cell-body p.docx-indent-2 { margin-left: 48px; }
+.c3-cell-body p.docx-indent-3 { margin-left: 72px; }
+
+.c3-editor-view-panel::-webkit-scrollbar { width: 4px; }
+.c3-editor-view-panel::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+.c3-editor-view-panel ul, .c3-editor-view-panel ol { padding-left: 20px; margin: 0; }
+.c3-editor-view-panel li { padding-left: 4px; }
+
+.c3-table-wrap {
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.c3-editor-view-panel table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin: 0;
+    table-layout: fixed;
+}
+
+.c3-editor-view-panel td, .c3-editor-view-panel th {
+    min-width: 40px;
+    height: 40px;
+    padding: 6px 8px;
+    vertical-align: top;
+    border-right: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+    border-top: none;
+    border-left: none;
+}
+
+.c3-editor-view-panel td:last-child,
+.c3-editor-view-panel th:last-child {
+    border-right: none;
+}
+
+.c3-editor-view-panel tr:last-child td,
+.c3-editor-view-panel tr:last-child th {
+    border-bottom: none;
+}
+
+.c3-editor-view-panel td ul,
+.c3-editor-view-panel td ol { padding-left: 12px; margin: 0 0 0 10px; }
+.c3-editor-view-panel td li { padding-left: 2px; }
+.c3-editor-view-panel td p { margin: 0; padding-left: 24px; }
+
+.c3-editor-modal-body tr:nth-child(even) td,
+.c3-editor-modal-body tr:nth-child(even) th { background: var(--bg-hover); }
+
+.c3-editor-modal-body table.manual-table tr:nth-child(odd) td,
+.c3-editor-modal-body table.manual-table tr:nth-child(odd) th { background: var(--bg-hover); }
+
+.c3-editor-modal-body table.manual-table tr:nth-child(even) td,
+.c3-editor-modal-body table.manual-table tr:nth-child(even) th { background: var(--bg-primary); }
+
+.c3-editor-modal-body table.manual-table tr:first-child td,
+.c3-editor-modal-body table.manual-table tr:first-child th { background: var(--bg-active) !important; font-weight: 600; }
+
+.c3-editor-view-panel tr:nth-child(even) td,
+.c3-editor-view-panel tr:nth-child(even) th { background: var(--bg-hover); }
+
+/* ===== TOOLBAR ROW 2 (TABLE TOOLBAR) ===== */
+.c3-editor-toolbar-row2 {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 2px;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-primary);
+    flex-wrap: nowrap;
+    height: 48px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* ===== SPLIT COLOR BUTTONS ===== */
+.c3-toolbar-color-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.c3-split-btn-wrap {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    overflow: visible;
+    height: 28px;
+}
+
+.c3-split-btn-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 5px;
+    background: var(--bg-primary);
+    border: none;
+    border-right: 1px solid var(--border-default);
+    border-radius: 6px 0 0 6px;
+    cursor: pointer;
+    gap: 1px;
+    min-width: 26px;
+    transition: background 0.15s;
+}
+
+.c3-split-btn-left:hover { background: var(--bg-hover); }
+
+.c3-split-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.c3-split-btn-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    background: var(--bg-primary);
+    border: none;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    font-size: 8px;
+    color: var(--text-muted);
+    transition: background 0.15s;
+}
+
+.c3-split-btn-right:hover { background: var(--bg-hover); }
+
+/* ===== SELECTION MODE BUTTONS ===== */
+.c3-tbl-btn.sel-mode {
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.c3-tbl-btn.sel-mode.active {
+    background: var(--bg-active);
+    border-color: var(--accent-blue);
+}
+
+/* ===== TABLE SELECTION OVERLAYS ===== */
+.c3-sel-highlight {
+    background: rgba(59, 130, 246, 0.18) !important;
+    outline: 2px solid #3b82f6 !important;
+    outline-offset: -1px;
+}
+
+.c3-row-arrow, .c3-col-arrow {
+    position: absolute;
+    background: #3b82f6;
+    color: white;
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    pointer-events: all;
+    transition: transform 0.1s;
+}
+
+.c3-row-arrow:hover, .c3-col-arrow:hover { transform: scale(1.2); }
+
+.c3-table-handle {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 18px;
+    height: 18px;
+    background: #3b82f6;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.c3-table-handle::after {
+    content: '⊞';
+    font-size: 11px;
+    color: white;
+}
+
+/* ===== TABLE SHADING SWATCH GROUP ===== */
+.c3-tbl-shading-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.c3-tbl-swatch-last-wrap {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    overflow: hidden;
+    height: 32px;
+}
+
+.c3-tbl-swatch-last-wrap .c3-tbl-swatch-btn {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border-default);
+    height: 32px;
+    width: 32px;
+}
+
+.c3-tbl-swatch-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.c3-tbl-swatch-btn:hover { background: var(--bg-hover); }
+
+.c3-tbl-swatch-fill {
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.15);
+}
+
+.c3-tbl-swatch-arrow {
+    width: 18px;
+    height: 32px;
+    border: none;
+    background: var(--bg-primary);
+    cursor: pointer;
+    font-size: 8px;
+    color: var(--text-muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.c3-tbl-swatch-arrow:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ===== TOOLBAR ROW COLOR BAR (shared) ===== */
+.c3-tbl-shading-wrap {
+    position: relative;
+}
+
+.c3-shading-palette {
+    position: fixed;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: 8px;
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    width: 176px;
+}
+
+.c3-shading-palette.active { display: flex; }
+
+.c3-shading-row {
+    display: flex;
+    gap: 3px;
+}
+
+.c3-shading-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border-default);
+    transition: transform 0.1s ease;
+    flex-shrink: 0;
+}
+
+.c3-shading-swatch:hover { transform: scale(1.2); border-color: var(--border-hover); }
+.c3-shading-swatch.app-color { border: 2px solid var(--border-hover); }
+
+.c3-shading-sep {
+    height: 1px;
+    background: var(--border-default);
+    margin: 2px 0;
+}
+
+/* ===== FOOTER ===== */
+.c3-editor-modal-footer {
+    height: 56px;
+    padding: 0 20px;
+    border-top: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+    background: var(--bg-primary);
+}
+
+/* ===== LEVEL SWITCHER ===== */
+.c3-level-switcher {
+    position: relative;
+}
+
+.c3-level-trigger {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.c3-level-trigger:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-active);
+}
+
+.c3-level-arrow {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.c3-level-menu {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    min-width: 140px;
+    z-index: 100;
+}
+
+.c3-level-menu.active { display: flex; }
+
+.c3-level-option {
+    height: 36px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+
+.c3-level-option:hover { background: var(--bg-hover); color: var(--text-primary); }
+.c3-level-option.selected { color: var(--accent-blue); background: var(--bg-active); font-weight: 600; }
+
+.c3-btn {
+    height: 36px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid var(--border-default);
+}
+
+.c3-btn-cancel { background: var(--bg-primary); color: var(--text-muted); }
+.c3-btn-secondary { background: var(--bg-secondary); color: var(--text-secondary); border-color: var(--border-default); }
+.c3-btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+.c3-btn-cancel:hover { background: var(--bg-hover); }
+.c3-btn-save { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+.c3-btn-save:hover { background: var(--accent-blue-hover); }
+
+/* ===== FLOATING TABLE TOOLBAR ===== */
+.c3-tbl-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    color: var(--text-primary);
+    font-size: 12px;
+}
+
+.c3-tbl-btn.insert:hover { background: var(--bg-active); border-color: var(--border-active); }
+.c3-tbl-btn.delete:hover { background: var(--bg-danger-soft); border-color: var(--accent-red); }
+.c3-tbl-btn.align:hover { background: var(--bg-hover); border-color: var(--border-default); }
+.c3-tbl-btn.split:hover { background: var(--bg-hover); border-color: var(--border-default); }
+.c3-tbl-btn.align:not(:has(svg)) { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+.c3-tbl-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border-default);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* ===== INSERT TABLE MODAL ===== */
+.c3-table-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.c3-table-modal-overlay.active { opacity: 1; visibility: visible; }
+
+.c3-table-modal {
+    width: 320px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.c3-table-modal-header {
+    height: 52px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.c3-table-modal-header h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+
+.c3-table-modal-header button {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 16px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.c3-table-modal-header button:hover { background: var(--bg-hover); }
+
+.c3-table-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--bg-primary);
+}
+
+.c3-table-field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.c3-table-field-row label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+
+.c3-table-field-row input {
+    width: 80px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    outline: none;
+    text-align: center;
+}
+
+.c3-table-field-row input:focus { border-color: var(--accent-blue); }
+
+.c3-table-toggle-row { display: flex; gap: 6px; }
+
+.c3-table-toggle-opt {
+    width: 52px;
+    height: 36px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: var(--bg-primary);
+}
+
+.c3-table-toggle-opt:hover { background: var(--bg-hover); }
+.c3-table-toggle-opt.selected { background: var(--bg-active); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+.c3-table-modal-footer {
+    height: 56px;
+    padding: 0 20px;
+    border-top: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    background: var(--bg-primary);
+}
