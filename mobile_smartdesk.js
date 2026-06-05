@@ -97,7 +97,7 @@ function makePlaylistCard(pl) {
     const card = document.createElement('div');
     card.className = 'm-file-card';
     card.innerHTML = `
-        <div class="m-file-icon">📑</div>
+        <div class="m-file-icon">📇</div>
         <div class="m-file-info">
             <div class="m-file-name">${escHtml(pl.name)}</div>
             <div class="m-file-meta">${count} section${count !== 1 ? 's' : ''}</div>
