@@ -25,7 +25,6 @@
     --card-border:  #334155;
     --note-header-bg:      #1a3a5c;
     --note-code-bg:        #1e1e1e;
-    --note-cornell-left-bg:#1a2436;
 }
 
 [data-theme="light"] {
@@ -44,7 +43,6 @@
     --card-border:  #e2e8f0;
     --note-header-bg:      #eff6ff;
     --note-code-bg:        #f8fafc;
-    --note-cornell-left-bg:#f1f5f9;
 }
 
 body {
