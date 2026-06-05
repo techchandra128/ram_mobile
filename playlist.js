@@ -109,7 +109,7 @@ function plRenderGrid() {
         const deg = degFromPct(pct);
 
         const wrapper = document.createElement('div');
-        wrapper.className = 'grid-item';
+        wrapper.className = 'grid-item pl-card';
 
         const rect = document.createElement('div');
         rect.className = 'progress-rect ' + pClass;
@@ -161,7 +161,7 @@ function plRenderList() {
         const color = getProgressColor(pct);
 
         const row = document.createElement('div');
-        row.className = 'list-item';
+        row.className = 'list-item pl-card';
 
         const iconWrap = document.createElement('div');
         iconWrap.className = 'list-icon-wrap';

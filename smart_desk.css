@@ -252,3 +252,23 @@
 .sd-btn-confirm:hover { opacity: 0.88; }
 
 .sd-btn-confirm.remove-confirm { background: #ef4444; }
+
+/* ===== TWO SECTIONS SIDE BY SIDE ===== */
+.sd-sections-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.sd-sections-row .section-block {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ===== PLAYLIST CARD — purple folded corner ===== */
+.pl-card .progress-rect-inner::before,
+.pl-card .list-rect-inner::before {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}

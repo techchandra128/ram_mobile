@@ -258,20 +258,39 @@
 
         <!-- Content -->
         <div class="content-area sd-content-area" id="sdContentArea">
-            <div class="section-block">
-                <div class="section-header-row">
-                    <span class="section-label">Notes</span>
-                    <div style="display:flex;align-items:center;gap:16px;">
-                        <div class="sd-action-btn add" onclick="sdShowAddModal()" title="Add Files to Smart Desk">
-                            <div class="section-add-rect">+</div>
-                        </div>
-                        <div class="sd-action-btn remove" onclick="sdShowRemoveModal()" title="Remove Files from Smart Desk">
-                            <div class="section-add-rect sd-remove-rect">−</div>
+            <div class="sd-sections-row">
+                <!-- FILES SECTION -->
+                <div class="section-block">
+                    <div class="section-header-row">
+                        <span class="section-label">Files</span>
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('files')" title="Add Files">
+                                <div class="section-add-rect">+</div>
+                            </div>
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('files')" title="Remove Files">
+                                <div class="section-add-rect sd-remove-rect">−</div>
+                            </div>
                         </div>
                     </div>
+                    <div class="items-grid" id="sdFilesGrid"></div>
+                    <div class="items-list" id="sdFilesList" style="display:none;"></div>
                 </div>
-                <div class="items-grid" id="sdFilesGrid"></div>
-                <div class="items-list" id="sdFilesList" style="display:none;"></div>
+                <!-- PLAYLISTS SECTION -->
+                <div class="section-block">
+                    <div class="section-header-row">
+                        <span class="section-label">Playlists</span>
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('playlists')" title="Add Playlists">
+                                <div class="section-add-rect">+</div>
+                            </div>
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('playlists')" title="Remove Playlists">
+                                <div class="section-add-rect sd-remove-rect">−</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="items-grid" id="sdPlaylistsGrid"></div>
+                    <div class="items-list" id="sdPlaylistsList" style="display:none;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -655,11 +674,11 @@
     </div>
 </div>
 
-<!-- ===== SMART DESK: ADD FILES MODAL ===== -->
+<!-- ===== SMART DESK: ADD MODAL ===== -->
 <div class="sd-modal-overlay" id="sdAddModal">
     <div class="sd-modal-box">
         <div class="sd-modal-header">
-            <h3>Add Files to Smart Desk</h3>
+            <h3 id="sdAddModalTitle">Add to Smart Desk</h3>
             <button class="sd-modal-close" onclick="sdCloseAddModal()">✕</button>
         </div>
         <div class="sd-modal-body" id="sdAddModalBody"></div>
@@ -670,11 +689,11 @@
     </div>
 </div>
 
-<!-- ===== SMART DESK: REMOVE FILES MODAL ===== -->
+<!-- ===== SMART DESK: REMOVE MODAL ===== -->
 <div class="sd-modal-overlay" id="sdRemoveModal">
     <div class="sd-modal-box">
         <div class="sd-modal-header">
-            <h3>Remove Files from Smart Desk</h3>
+            <h3 id="sdRemoveModalTitle">Remove from Smart Desk</h3>
             <button class="sd-modal-close" onclick="sdCloseRemoveModal()">✕</button>
         </div>
         <div class="sd-modal-body" id="sdRemoveModalBody"></div>
