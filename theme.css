@@ -1,0 +1,104 @@
+/* theme.css - Light and Dark Mode Variables */
+
+/* ===== DARK MODE (DEFAULT) ===== */
+:root,
+[data-theme="dark"] {
+
+    --bg-app: #0f1623;
+    --bg-primary: #151e2d;
+    --bg-secondary: #1a2436;
+    --bg-hover: #1e2a3d;
+    --bg-active: #1a3a5c;
+
+    --bg-input: #2d2d2d;
+    --bg-code: #1e1e1e;
+    --bg-completed: #1a2e1a;
+    --bg-danger-soft: #2e1a1a;
+    --bg-warning-soft: #2e2a1a;
+    --bg-modal-overlay: rgba(0, 0, 0, 0.65);
+
+    --border-default: #333333;
+    --border-hover: #4a4a4a;
+    --border-active: #4d9fec;
+    --border-dashed: #3a3a3a;
+    --border-completed: #22c55e;
+    --border-completed-soft: #166534;
+
+    --text-primary: #e8e8e8;
+    --text-secondary: #c0c0c0;
+    --text-muted: #6b6b6b;
+    --text-placeholder: #555555;
+    --text-active: #4d9fec;
+    --text-danger: #f47067;
+    --text-success: #4ec994;
+    --text-warning: #ddb56a;
+
+    --accent-blue: #4d9fec;
+    --accent-blue-hover: #3b8fd9;
+    --accent-green: #4ec994;
+    --accent-red: #f47067;
+    --accent-orange: #e8834a;
+    --accent-amber: #ddb56a;
+
+    /* Progress level colors */
+    --color-novice:     #94a3b8;
+    --color-ab:         #f59e0b;
+    --color-competent:  #f97316;
+    --color-proficient: #22c55e;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,0.7);
+
+    --scrollbar-thumb: #3a3a3a;
+}
+
+/* ===== LIGHT MODE ===== */
+[data-theme="light"] {
+    --bg-app: #f8fafc;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f1f5f9;
+    --bg-hover: #f1f5f9;
+    --bg-active: #eff6ff;
+    --bg-input: #ffffff;
+    --bg-code: #f8fafc;
+    --bg-completed: #f0fdf4;
+    --bg-danger-soft: #fff5f5;
+    --bg-warning-soft: #fffbf0;
+    --bg-modal-overlay: rgba(15, 23, 42, 0.5);
+
+    --border-default: #e2e8f0;
+    --border-hover: #cbd5e1;
+    --border-active: #3b82f6;
+    --border-dashed: #cbd5e1;
+    --border-completed: #22c55e;
+    --border-completed-soft: #86efac;
+
+    --text-primary: #1e293b;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-placeholder: #94a3b8;
+    --text-active: #2563eb;
+    --text-danger: #ef4444;
+    --text-success: #16a34a;
+    --text-warning: #f59e0b;
+
+    --accent-blue: #3b82f6;
+    --accent-blue-hover: #2563eb;
+    --accent-green: #22c55e;
+    --accent-red: #ef4444;
+    --accent-orange: #f97316;
+    --accent-amber: #f59e0b;
+
+    /* Progress level colors */
+    --color-novice:     #94a3b8;
+    --color-ab:         #f59e0b;
+    --color-competent:  #f97316;
+    --color-proficient: #22c55e;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
+
+    --scrollbar-thumb: #cbd5e1;
+}

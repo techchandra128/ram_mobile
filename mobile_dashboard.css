@@ -1,0 +1,200 @@
+/* ===== DASHBOARD TABS ===== */
+.m-dash-tabs {
+    display: flex;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 50;
+}
+
+.m-dash-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 4px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+}
+.m-dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.m-dash-content { padding: 12px; }
+
+/* ===== HEATMAP ===== */
+.m-heatmap-wrapper { }
+
+.m-hm-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 12px;
+}
+
+.m-hm-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.m-hm-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.m-hm-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.m-hm-day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+    padding-top: 20px;
+}
+
+.m-hm-day-label {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.m-hm-grid {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.m-hm-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.m-hm-month-label {
+    height: 16px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 16px;
+}
+
+.m-hm-cell {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: var(--bg3);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.m-hm-cell.today { border-color: var(--accent) !important; }
+.m-hm-cell.future { opacity: 0.3; }
+.m-hm-cell.has-event { border-width: 1px; }
+
+.m-hm-date {
+    font-size: 8px;
+    color: var(--text-muted);
+    display: none;
+}
+
+/* ===== HEATMAP STATS ===== */
+.m-hm-stats {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.m-hm-stat {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+}
+
+.m-hm-stat-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.m-hm-stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ===== BAR CHART ===== */
+.m-graph-wrap { }
+
+.m-graph-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.m-bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 100px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px;
+    position: relative;
+}
+
+.m-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    width: 8px;
+}
+
+.m-bar {
+    width: 100%;
+    background: var(--accent);
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+}
+
+.m-bar-label {
+    font-size: 8px;
+    color: var(--text-muted);
+    position: absolute;
+    bottom: 0;
+}
+
+/* ===== TABLET ===== */
+@media (min-width: 768px) {
+    .m-hm-cell { width: 18px; height: 18px; }
+    .m-hm-day-label { width: 18px; height: 18px; }
+}

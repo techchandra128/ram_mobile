@@ -1,0 +1,371 @@
+/* diary.css */
+
+.diary-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-app);
+}
+.diary-layer.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Column widths — applied via colgroup so header and body tables stay in sync */
+.dr-col-date     { width: 110px; }
+.dr-col-num      { width: 44px; }
+.dr-col-section  { width: 18%; }
+.dr-col-file     { width: 13%; }
+.dr-col-diff     { width: 11%; }
+.dr-col-prio     { width: 10%; }
+.dr-col-prof     { width: 11%; }
+.dr-col-progress { width: 164px; }
+.dr-col-rev      { width: 90px; }
+.dr-col-last     { width: auto; }
+
+/* Center align data cells except section and file */
+.diary-group .as-table td { text-align: center; }
+.diary-group .as-table td:nth-child(3),
+.diary-group .as-table td:nth-child(4) { text-align: left; }
+.as-inline-dd-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.as-inline-dd-menu {
+    position: fixed;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 9999;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    min-width: 130px;
+}
+
+.as-inline-dd-wrap.active .as-inline-dd-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.as-inline-dd-item {
+    height: 32px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.as-inline-dd-item:hover { background: var(--hover-bg); }
+.as-inline-dd-item.selected { background: var(--bg-active); }
+
+/* ===== TOPBAR ===== */
+.dr-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.dr-topbar-left,
+.dr-topbar-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.dr-topbar-right {
+    justify-content: flex-end;
+}
+.dr-topbar-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    flex: 0 0 auto;
+}
+#drToggleGroup {
+    display: none;
+}
+#drToggleGroup.visible {
+    display: flex;
+}
+
+/* ===== TABLE BOX ===== */
+.diary-table-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Sticky header */
+.diary-header-wrap {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-primary);
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
+.diary-header-wrap .as-table {
+    border-radius: 0;
+}
+
+.diary-header-wrap .as-table thead th {
+    border-bottom: none;
+}
+
+/* Scrollable groups area */
+.diary-groups-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.diary-groups-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.diary-groups-scroll::-webkit-scrollbar-track { background: transparent; }
+.diary-groups-scroll::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+
+/* Each date group is a mini table card */
+.diary-group {
+    flex-shrink: 0;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.diary-group .as-table {
+    border-radius: 0;
+}
+
+.diary-group .as-table td {
+    border-bottom: 1px solid var(--border-default);
+}
+
+.diary-group .as-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Keep bottom border on last row override */
+.diary-table tbody tr:last-child td { border-bottom: 1px solid var(--border-default); }
+
+.diary-table-box {
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+}
+
+/* Fix: header wrap needs top/left/right border + top-radius */
+.diary-header-wrap {
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    margin: 0 0 8px 0;
+    overflow: hidden;
+    padding-right: 4px;
+}
+
+/* Fix: scroll area */
+.diary-groups-scroll {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent;
+}
+
+/* Fix: each group card has border on all sides */
+.diary-group {
+    border: 1px solid var(--border-default) !important;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* ===== SELECTED ROW STYLING ===== */
+.diary-group .as-table tbody tr.as-selected td {
+    background: #3b82f618;
+    border-top: 1px solid #3b82f6 !important;
+    border-bottom: 1px solid #3b82f6 !important;
+}
+.diary-group .as-table tbody tr.as-selected td:first-child {
+    border-left: 1px solid #3b82f6;
+    border-radius: 8px 0 0 0;
+}
+.diary-group .as-table tbody tr.as-selected td:last-child {
+    border-right: 1px solid #3b82f6;
+    border-radius: 0 8px 0 0;
+}
+/* First row of group — top radius */
+.diary-group .as-table tbody tr:first-child.as-selected td:first-child { border-radius: 8px 0 0 0; }
+.diary-group .as-table tbody tr:first-child.as-selected td:last-child  { border-radius: 0 8px 0 0; }
+/* Last row of group — bottom radius */
+.diary-group .as-table tbody tr:last-child.as-selected td:first-child  { border-radius: 0 0 0 8px; }
+.diary-group .as-table tbody tr:last-child.as-selected td:last-child   { border-radius: 0 0 8px 0; }
+/* Single row group — all corners */
+.diary-group .as-table tbody tr:first-child:last-child.as-selected td:first-child { border-radius: 8px 0 0 8px; }
+.diary-group .as-table tbody tr:first-child:last-child.as-selected td:last-child  { border-radius: 0 8px 8px 0; }
+
+/* ===== FIXED PILL WIDTHS ===== */
+.diary-group .as-table td:nth-child(5) .as-pill,
+.diary-group .as-table td:nth-child(5) .as-inline-dd-wrap { min-width: 90px; justify-content: center; }
+
+.diary-group .as-table td:nth-child(6) .as-pill,
+.diary-group .as-table td:nth-child(6) .as-inline-dd-wrap { min-width: 72px; justify-content: center; }
+
+.diary-group .as-table td:nth-child(7) .as-pill { min-width: 82px; justify-content: center; display: inline-flex; }
+
+.diary-group .as-table td:nth-child(9) span { min-width: 42px; display: inline-flex; justify-content: center; }
+
+.diary-group .as-table td:nth-child(10) .as-pill { min-width: 32px; justify-content: center; }
+
+/* Force fixed width on difficulty and priority pills including dropdown trigger */
+.diary-group .as-table td:nth-child(5) .as-pill {
+    min-width: 90px;
+    justify-content: center;
+}
+.diary-group .as-table td:nth-child(6) .as-pill {
+    min-width: 72px;
+    justify-content: center;
+}
+
+/* ===== DISABLED WEEK CELLS ===== */
+.dr-wn-week.disabled {
+    color: var(--text-secondary);
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+
+.dr-week-nav-wrap {
+    flex-shrink: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 0 8px 0;
+    margin-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-default) transparent;
+}
+.dr-week-nav-wrap::-webkit-scrollbar { height: 4px; }
+.dr-week-nav-wrap::-webkit-scrollbar-track { background: transparent; }
+.dr-week-nav-wrap::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+
+.dr-week-nav-inner {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.dr-week-nav-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dr-wn-month {
+    padding: 4px 10px;
+    min-height: 26px;
+    height: 26px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+    text-align: center;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-default);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.dr-wn-week {
+    padding: 5px 14px;
+    min-height: 26px;
+    height: 26px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+    text-align: center;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-default);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+    white-space: nowrap;
+}
+.dr-wn-week:last-child { border-right: none; }
+.dr-wn-week:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+.dr-wn-week.active {
+    background: #3b82f618;
+    color: #3b82f6;
+    font-weight: 700;
+}
+
+.dr-wn-week.current-week {
+    background: var(--bg-active);
+    border-top: 1px solid var(--accent-blue);
+    border-left: 1px solid var(--accent-blue);
+    border-right: 1px solid var(--accent-blue);
+    border-bottom: none;
+    color: var(--text-active);
+}
+.dr-wn-week.current-week:hover {
+    background: var(--bg-active);
+    color: var(--text-active);
+}
+.dr-wn-count.current-week {
+    background: var(--bg-active);
+    border-top: 1px solid var(--accent-blue);
+    border-left: 1px solid var(--accent-blue);
+    border-right: 1px solid var(--accent-blue);
+    border-bottom: 1px solid var(--accent-blue);
+    color: var(--text-active);
+}
+
+/* Count row */
+.dr-wn-count {
+    padding: 2px 4px;
+    min-height: 26px;
+    height: 26px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: center;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-default);
+    border-top: 1px solid var(--border-default);
+}
+.dr-wn-count:last-child { border-right: none; }
+.dr-wn-count-zero {
+    background: #2e1a1a;
+}
+[data-theme="light"] .dr-wn-count-zero {
+    background: #fee2e2;
+}

@@ -1,0 +1,30 @@
+# Local server files - not needed online
+server.js
+proxy.js
+
+# Local scripts
+01. start.vbs
+02. stop.vbs
+03. push_mobile.bat
+
+# Local/dev only files
+OLD_diary.js
+create_icons.py
+Cornell Template Upload Example.txt
+series_modal_prototype_V38.html
+Main Page Prototype.html
+Main Page Prototype.css
+Main Page Prototype.js
+
+# Local folders
+01. Mobile App Files/
+.claude/
+project-hub/
+data/
+
+# Claude instructions (private)
+CLAUDE.md
+
+# Secret keys - never commit these
+ai-config.js
+API Key.txt
