@@ -24,6 +24,8 @@ function showCampaign() {
     document.getElementById('diaryLayer').classList.remove('active');
     document.getElementById('playlistsLayer').classList.remove('active');
     document.getElementById('smartDeskLayer').classList.remove('active');
+    document.getElementById('allFilesLayer').classList.remove('active');
+    document.getElementById('settingsLayer').classList.remove('active');
     document.getElementById('campaignLayer').classList.add('active');
     cpLoad();
     cpRender();

@@ -64,7 +64,7 @@ function plSwitchView(view) {
 // ===== SHOW =====
 function showPlaylists() {
     setActiveNav('navPlaylists');
-    ['dashboardLayer','graphsLayer','smartDeskLayer','settingsLayer','diaryLayer','asLayer','campaignLayer'].forEach(id => {
+    ['dashboardLayer','graphsLayer','smartDeskLayer','settingsLayer','diaryLayer','asLayer','campaignLayer','allFilesLayer'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('active');
     });
