@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//g/04. Computer Applications/03. Develop/01. Apps/**)",
+      "Bash(git *)",
+      "PowerShell(git *)"
+    ],
+    "additionalDirectories": [
+      "g:\\04. Computer Applications\\03. Develop\\01. Apps\\01. Apps - Final Version\\01. Web App Files",
+      "g:\\04. Computer Applications\\03. Develop\\01. Apps\\01. Apps - Final Version\\02. Mobile App Files"
+    ]
+  }
+}

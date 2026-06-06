@@ -1,0 +1,5 @@
+# Only track hub files and CLAUDE.md from root
+# Web/mobile/prototypes have their own git repos
+01. Web App Files/
+02. Mobile App Files/
+03. Prototypes/
