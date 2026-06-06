@@ -952,7 +952,7 @@ function drSwitchMode(mode) {
 // ===== SHOW / INIT =====
 function showDiary() {
     setActiveNav('navDiary');
-    ['dashboardLayer','graphsLayer','smartDeskLayer','settingsLayer','asLayer','playlistsLayer','campaignLayer'].forEach(id => {
+    ['dashboardLayer','graphsLayer','smartDeskLayer','settingsLayer','asLayer','playlistsLayer','campaignLayer','allFilesLayer'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('active');
     });
