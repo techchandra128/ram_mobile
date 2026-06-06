@@ -603,7 +603,7 @@ function createFile() {
     const name = document.getElementById('fileNameInput').value.trim();
     if (!name) return;
     const cur = getCurrentLocation();
-    if (cur[name] && cur[name].type === 'file') { alert('A file with this name already exists.'); return; }
+    if (cur[name] && cur[name].type === 'file') { alert('A book with this name already exists.'); return; }
     const fileId = 'f_' + Date.now();
     cur[name] = { type: 'file', progress: 0, fileId };
     saveFileSystem();
@@ -615,7 +615,7 @@ function createFile() {
 // ===== EDIT =====
 function showEditModal(name, type) {
     currentEditItem = { name, type, path: [...currentPath] };
-    document.getElementById('editModalTitle').textContent = `Edit ${type === 'folder' ? 'Folder' : 'File'}`;
+    document.getElementById('editModalTitle').textContent = `Edit ${type === 'folder' ? 'Folder' : 'Book'}`;
     document.getElementById('editNameInput').value = name;
     openModal('editModal');
     setTimeout(() => document.getElementById('editNameInput').focus(), 100);

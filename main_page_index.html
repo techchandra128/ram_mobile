@@ -42,13 +42,13 @@
                     <span class="nav-icon">🎯</span>
                     <span class="nav-text">Campaigns</span>
                 </button>
-                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Playlists">
+                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Collections">
                     <span class="nav-icon">🎵</span>
-                    <span class="nav-text">Playlists</span>
+                    <span class="nav-text">Collections</span>
                 </button>
-                <button class="nav-item" id="navAllFiles" onclick="showAllFiles()" title="All Files">
+                <button class="nav-item" id="navAllFiles" onclick="showAllFiles()" title="Books">
                     <span class="nav-icon">🗂️</span>
-                    <span class="nav-text">All Files</span>
+                    <span class="nav-text">Books</span>
                 </button>
                 <button class="nav-item" id="navDiary" onclick="showDiary()" title="Diary">
                     <span class="nav-icon">📔</span>
@@ -263,10 +263,10 @@
                 <div class="section-header-row">
                     <span class="section-label">Notes</span>
                     <div style="display:flex;align-items:center;gap:16px;">
-                        <div class="sd-action-btn add" onclick="sdShowAddModal()" title="Add Files to Smart Desk">
+                        <div class="sd-action-btn add" onclick="sdShowAddModal()" title="Add Books to Smart Desk">
                             <div class="section-add-rect">+</div>
                         </div>
-                        <div class="sd-action-btn remove" onclick="sdShowRemoveModal()" title="Remove Files from Smart Desk">
+                        <div class="sd-action-btn remove" onclick="sdShowRemoveModal()" title="Remove Books from Smart Desk">
                             <div class="section-add-rect sd-remove-rect">−</div>
                         </div>
                     </div>
@@ -276,12 +276,12 @@
             </div>
             <div class="section-block">
                 <div class="section-header-row">
-                    <span class="section-label">Playlists</span>
+                    <span class="section-label">Collections</span>
                     <div style="display:flex;align-items:center;gap:16px;">
-                        <div class="sd-action-btn add" onclick="sdShowAddPlaylistModal()" title="Add Playlists to Smart Desk">
+                        <div class="sd-action-btn add" onclick="sdShowAddPlaylistModal()" title="Add Collections to Smart Desk">
                             <div class="section-add-rect">+</div>
                         </div>
-                        <div class="sd-action-btn remove" onclick="sdShowRemovePlaylistModal()" title="Remove Playlists from Smart Desk">
+                        <div class="sd-action-btn remove" onclick="sdShowRemovePlaylistModal()" title="Remove Collections from Smart Desk">
                             <div class="section-add-rect sd-remove-rect">−</div>
                         </div>
                     </div>
@@ -301,9 +301,9 @@
         </div>
         <!-- Search + Playlist Bar -->
         <div class="as-search-bar">
-            <input type="text" class="as-search-input" id="asSearchInput" placeholder="Search sections or files...">
+            <input type="text" class="as-search-input" id="asSearchInput" placeholder="Search sections or books...">
             <button class="as-create-playlist-btn" id="asCreatePlaylistBtn" onclick="asCreatePlaylist()" disabled title="Select sections first">
-                ＋ ⊞ Playlist
+                ＋ ⊞ Collection
             </button>
         </div>
         <!-- Table + Preview wrapper -->
@@ -327,7 +327,7 @@
                     <tr>
                         <th id="asTh_check"></th>
                         <th id="asTh_section" onclick="asSortBy('section')" style="text-align:left">Section</th>
-                        <th id="asTh_file"    onclick="asSortBy('file')" style="text-align:left">File</th>
+                        <th id="asTh_file"    onclick="asSortBy('file')" style="text-align:left">Book</th>
                         <th id="asTh_diff"    onclick="asSortBy('diff')" style="text-align:center">Difficulty</th>
                         <th id="asTh_prio"    onclick="asSortBy('prio')" style="text-align:center">Priority</th>
                         <th id="asTh_prof"    onclick="asSortBy('prof')" style="text-align:center">Proficiency</th>
@@ -507,7 +507,7 @@
     <div class="pl-layer" id="allFilesLayer">
         <div class="sd-top-bar">
             <div style="flex:1;"></div>
-            <span class="sd-top-title">All Files</span>
+            <span class="sd-top-title">Books</span>
             <div class="topbar-right">
                 <div class="topbar-divider"></div>
                 <div class="view-toggle-group">
@@ -532,7 +532,7 @@
         <div class="content-area sd-content-area" id="afContentArea">
             <div class="section-block">
                 <div class="section-header-row">
-                    <span class="section-label">All Files</span>
+                    <span class="section-label">Books</span>
                 </div>
                 <div class="items-grid" id="afFilesGrid"></div>
                 <div class="items-list" id="afFilesList" style="display:none;"></div>
@@ -546,7 +546,7 @@
         <!-- Top bar: same as Smart Desk -->
         <div class="sd-top-bar">
             <div style="flex:1;"></div>
-            <span class="sd-top-title">Playlists</span>
+            <span class="sd-top-title">Collections</span>
             <div class="topbar-right">
                 <div class="topbar-divider"></div>
                 <div class="view-toggle-group">
@@ -626,11 +626,11 @@
 <div class="modal-overlay" id="addFileModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>New Notes File</h3>
+            <h3>New Book</h3>
             <button class="modal-close" onclick="closeModal('addFileModal')">✕</button>
         </div>
         <div class="modal-body">
-            <input type="text" class="modal-input" id="fileNameInput" placeholder="File name..." maxlength="50">
+            <input type="text" class="modal-input" id="fileNameInput" placeholder="Book name..." maxlength="50">
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal('addFileModal')">Cancel</button>
@@ -679,7 +679,7 @@
 <div class="sd-modal-overlay" id="sdAddModal">
     <div class="sd-modal-box">
         <div class="sd-modal-header">
-            <h3>Add Files to Smart Desk</h3>
+            <h3>Add Books to Smart Desk</h3>
             <button class="sd-modal-close" onclick="sdCloseAddModal()">✕</button>
         </div>
         <div class="sd-modal-body" id="sdAddModalBody"></div>
@@ -694,7 +694,7 @@
 <div class="sd-modal-overlay" id="sdRemoveModal">
     <div class="sd-modal-box">
         <div class="sd-modal-header">
-            <h3>Remove Files from Smart Desk</h3>
+            <h3>Remove Books from Smart Desk</h3>
             <button class="sd-modal-close" onclick="sdCloseRemoveModal()">✕</button>
         </div>
         <div class="sd-modal-body" id="sdRemoveModalBody"></div>
@@ -709,7 +709,7 @@
 <div class="sd-modal-overlay" id="sdAddPlaylistModal">
     <div class="sd-modal-box">
         <div class="sd-modal-header">
-            <h3>Add Playlists to Smart Desk</h3>
+            <h3>Add Collections to Smart Desk</h3>
             <button class="sd-modal-close" onclick="sdCloseAddPlaylistModal()">✕</button>
         </div>
         <div class="sd-modal-body" id="sdAddPlaylistModalBody"></div>
@@ -724,7 +724,7 @@
 <div class="sd-modal-overlay" id="sdRemovePlaylistModal">
     <div class="sd-modal-box">
         <div class="sd-modal-header">
-            <h3>Remove Playlists from Smart Desk</h3>
+            <h3>Remove Collections from Smart Desk</h3>
             <button class="sd-modal-close" onclick="sdCloseRemovePlaylistModal()">✕</button>
         </div>
         <div class="sd-modal-body" id="sdRemovePlaylistModalBody"></div>
@@ -757,7 +757,7 @@
 <div class="cp-modal-overlay" id="cpAddItemModal">
     <div class="cp-modal-box wide">
         <div class="cp-modal-header">
-            <h3>Add Files / Playlists</h3>
+            <h3>Add Books / Collections</h3>
             <button class="cp-modal-close" onclick="cpCloseAddItemModal()">✕</button>
         </div>
         <div class="cp-modal-body">

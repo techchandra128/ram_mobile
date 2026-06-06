@@ -80,14 +80,14 @@ function afRenderGrid() {
     container.innerHTML = '';
 
     const fsRaw = localStorage.getItem('ram_fileSystem');
-    if (!fsRaw) { container.innerHTML = '<div class="empty-state">No files yet.</div>'; return; }
+    if (!fsRaw) { container.innerHTML = '<div class="empty-state">No books yet.</div>'; return; }
     let fs; try { fs = JSON.parse(fsRaw); } catch(e) { return; }
 
     const files = afCollectAllFiles(fs);
     afSortArray(files);
 
     if (files.length === 0) {
-        container.innerHTML = '<div class="empty-state">No files yet.</div>';
+        container.innerHTML = '<div class="empty-state">No books yet.</div>';
         return;
     }
 
@@ -127,14 +127,14 @@ function afRenderList() {
     container.innerHTML = '';
 
     const fsRaw = localStorage.getItem('ram_fileSystem');
-    if (!fsRaw) { container.innerHTML = '<div class="empty-state">No files yet.</div>'; return; }
+    if (!fsRaw) { container.innerHTML = '<div class="empty-state">No books yet.</div>'; return; }
     let fs; try { fs = JSON.parse(fsRaw); } catch(e) { return; }
 
     const files = afCollectAllFiles(fs);
     afSortArray(files);
 
     if (files.length === 0) {
-        container.innerHTML = '<div class="empty-state">No files yet.</div>';
+        container.innerHTML = '<div class="empty-state">No books yet.</div>';
         return;
     }
 

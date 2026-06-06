@@ -37,7 +37,7 @@ function asUpdatePlaylistBtn() {
 
 function asCreatePlaylist() {
     if (asState.checkedSections.size === 0) return;
-    const name = prompt('Playlist name:');
+    const name = prompt('Collection name:');
     if (!name || !name.trim()) return;
 
     const sections = [];
@@ -59,7 +59,7 @@ function asCreatePlaylist() {
     asState.checkedSections.clear();
     asUpdatePlaylistBtn();
     asRenderTable();
-    alert(`Playlist "${name.trim()}" created with ${sections.length} section(s).`);
+    alert(`Collection "${name.trim()}" created with ${sections.length} section(s).`);
     // Notify playlist layer to refresh if open
     if (typeof plRender === 'function') plRender();
 }
@@ -682,7 +682,7 @@ function asOnFileFilter(e) {
 function asPopulateFileSelect() {
     const sel = document.getElementById('asFileSelect');
     if (!sel) return;
-    sel.innerHTML = '<option value="all">All Files</option>';
+    sel.innerHTML = '<option value="all">All Books</option>';
     const seen = new Set();
     asState.allRows.forEach(row => {
         if (!seen.has(row.fileId)) {

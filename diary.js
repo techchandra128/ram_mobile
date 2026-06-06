@@ -777,7 +777,7 @@ function drOnFileFilter(e) {
 function drPopulateFileSelect() {
     const sel = document.getElementById('drFileSelect');
     if (!sel) return;
-    sel.innerHTML = '<option value="all">All Files</option>';
+    sel.innerHTML = '<option value="all">All Books</option>';
     const seen = new Set();
     drState.allEntries.forEach(e => {
         if (!seen.has(e.fileId)) {

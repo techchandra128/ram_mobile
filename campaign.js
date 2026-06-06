@@ -115,7 +115,7 @@ function cpBuildFileCards(container, campaignId) {
 
         const typeEl = document.createElement('div');
         typeEl.className = 'cp-file-card-type';
-        typeEl.textContent = item.type === 'playlist' ? '🎵 Playlist' : '📄 File';
+        typeEl.textContent = item.type === 'playlist' ? '🎵 Collection' : '📄 Book';
         card.appendChild(typeEl);
 
         const nameEl = document.createElement('div');
@@ -365,7 +365,7 @@ function cpShowAddItemModal() {
     const plLabel = document.createElement('div');
     plLabel.className = 'cp-modal-section-label';
     plLabel.style.marginTop = '8px';
-    plLabel.textContent = 'Playlists';
+    plLabel.textContent = 'Collections';
     body.appendChild(plLabel);
 
     const allPlaylists = cpCollectAllPlaylists();

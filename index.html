@@ -42,17 +42,17 @@
                     <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
                     <span class="nav-text">Dashboard</span>
                 </button>
-                <button class="nav-item" id="navAllFiles" onclick="showAllFiles()" title="All Files">
+                <button class="nav-item" id="navAllFiles" onclick="showAllFiles()" title="Books">
                     <span class="nav-icon"><i data-lucide="folder-open"></i></span>
-                    <span class="nav-text">All Files</span>
+                    <span class="nav-text">Books</span>
                 </button>
                 <button class="nav-item" id="navAllSections" onclick="showAllSections()" title="All Sections">
                     <span class="nav-icon"><i data-lucide="layout-list"></i></span>
                     <span class="nav-text">All Sections</span>
                 </button>
-                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Playlists">
+                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Collections">
                     <span class="nav-icon"><i data-lucide="music-2"></i></span>
-                    <span class="nav-text">Playlists</span>
+                    <span class="nav-text">Collections</span>
                 </button>
                 <button class="nav-item" id="navCampaign" onclick="showCampaign()" title="Revision Campaign">
                     <span class="nav-icon"><i data-lucide="target"></i></span>
@@ -262,12 +262,12 @@
                 <!-- FILES SECTION -->
                 <div class="section-block">
                     <div class="section-header-row">
-                        <span class="section-label">Files</span>
+                        <span class="section-label">Books</span>
                         <div style="display:flex;align-items:center;gap:16px;">
-                            <div class="sd-action-btn add" onclick="sdShowAddModal('files')" title="Add Files">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('files')" title="Add Books">
                                 <div class="section-add-rect">+</div>
                             </div>
-                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('files')" title="Remove Files">
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('files')" title="Remove Books">
                                 <div class="section-add-rect sd-remove-rect">−</div>
                             </div>
                         </div>
@@ -278,12 +278,12 @@
                 <!-- PLAYLISTS SECTION -->
                 <div class="section-block">
                     <div class="section-header-row">
-                        <span class="section-label">Playlists</span>
+                        <span class="section-label">Collections</span>
                         <div style="display:flex;align-items:center;gap:16px;">
-                            <div class="sd-action-btn add" onclick="sdShowAddModal('playlists')" title="Add Playlists">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('playlists')" title="Add Collections">
                                 <div class="section-add-rect">+</div>
                             </div>
-                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('playlists')" title="Remove Playlists">
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('playlists')" title="Remove Collections">
                                 <div class="section-add-rect sd-remove-rect">−</div>
                             </div>
                         </div>
@@ -304,9 +304,9 @@
         </div>
         <!-- Search + Playlist Bar -->
         <div class="as-search-bar">
-            <input type="text" class="as-search-input" id="asSearchInput" placeholder="Search sections or files...">
+            <input type="text" class="as-search-input" id="asSearchInput" placeholder="Search sections or books...">
             <button class="as-create-playlist-btn" id="asCreatePlaylistBtn" onclick="asCreatePlaylist()" disabled title="Select sections first">
-                ＋ ⊞ Playlist
+                ＋ ⊞ Collection
             </button>
         </div>
         <!-- Table + Preview wrapper -->
@@ -506,7 +506,7 @@
     <div class="pl-layer" id="allFilesLayer">
         <div class="sd-top-bar">
             <div style="flex:1;"></div>
-            <span class="sd-top-title">All Files</span>
+            <span class="sd-top-title">Books</span>
             <div class="topbar-right">
                 <div class="topbar-divider"></div>
                 <div class="view-toggle-group">
@@ -531,7 +531,7 @@
         <div class="content-area sd-content-area" id="afContentArea">
             <div class="section-block">
                 <div class="section-header-row">
-                    <span class="section-label">All Files</span>
+                    <span class="section-label">Books</span>
                 </div>
                 <div class="items-grid" id="afFilesGrid"></div>
                 <div class="items-list" id="afFilesList" style="display:none;"></div>
@@ -545,7 +545,7 @@
         <!-- Top bar: same as Smart Desk -->
         <div class="sd-top-bar">
             <div style="flex:1;"></div>
-            <span class="sd-top-title">Playlists</span>
+            <span class="sd-top-title">Collections</span>
             <div class="topbar-right">
                 <div class="topbar-divider"></div>
                 <div class="view-toggle-group">
@@ -572,7 +572,7 @@
         <div class="content-area sd-content-area" id="plContentArea">
             <div class="section-block">
                 <div class="section-header-row">
-                    <span class="section-label">Playlists</span>
+                    <span class="section-label">Collections</span>
                 </div>
                 <div class="items-grid" id="plFilesGrid"></div>
                 <div class="items-list" id="plFilesList" style="display:none;"></div>
@@ -625,11 +625,11 @@
 <div class="modal-overlay" id="addFileModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>New Notes File</h3>
+            <h3>New Book</h3>
             <button class="modal-close" onclick="closeModal('addFileModal')">✕</button>
         </div>
         <div class="modal-body">
-            <input type="text" class="modal-input" id="fileNameInput" placeholder="File name..." maxlength="50">
+            <input type="text" class="modal-input" id="fileNameInput" placeholder="Book name..." maxlength="50">
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal('addFileModal')">Cancel</button>
@@ -726,7 +726,7 @@
 <div class="cp-modal-overlay" id="cpAddItemModal">
     <div class="cp-modal-box wide">
         <div class="cp-modal-header">
-            <h3>Add Files / Playlists</h3>
+            <h3>Add Books / Collections</h3>
             <button class="cp-modal-close" onclick="cpCloseAddItemModal()">✕</button>
         </div>
         <div class="cp-modal-body">
