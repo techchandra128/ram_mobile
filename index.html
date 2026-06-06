@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RAM - Read Analyze and Memorize</title>
+    <link rel="manifest" href="manifest.json">
+    <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+    <link rel="stylesheet" href="theme.css">
+
+    <link rel="stylesheet" href="main_page_index.css">
+    <link rel="stylesheet" href="heatmap.css">
+    <link rel="stylesheet" href="graphs.css">
+    <link rel="stylesheet" href="smart_desk.css">
+    <link rel="stylesheet" href="allsections.css">
+    <link rel="stylesheet" href="diary.css">
+    <link rel="stylesheet" href="playlist.css">
+    <link rel="stylesheet" href="campaign.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-layout" id="appLayout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+            <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
+                <span class="toggle-icon"><i data-lucide="menu"></i></span>
+            </button>
+            <nav class="sidebar-nav">
+                <button class="nav-item" id="navDiary" onclick="showDiary()" title="Diary">
+                    <span class="nav-icon"><i data-lucide="notebook-pen"></i></span>
+                    <span class="nav-text">Diary</span>
+                </button>
+                <button class="nav-item" id="navSmartDesk" onclick="showSmartDesk()" title="Smart Desk">
+                    <span class="nav-icon"><i data-lucide="monitor"></i></span>
+                    <span class="nav-text">Smart Desk</span>
+                </button>
+                <button class="nav-item" id="navDashboard" onclick="showDashboard()" title="Dashboard">
+                    <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-item" id="navAllFiles" onclick="showAllFiles()" title="All Files">
+                    <span class="nav-icon"><i data-lucide="folder-open"></i></span>
+                    <span class="nav-text">All Files</span>
+                </button>
+                <button class="nav-item" id="navAllSections" onclick="showAllSections()" title="All Sections">
+                    <span class="nav-icon"><i data-lucide="layout-list"></i></span>
+                    <span class="nav-text">All Sections</span>
+                </button>
+                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Playlists">
+                    <span class="nav-icon"><i data-lucide="music-2"></i></span>
+                    <span class="nav-text">Playlists</span>
+                </button>
+                <button class="nav-item" id="navCampaign" onclick="showCampaign()" title="Revision Campaign">
+                    <span class="nav-icon"><i data-lucide="target"></i></span>
+                    <span class="nav-text">Campaigns</span>
+                </button>
+                <button class="nav-item" id="navLibrary" onclick="showLibrary()" title="My Library">
+                    <span class="nav-icon"><i data-lucide="book-open"></i></span>
+                    <span class="nav-text">My Library</span>
+                </button>
+            </nav>
+        </div>
+        <div class="sidebar-bottom">
+            <button class="nav-item" id="navSettings" onclick="showSettings()" title="Settings">
+                <span class="nav-icon"><i data-lucide="settings"></i></span>
+                <span class="nav-text">Settings</span>
+            </button>
+            <button class="nav-item theme-toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
+                <span class="nav-icon">
+                    <i data-lucide="moon" id="themeIconDark"></i>
+                    <i data-lucide="sun" id="themeIconLight" style="display:none"></i>
+                </span>
+                <span class="nav-text" id="themeText">Dark Mode</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN WRAPPER ===== -->
+    <div class="main-wrapper" id="mainWrapper">
+
+        <!-- ===== MAIN PAGE ===== -->
+        <div class="main-page" id="mainPage">
+
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="path-label">Path:</div>
+                <div class="breadcrumb-cell" id="breadcrumbCell">
+                    <span class="breadcrumb-path" id="breadcrumbPath">Home</span>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-divider"></div>
+                    <!-- View Toggle -->
+                    <div class="view-toggle-group">
+                        <button class="view-toggle-btn active" id="viewBtnGrid" onclick="switchView('grid')">Grid</button>
+                        <button class="view-toggle-btn" id="viewBtnList" onclick="switchView('list')">List</button>
+                    </div>
+                    <div class="topbar-sort-divider"></div>
+                    <!-- Sort -->
+                    <div class="sort-dropdown" id="sortDropdown">
+                        <button class="topbar-btn" onclick="toggleSortDropdown()">
+                            <span>Sort</span>
+                            <span class="arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" id="sortOptions">
+                            <div class="dropdown-option" onclick="sortItems('name','asc')">Name ↑</div>
+                            <div class="dropdown-option" onclick="sortItems('name','desc')">Name ↓</div>
+                            <div class="dropdown-option" onclick="sortItems('progress','asc')">Progress ↑</div>
+                            <div class="dropdown-option" onclick="sortItems('progress','desc')">Progress ↓</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area" id="contentArea">
+
+                <!-- GRID VIEW -->
+                <div class="grid-view-container" id="gridViewContainer">
+                    <div class="section-block">
+                        <div class="section-header-row">
+                            <span class="section-label">Folders</span>
+                            <div class="section-add-btn" onclick="showAddFolderModal()" title="Add Folder">
+                                <div class="section-add-circle">+</div>
+                            </div>
+                        </div>
+                        <div class="items-grid" id="foldersGrid"></div>
+                    </div>
+                    <div class="section-block">
+                        <div class="section-header-row">
+                            <span class="section-label">Notes</span>
+                            <div class="section-add-btn" onclick="showAddFileModal()" title="Add Note">
+                                <div class="section-add-rect">+</div>
+                            </div>
+                        </div>
+                        <div class="items-grid" id="filesGrid"></div>
+                    </div>
+                </div>
+
+                <!-- LIST VIEW -->
+                <div class="list-view-container" id="listViewContainer" style="display:none;">
+                    <div class="section-block">
+                        <div class="section-header-row">
+                            <span class="section-label">Folders</span>
+                            <div class="section-add-btn" onclick="showAddFolderModal()" title="Add Folder">
+                                <div class="section-add-circle">+</div>
+                            </div>
+                        </div>
+                        <div class="items-list" id="foldersList"></div>
+                    </div>
+                    <div class="section-block">
+                        <div class="section-header-row">
+                            <span class="section-label">Notes</span>
+                            <div class="section-add-btn" onclick="showAddFileModal()" title="Add Note">
+                                <div class="section-add-rect">+</div>
+                            </div>
+                        </div>
+                        <div class="items-list" id="filesList"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== FILE INTERFACE (IFRAME) ===== -->
+        <div class="file-layer" id="fileLayer">
+            <iframe id="fileFrame" src="" frameborder="0"></iframe>
+        </div>
+
+        <!-- ===== DASHBOARD LAYER ===== -->
+
+        <div class="dashboard-layer" id="dashboardLayer">
+        <div class="hm-header">
+            <div class="hm-row1">
+                <div class="hm-mode-toggle">
+                    <button class="hm-mode-pill-btn active" id="dashPillHeatmap" onclick="dashSetView('heatmap')">Heat Map</button>
+                    <button class="hm-mode-pill-btn" id="dashPillGraphs" onclick="dashSetView('graphs')">Graphs</button>
+                </div>
+            </div>
+            <div class="hm-row2">
+                <!-- Heatmap controls -->
+                <div class="hm-row2-panel" id="dashRow2Heatmap">
+                    <div class="hm-toggle-group" id="hmViewToggle">
+                        <button class="hm-toggle-btn active" data-view="calendar" onclick="hmSetView('calendar')">Calendar</button>
+                        <button class="hm-toggle-btn" data-view="count" onclick="hmSetView('count')">Count</button>
+                    </div>
+                    <div class="hm-row2-divider"></div>
+                    <div id="hmProgressDisplay" class="hm-progress-display"></div>
+                </div>
+                <!-- Graphs controls -->
+                <div class="hm-row2-panel" id="dashRow2Graphs" style="display:none;">
+                    <div class="gr-toggle-group">
+                        <button class="gr-toggle-btn active" data-chart="bar" onclick="grSetChart('bar')">Histogram</button>
+                        <button class="gr-toggle-btn" data-chart="area" onclick="grSetChart('area')">Area</button>
+                        <button class="gr-toggle-btn" data-chart="line" onclick="grSetChart('line')">Line</button>
+                        <button class="gr-toggle-btn" data-chart="cumulative" onclick="grSetChart('cumulative')">Cumulative</button>
+                    </div>
+                    <div class="gr-sep"></div>
+                    <div class="gr-filter-group">
+                        <button class="gr-filter-btn active" data-range="All Time" onclick="grSelectRange('All Time')">All</button>
+                        <button class="gr-filter-btn" data-range="Last 7 Days" onclick="grSelectRange('Last 7 Days')">7d</button>
+                        <button class="gr-filter-btn" data-range="Last 15 Days" onclick="grSelectRange('Last 15 Days')">15d</button>
+                        <button class="gr-filter-btn" data-range="Last 30 Days" onclick="grSelectRange('Last 30 Days')">1M</button>
+                        <button class="gr-filter-btn" data-range="Last 3 Months" onclick="grSelectRange('Last 3 Months')">3M</button>
+                        <button class="gr-filter-btn" data-range="Last 6 Months" onclick="grSelectRange('Last 6 Months')">6M</button>
+                        <button class="gr-filter-btn" data-range="Last 1 Year" onclick="grSelectRange('Last 1 Year')">1Y</button>
+                        <button class="gr-filter-btn" data-range="Custom" onclick="grOpenCustomModal()">Custom</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hm-body" id="hmBody">
+            <div class="hm-grid-wrapper" id="hmGridWrapper"></div>
+        </div>
+    </div>
+
+    <!-- ===== GRAPHS LAYER ===== -->
+     <div class="graphs-layer" id="graphsLayer">
+        
+        <div class="gr-body">
+            <div class="gr-chart-wrapper" id="grChartWrapper"></div>
+        </div>
+        <div class="gr-tooltip" id="grTooltip"></div>
+    </div>
+
+    <!-- ===== SMART DESK LAYER ===== -->
+    <div class="smartdesk-layer" id="smartDeskLayer">
+
+        <!-- Top bar: Smart Desk title centered -->
+        <div class="sd-top-bar">
+            <div style="flex:1;"></div>
+            <span class="sd-top-title">Smart Desk</span>
+            <div class="topbar-right">
+                <div class="topbar-divider"></div>
+                <div class="view-toggle-group">
+                    <button class="view-toggle-btn active" id="sdViewBtnGrid" onclick="sdSwitchView('grid')">Grid</button>
+                    <button class="view-toggle-btn" id="sdViewBtnList" onclick="sdSwitchView('list')">List</button>
+                </div>
+                <div class="topbar-sort-divider"></div>
+                <div class="sd-sort-dropdown sort-dropdown" id="sdSortDropdown">
+                    <button class="topbar-btn" onclick="sdToggleSort()">
+                        <span>Sort</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="sdSortOptions">
+                        <div class="dropdown-option" onclick="sdSortItems('name','asc')">Name ↑</div>
+                        <div class="dropdown-option" onclick="sdSortItems('name','desc')">Name ↓</div>
+                        <div class="dropdown-option" onclick="sdSortItems('progress','asc')">Progress ↑</div>
+                        <div class="dropdown-option" onclick="sdSortItems('progress','desc')">Progress ↓</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-area sd-content-area" id="sdContentArea">
+            <div class="sd-sections-row">
+                <!-- FILES SECTION -->
+                <div class="section-block">
+                    <div class="section-header-row">
+                        <span class="section-label">Files</span>
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('files')" title="Add Files">
+                                <div class="section-add-rect">+</div>
+                            </div>
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('files')" title="Remove Files">
+                                <div class="section-add-rect sd-remove-rect">−</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="items-grid" id="sdFilesGrid"></div>
+                    <div class="items-list" id="sdFilesList" style="display:none;"></div>
+                </div>
+                <!-- PLAYLISTS SECTION -->
+                <div class="section-block">
+                    <div class="section-header-row">
+                        <span class="section-label">Playlists</span>
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('playlists')" title="Add Playlists">
+                                <div class="section-add-rect">+</div>
+                            </div>
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('playlists')" title="Remove Playlists">
+                                <div class="section-add-rect sd-remove-rect">−</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="items-grid" id="sdPlaylistsGrid"></div>
+                    <div class="items-list" id="sdPlaylistsList" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ALL SECTIONS LAYER ===== -->
+    <div class="as-layer" id="asLayer">
+        <!-- Top Bar -->
+        <div class="as-topbar">
+            <span class="as-topbar-title">All Sections</span>
+            <div id="asProgressDisplay" class="as-progress-display"></div>
+        </div>
+        <!-- Search + Playlist Bar -->
+        <div class="as-search-bar">
+            <input type="text" class="as-search-input" id="asSearchInput" placeholder="Search sections or files...">
+            <button class="as-create-playlist-btn" id="asCreatePlaylistBtn" onclick="asCreatePlaylist()" disabled title="Select sections first">
+                ＋ ⊞ Playlist
+            </button>
+        </div>
+        <!-- Table + Preview wrapper -->
+        <div class="as-body">
+        <div class="as-table-wrapper">
+            <div class="as-table-box">
+            <div class="as-table-scroll">
+            <table class="as-table">
+                <colgroup>
+                    <col style="width:21px">
+                    <col style="width:18%">
+                    <col style="width:14%">
+                    <col style="width:11%">
+                    <col style="width:10%">
+                    <col style="width:11%">
+                    <col style="width:14%">
+                    <col style="width:10%">
+                    <col style="width:9%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th id="asTh_check"></th>
+                        <th id="asTh_section" onclick="asSortBy('section')" style="text-align:left">Section</th>
+                        <th id="asTh_file"    onclick="asSortBy('file')" style="text-align:left">File</th>
+                        <th id="asTh_diff"    onclick="asSortBy('diff')" style="text-align:center">Difficulty</th>
+                        <th id="asTh_prio"    onclick="asSortBy('prio')" style="text-align:center">Priority</th>
+                        <th id="asTh_prof"    onclick="asSortBy('prof')" style="text-align:center">Proficiency</th>
+                        <th id="asTh_progress" onclick="asSortBy('progress')" style="text-align:center">Progress</th>
+                        <th id="asTh_rev"     onclick="asSortBy('rev')" style="text-align:center">Rev Count</th>
+                        <th id="asTh_last"    onclick="asSortBy('last')" style="text-align:center">Last Revised</th>
+                    </tr>
+                </thead>
+                <tbody id="asTableBody"></tbody>
+            </table>
+            </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="as-preview" id="asPreview" style="display:none;"></div>
+        </div>
+    </div>
+
+
+
+    <!-- ===== DIARY LAYER ===== -->
+    <div class="diary-layer" id="diaryLayer">
+        <!-- Top Bar -->
+        <div class="as-topbar dr-topbar">
+            <div class="dr-topbar-left"></div>
+            <span class="dr-topbar-title">Diary</span>
+            <div class="dr-topbar-right">
+                <div class="view-toggle-group" id="drToggleGroup">
+                    <button class="view-toggle-btn" id="drTogCompleted" onclick="drSwitchMode('completed')">Completed</button>
+                    <button class="view-toggle-btn active" id="drTogTBC" onclick="drSwitchMode('tbc')">To Be Completed</button>
+                </div>
+            </div>
+        </div>
+        <!-- Table + Preview wrapper -->
+        <div class="as-body">
+        <div class="as-table-wrapper">
+            <!-- Week Navigator -->
+            <div class="dr-week-nav-wrap" id="drWeekNav"></div>
+
+            <!-- TBC Header -->
+            <div class="diary-table-box" id="drTBCBox">
+                <div class="diary-header-wrap">
+                <table class="as-table diary-table">
+                    <colgroup>
+                        <col style="width:44px">
+                        <col style="width:18%">
+                        <col style="width:14%">
+                        <col style="width:11%">
+                        <col style="width:10%">
+                        <col style="width:11%">
+                        <col style="width:14%">
+                        <col style="width:10%">
+                        <col style="width:9%">
+                    </colgroup>
+                    <thead><tr>
+                        <th style="text-align:center">#</th>
+                        <th style="text-align:left">Section</th>
+                        <th style="text-align:left">File</th>
+                        <th style="text-align:center">Difficulty</th>
+                        <th style="text-align:center">Priority</th>
+                        <th style="text-align:center">Proficiency</th>
+                        <th style="text-align:center">Progress</th>
+                        <th style="text-align:center">Rev Count</th>
+                        <th style="text-align:center">Last Revised</th>
+                    </tr></thead>
+                </table>
+                </div>
+                <div class="diary-groups-scroll" id="drGroupsScroll"></div>
+            </div>
+
+            <!-- Completed Header -->
+            <div class="diary-table-box" id="drCompletedBox" style="display:none">
+                <div class="diary-header-wrap">
+                <table class="as-table diary-table">
+                    <colgroup>
+                        <col class="dr-col-date">
+                        <col class="dr-col-num">
+                        <col class="dr-col-section">
+                        <col class="dr-col-file">
+                        <col class="dr-col-diff">
+                        <col class="dr-col-prio">
+                        <col class="dr-col-prof">
+                        <col class="dr-col-progress">
+                        <col class="dr-col-rev">
+                        <col class="dr-col-last">
+                    </colgroup>
+                    <thead><tr>
+                        <th style="text-align:center">Date</th>
+                        <th style="text-align:center">#</th>
+                        <th style="text-align:center">Section</th>
+                        <th style="text-align:center">File</th>
+                        <th style="text-align:center">Difficulty</th>
+                        <th style="text-align:center">Priority</th>
+                        <th style="text-align:center">Proficiency</th>
+                        <th style="text-align:center">Progress</th>
+                        <th style="text-align:center">Count</th>
+                        <th style="text-align:center">Last Revised</th>
+                    </tr></thead>
+                </table>
+                </div>
+                <div class="diary-groups-scroll" id="drCompletedScroll"></div>
+            </div>
+
+        </div>
+        <!-- Preview Panel -->
+        <div class="as-preview" id="drPreview" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- ===== CAMPAIGN LAYER ===== -->
+    <div class="campaign-layer" id="campaignLayer">
+
+        <!-- Top Bar -->
+        <div class="cp-top-bar">
+            <span class="cp-top-title">Revision Campaigns</span>
+            <div class="cp-top-right">
+                <button class="cp-btn" id="cpAddItemBtn" onclick="cpShowAddItemModal()" style="display:none;">+ Add</button>
+                <button class="cp-btn primary" onclick="cpShowNewCampaignModal()">+ New Campaign</button>
+            </div>
+        </div>
+
+        <!-- Layout switcher -->
+        <div class="cp-layout-bar">
+            <span class="cp-layout-label">View:</span>
+            <button class="cp-layout-pill active" id="cpPillA" onclick="cpSetLayout('a')">Sidebar</button>
+            <button class="cp-layout-pill" id="cpPillB" onclick="cpSetLayout('b')">Tabs</button>
+            <button class="cp-layout-pill" id="cpPillC" onclick="cpSetLayout('c')">Drill-down</button>
+        </div>
+
+        <div class="cp-body">
+
+            <!-- Layout A: Sidebar -->
+            <div class="cp-layout-a" id="cpLayoutA">
+                <div class="cp-sidebar">
+                    <div class="cp-sidebar-label">Campaigns</div>
+                    <div class="cp-sidebar-list" id="cpSidebarList"></div>
+                    <div class="cp-sidebar-footer">
+                        <button class="cp-sidebar-new-btn" onclick="cpShowNewCampaignModal()">+ New Campaign</button>
+                    </div>
+                </div>
+                <div class="cp-files-area" id="cpFilesAreaA"></div>
+            </div>
+
+            <!-- Layout B: Tabs -->
+            <div class="cp-layout-b" id="cpLayoutB" style="display:none;">
+                <div class="cp-tabs-bar" id="cpTabsBar"></div>
+                <div class="cp-tab-content" id="cpTabContent"></div>
+            </div>
+
+            <!-- Layout C: Drill-down -->
+            <div class="cp-layout-c" id="cpLayoutC" style="display:none;">
+                <div class="cp-campaign-grid" id="cpCampaignGrid" style="display:flex;"></div>
+                <div id="cpDrillFiles" style="display:none;flex-direction:column;flex:1;min-height:0;">
+                    <div class="cp-breadcrumb">
+                        <button class="cp-breadcrumb-back" onclick="cpCloseDrillDown()">← Campaigns</button>
+                        <span class="cp-breadcrumb-sep">›</span>
+                        <span class="cp-breadcrumb-cur" id="cpDrillTitle"></span>
+                    </div>
+                    <div class="cp-drill-files" id="cpDrillFilesArea"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS LAYER ===== -->
+    <div class="settings-layer" id="settingsLayer">
+        <iframe id="settingsFrame" src="" frameborder="0" style="width:100%;height:100%;border:none;"></iframe>
+    </div>
+
+    <!-- ===== ALL FILES LAYER ===== -->
+    <div class="pl-layer" id="allFilesLayer">
+        <div class="sd-top-bar">
+            <div style="flex:1;"></div>
+            <span class="sd-top-title">All Files</span>
+            <div class="topbar-right">
+                <div class="topbar-divider"></div>
+                <div class="view-toggle-group">
+                    <button class="view-toggle-btn active" id="afViewBtnGrid" onclick="afSwitchView('grid')">Grid</button>
+                    <button class="view-toggle-btn" id="afViewBtnList" onclick="afSwitchView('list')">List</button>
+                </div>
+                <div class="topbar-sort-divider"></div>
+                <div class="sd-sort-dropdown sort-dropdown" id="afSortDropdown">
+                    <button class="topbar-btn" onclick="afToggleSort()">
+                        <span>Sort</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="afSortOptions">
+                        <div class="dropdown-option" onclick="afSortItems('name','asc')">Name ↑</div>
+                        <div class="dropdown-option" onclick="afSortItems('name','desc')">Name ↓</div>
+                        <div class="dropdown-option" onclick="afSortItems('progress','asc')">Progress ↑</div>
+                        <div class="dropdown-option" onclick="afSortItems('progress','desc')">Progress ↓</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-area sd-content-area" id="afContentArea">
+            <div class="section-block">
+                <div class="section-header-row">
+                    <span class="section-label">All Files</span>
+                </div>
+                <div class="items-grid" id="afFilesGrid"></div>
+                <div class="items-list" id="afFilesList" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PLAYLISTS LAYER ===== -->
+    <div class="pl-layer" id="playlistsLayer">
+
+        <!-- Top bar: same as Smart Desk -->
+        <div class="sd-top-bar">
+            <div style="flex:1;"></div>
+            <span class="sd-top-title">Playlists</span>
+            <div class="topbar-right">
+                <div class="topbar-divider"></div>
+                <div class="view-toggle-group">
+                    <button class="view-toggle-btn active" id="plViewBtnGrid" onclick="plSwitchView('grid')">Grid</button>
+                    <button class="view-toggle-btn" id="plViewBtnList" onclick="plSwitchView('list')">List</button>
+                </div>
+                <div class="topbar-sort-divider"></div>
+                <div class="sd-sort-dropdown sort-dropdown" id="plSortDropdown">
+                    <button class="topbar-btn" onclick="plToggleSort()">
+                        <span>Sort</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="plSortOptions">
+                        <div class="dropdown-option" onclick="plSortItems('name','asc')">Name ↑</div>
+                        <div class="dropdown-option" onclick="plSortItems('name','desc')">Name ↓</div>
+                        <div class="dropdown-option" onclick="plSortItems('progress','asc')">Progress ↑</div>
+                        <div class="dropdown-option" onclick="plSortItems('progress','desc')">Progress ↓</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content: same as Smart Desk -->
+        <div class="content-area sd-content-area" id="plContentArea">
+            <div class="section-block">
+                <div class="section-header-row">
+                    <span class="section-label">Playlists</span>
+                </div>
+                <div class="items-grid" id="plFilesGrid"></div>
+                <div class="items-list" id="plFilesList" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+</div>
+
+<!-- ===== CUSTOM DATE RANGE MODAL ===== -->
+<div class="gr-custom-modal-overlay" id="grCustomModal">
+    <div class="gr-custom-modal">
+        <div class="gr-custom-modal-title">Custom Date Range</div>
+        <div class="gr-custom-modal-fields">
+            <div class="gr-custom-modal-field">
+                <label>From</label>
+                <input type="date" id="grCustomFrom">
+            </div>
+            <div class="gr-custom-modal-field">
+                <label>To</label>
+                <input type="date" id="grCustomTo">
+            </div>
+        </div>
+        <div class="gr-custom-modal-actions">
+            <button class="gr-custom-modal-cancel" onclick="grCloseCustomModal()">Cancel</button>
+            <button class="gr-custom-modal-apply" onclick="grApplyCustom()">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ADD FOLDER MODAL ===== -->
+<div class="modal-overlay" id="addFolderModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>New Folder</h3>
+            <button class="modal-close" onclick="closeModal('addFolderModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="text" class="modal-input" id="folderNameInput" placeholder="Folder name..." maxlength="50">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal('addFolderModal')">Cancel</button>
+            <button class="btn-save" onclick="createFolder()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ADD FILE MODAL ===== -->
+<div class="modal-overlay" id="addFileModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>New Notes File</h3>
+            <button class="modal-close" onclick="closeModal('addFileModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="text" class="modal-input" id="fileNameInput" placeholder="File name..." maxlength="50">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal('addFileModal')">Cancel</button>
+            <button class="btn-save" onclick="createFile()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="editModalTitle">Edit</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="text" class="modal-input" id="editNameInput" maxlength="50">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-delete" onclick="deleteCurrentItem()">Delete</button>
+            <button class="btn-move" onclick="showMoveModal()">Move To</button>
+            <button class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+            <button class="btn-save" onclick="saveItemChanges()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MOVE MODAL ===== -->
+<div class="modal-overlay" id="moveModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Move To</h3>
+            <button class="modal-close" onclick="closeModal('moveModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div id="folderTree" class="folder-tree"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal('moveModal')">Cancel</button>
+            <button class="btn-save" onclick="confirmMove()">Move</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SMART DESK: ADD MODAL ===== -->
+<div class="sd-modal-overlay" id="sdAddModal">
+    <div class="sd-modal-box">
+        <div class="sd-modal-header">
+            <h3 id="sdAddModalTitle">Add to Smart Desk</h3>
+            <button class="sd-modal-close" onclick="sdCloseAddModal()">✕</button>
+        </div>
+        <div class="sd-modal-body" id="sdAddModalBody"></div>
+        <div class="sd-modal-footer">
+            <button class="sd-btn-cancel" onclick="sdCloseAddModal()">Cancel</button>
+            <button class="sd-btn-confirm" onclick="sdConfirmAdd()">Add Selected</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SMART DESK: REMOVE MODAL ===== -->
+<div class="sd-modal-overlay" id="sdRemoveModal">
+    <div class="sd-modal-box">
+        <div class="sd-modal-header">
+            <h3 id="sdRemoveModalTitle">Remove from Smart Desk</h3>
+            <button class="sd-modal-close" onclick="sdCloseRemoveModal()">✕</button>
+        </div>
+        <div class="sd-modal-body" id="sdRemoveModalBody"></div>
+        <div class="sd-modal-footer">
+            <button class="sd-btn-cancel" onclick="sdCloseRemoveModal()">Cancel</button>
+            <button class="sd-btn-confirm remove-confirm" onclick="sdConfirmRemove()">Remove Selected</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CAMPAIGN: NEW CAMPAIGN MODAL ===== -->
+<div class="cp-modal-overlay" id="cpNewCampaignModal">
+    <div class="cp-modal-box">
+        <div class="cp-modal-header">
+            <h3>New Campaign</h3>
+            <button class="cp-modal-close" onclick="cpCloseNewCampaignModal()">✕</button>
+        </div>
+        <div class="cp-modal-body">
+            <div class="cp-modal-label">Campaign name</div>
+            <input type="text" class="cp-modal-input" id="cpNewCampaignInput" placeholder="e.g. History Revision" maxlength="60">
+        </div>
+        <div class="cp-modal-footer">
+            <button class="sd-btn-cancel" onclick="cpCloseNewCampaignModal()">Cancel</button>
+            <button class="sd-btn-confirm" onclick="cpConfirmNewCampaign()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CAMPAIGN: ADD ITEMS MODAL ===== -->
+<div class="cp-modal-overlay" id="cpAddItemModal">
+    <div class="cp-modal-box wide">
+        <div class="cp-modal-header">
+            <h3>Add Files / Playlists</h3>
+            <button class="cp-modal-close" onclick="cpCloseAddItemModal()">✕</button>
+        </div>
+        <div class="cp-modal-body">
+            <!-- Import settings -->
+            <div class="cp-import-settings">
+                <div class="cp-import-field">
+                    <label>Start date</label>
+                    <input type="date" id="cpImportStartDate">
+                </div>
+                <div class="cp-import-field">
+                    <label>Deadline</label>
+                    <input type="date" id="cpImportDeadline">
+                </div>
+                <div class="cp-import-field" style="grid-column:span 2;">
+                    <label>Target revisions</label>
+                    <div class="cp-spinner-row">
+                        <div class="cp-spinner">
+                            <button class="cp-spinner-btn" onclick="cpSpinnerChange(-1)">−</button>
+                            <div class="cp-spinner-val" id="cpImportSpinVal">2</div>
+                            <button class="cp-spinner-btn" onclick="cpSpinnerChange(1)">+</button>
+                        </div>
+                        <span class="cp-spinner-label">revisions per section</span>
+                    </div>
+                </div>
+            </div>
+            <!-- File & playlist list -->
+            <div id="cpAddItemBody"></div>
+        </div>
+        <div class="cp-modal-footer">
+            <button class="sd-btn-cancel" onclick="cpCloseAddItemModal()">Cancel</button>
+            <button class="sd-btn-confirm" onclick="cpConfirmAddItems()">Add Selected</button>
+        </div>
+    </div>
+</div>
+
+<script src="libs/lucide.min.js"></script>
+<script src="supabase_sync.js"></script>
+<script src="main_page_index.js"></script>
+<script src="smart_desk.js"></script>
+<script src="allsections.js"></script>
+<script src="series_modal.js"></script>
+<script src="diary.js"></script>
+<script src="heatmap.js"></script>
+<script src="graphs.js"></script>
+<script src="playlist.js"></script>
+<script src="allfiles.js"></script>
+<script src="campaign.js"></script>
+
+</body>
+</html>

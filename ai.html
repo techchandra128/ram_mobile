@@ -1,0 +1,49 @@
+<!-- ===== AI POPUP OVERLAY ===== -->
+<div class="ai-overlay" id="aiOverlay">
+    <div class="ai-modal" id="aiModal">
+
+        <!-- ===== LEFT PANEL: CHAT ===== -->
+        <div class="ai-left">
+
+            <!-- Messages Area -->
+            <div class="ai-messages" id="aiMessages"></div>
+
+            <!-- Input Row -->
+            <div class="ai-input-row">
+                <textarea class="ai-textarea" id="aiTextarea" placeholder="Type here..." rows="1"></textarea>
+                <button class="ai-send-btn" id="aiSendBtn" onclick="aiSendMessage()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                    </svg>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ===== RIGHT PANEL: PREVIEW ===== -->
+        <div class="ai-right">
+
+            <!-- Floating Action Icons -->
+            <div class="ai-actions" id="aiActions">
+                <button class="ai-action-btn ai-btn-copy" onclick="aiCopyNotes()" title="Copy">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                </button>
+                <button class="ai-action-btn ai-btn-import" onclick="aiImportNotes()" title="Import">⬇</button>
+                <button class="ai-action-btn ai-btn-close" onclick="closeAiModal()" title="Close">✕</button>
+            </div>
+
+            <!-- Preview Body -->
+            <div class="ai-preview-body" id="aiPreviewBody">
+                <div class="ai-preview-empty" id="aiPreviewEmpty">
+                    <div class="ai-preview-empty-icon">✦</div>
+                    <div class="ai-preview-empty-text">Notes will appear here</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>

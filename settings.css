@@ -1,0 +1,104 @@
+/* settings.css */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-secondary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ===== TOP BAR ===== */
+.settings-top-bar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+}
+
+.settings-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+}
+
+/* ===== CONTENT ===== */
+.settings-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    height: calc(100vh - 48px);
+}
+
+.settings-content::-webkit-scrollbar { width: 4px; }
+.settings-content::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+/* ===== SECTION ===== */
+.settings-section {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 560px;
+}
+
+.settings-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-default);
+}
+
+/* ===== RADIO OPTIONS ===== */
+.settings-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.12s;
+    user-select: none;
+}
+
+.settings-option:hover {
+    background: var(--bg-hover);
+}
+
+.settings-option input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-blue);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.settings-option-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.settings-option input[type="radio"]:checked + .settings-option-label {
+    color: var(--accent-blue);
+}

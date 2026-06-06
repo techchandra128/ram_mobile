@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAM - File View</title>
+
+    <link rel="stylesheet" href="column1-2.css">
+    <link rel="stylesheet" href="column3.css">
+    <link rel="stylesheet" href="editor.css">
+    <link rel="stylesheet" href="uploadpdf.css">
+    <link rel="stylesheet" href="column4.css">
+    <link rel="stylesheet" href="column5.css">
+    <link rel="stylesheet" href="ai.css">
+
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="series_modal.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('ram_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-app);
+            color: var(--text-secondary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            gap: 8px;
+            padding: 8px;
+            overflow: hidden;
+        }
+
+        /* ---- Column wrappers ---- */
+        .col-1-2 {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .col-3 {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .col-4 {
+            width: 250px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .col-5 {
+            width: 250px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ---- Placeholder cells for col 3,5 ---- */
+
+        .ph-cell {
+            height: 40px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            flex-shrink: 0;
+        }
+
+        .ph-cell.center { justify-content: center; }
+
+        .ph-body {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #94a3b8;
+            min-height: 0;
+        }
+
+        .ph-footer {
+            height: 40px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #64748b;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+
+        .ph-footer:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #2563eb;
+        }
+
+        .ph-cell.dropdown {
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .ph-cell.dropdown:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ===== COLUMN 1 & 2 ===== -->
+    <div class="col-1-2">
+
+        <!-- Header Block: Back/Title + Sort Row -->
+        <div class="c12-header-block">
+
+        <!-- Header Row 1: Back + Chapter Title -->
+        <div class="c12-header-row">
+            <div class="c12-cell c12-col1 c12-back-btn" onclick="handleBack()">←</div>
+            <div class="c12-cell c12-chapter-title">
+                <span>Chapter Title</span>
+            </div>
+        </div>
+
+        <!-- Header Row 2: Sort Label + Dropdown + Arrow -->
+        <div class="c12-header-row">
+            <div class="c12-cell c12-col1 c12-sort-label" id="c12SortLabel">X.X.X.X</div>
+            <div class="c12-cell c12-sort-dropdown" id="c12SortDropdown" onclick="toggleSortDropdown()">
+                <span id="c12DropdownLabel">Outline Number</span>
+                <span>▼</span>
+                <div class="c12-dropdown-menu" id="c12DropdownMenu">
+                    <div class="c12-dropdown-option selected" onclick="selectSort(event,'Outline')">Outline Number</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'SectionCount')">Section Count</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'LastRevised')">Last Revised</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'Progress')">Progress</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'Proficiency')">Proficiency</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'Difficulty')">Difficulty</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'Priority')">Priority</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'Count')">Revision Count</div>
+                    <div class="c12-dropdown-option" onclick="selectSort(event,'Alphabetical')">Alphabetical</div>
+                </div>
+            </div>
+            <div class="c12-cell c12-col1 c12-sort-arrow disabled" id="c12SortArrow" onclick="toggleSortArrow()">—</div>
+        </div>
+
+        </div><!-- end c12-header-block -->
+
+        <!-- Body: Scrollable Section List -->
+        <div class="c12-list-container" id="c12SectionList"></div>
+
+        <!-- Footer Row: + Add Section -->
+         <div class="c12-footer-row" onclick="openAddSectionModal()">
+            <div class="c12-cell c12-col1 c12-footer-plus" id="c12ThemeToggle" onclick="toggleFileTheme(); event.stopPropagation();" title="Toggle Theme">🌙</div>
+            <div class="c12-cell c12-footer-label">Add Section</div>
+        </div>
+
+    </div>
+
+    <!-- ===== COLUMN 3 ===== -->
+    <div class="col-3">
+
+        <!-- Header Block: Title + Tab Bar -->
+        <div class="c3-header-block">
+            <div class="c3-title-row">
+                <span id="c3SectionTitle">Navigation</span>
+            </div>
+            <div class="c3-tab-bar" id="c3TabBar"></div>
+        </div>
+
+        <!-- Main Body -->
+        <div class="c3-body" id="c3Body">
+
+            <!-- Tab Panels -->
+            <div class="c3-tab-panel" id="c3TabPanel_notes"></div>
+            <div class="c3-tab-panel" id="c3TabPanel_memorize"></div>
+            <div class="c3-tab-panel" id="c3TabPanel_visualize"></div>
+            <div class="c3-tab-panel" id="c3TabPanel_analyze"></div>
+            <div class="c3-tab-panel" id="c3TabPanel_test"></div>
+            <div class="c3-tab-panel" id="c3TabPanel_reference"></div>
+
+            <!-- Ask Me Button -->
+            <button class="c3-ask-me-btn" id="c3AskMeBtn">✦ Ask Me</button>
+
+        </div>
+
+        <!-- Footer Row -->
+        <div class="c3-footer-row">
+            <button class="c3-footer-btn c3-footer-prev" id="c3FooterPrev" onclick="c3NavPrev()" disabled>◀ Previous Section</button>
+            <button class="c3-footer-btn c3-footer-studied" id="c3FooterStudied" onclick="c3MarkStudied()" disabled>Mark as Studied</button>
+            <button class="c3-footer-btn c3-footer-next" id="c3FooterNext" onclick="c3NavNext()" disabled>Next Section ▶</button>
+        </div>
+
+    </div>
+
+    <!-- ===== COLUMN 4 ===== -->
+    <div class="col-4">
+
+        <!-- Header Block: Notes + Controls -->
+        <div class="c4-header-block">
+        <div class="c4-header">Observations</div>
+
+        <!-- Header Row 2: Category Filter + Sort -->
+        <div class="c4-controls-row">
+            <div class="c4-control-cell c4-category-filter" id="c4CategoryFilter" onclick="toggleC4CategoryDropdown()">
+                <span id="c4CategoryLabel">All</span>
+                <span style="font-size:11px;">▼</span>
+                <div class="c4-dropdown-menu" id="c4CategoryMenu"></div>
+            </div>
+            <div class="c4-control-cell c4-sort-btn" id="c4SortBtn" onclick="toggleC4Sort()">↓</div>
+        </div>
+        </div><!-- end c4-header-block -->
+
+        <!-- Body: Notes List -->
+        <div class="c4-notes-list" id="c4NotesList"></div>
+
+        <!-- Footer: Add New Note -->
+        <div class="c4-footer" onclick="openAddNoteModal()">Add New Note</div>
+
+    </div>
+
+    <!-- ===== COLUMN 5 ===== -->
+    <div class="col-5">
+
+        <!-- Header Block: Dashboard + Dropdown -->
+        <div class="c5-header-block">
+        <div class="c5-header">Dashboard</div>
+
+        <!-- Header Row 2: Mode Dropdown -->
+        <div class="c5-dropdown-row" id="c5ModeDropdown" onclick="toggleC5Dropdown()">
+            <span id="c5ModeLabel">Section Progress</span>
+            <span style="font-size:11px;">▼</span>
+            <div class="c5-dropdown-menu">
+                <div class="c5-dropdown-option selected" data-mode="section" onclick="selectC5Mode('section');event.stopPropagation()">Section Progress</div>
+                <div class="c5-dropdown-option" data-mode="overall" onclick="selectC5Mode('overall');event.stopPropagation()">Overall Progress</div>
+            </div>
+        </div>
+        </div><!-- end c5-header-block -->
+
+        <!-- Main Body -->
+        <div class="c5-body">
+
+            <!-- Part 1: Progress Circle -->
+            <div class="c5-circle-section">
+                <div class="c5-circle-wrap">
+                    <svg class="c5-circle-svg" viewBox="0 0 160 160">
+                        <circle class="c5-circle-bg" id="c5CircleBg" cx="80" cy="80" r="65"/>
+                        <circle class="c5-circle-fill" id="c5CircleFill" cx="80" cy="80" r="65"
+                            stroke-dasharray="408.41" stroke-dashoffset="408.41"/>
+                    </svg>
+                    <div class="c5-circle-inner">
+                        <span class="c5-circle-pct" id="c5CirclePct">0%</span>
+                        <span class="c5-circle-label" id="c5CircleLabel">Section</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Part 2: Date Boxes -->
+            <div class="c5-dates-section">
+                <div class="c5-dates-grid" id="c5DatesGrid"></div>
+
+                <div class="c5-dates-nav">
+                    <button class="c5-page-arrow" id="c5PagePrev" onclick="c5PagePrev()" disabled>◀</button>
+                    <button class="c5-action-btn c5-btn-add-more" id="c5BtnAddMore" onclick="c5AddMoreRevisions()" disabled>Activate More</button>
+                    <button class="c5-page-arrow" id="c5PageNext" onclick="c5PageNext()" disabled>▶</button>
+                </div>
+                <div style="padding: 4px 0px;">
+                    <button class="c5-action-btn c5-btn-reset" id="c5BtnReset" onclick="c5ResetProgress()" disabled>Reset</button>
+                </div>
+                <!-- Schedule Rows -->
+                <div class="c5-sched-divider"></div>
+                <div class="c5-schedule-row" id="c5ScheduleRow1">
+                    <span class="c5-status-label">Revision Series</span>
+                    <div class="c5-sched-dropdown" id="c5SchedTypeDropdown" onclick="toggleC5SchedDropdown()">
+                        <div class="c5-sched-dot" id="c5SchedDot"></div>
+                        <span id="c5SchedTypeLabel">Prime</span>
+                        <span class="c5-sched-chevron">▼</span>
+                        <div class="c5-sched-menu" id="c5SchedMenu">
+                            <div class="c5-sched-option" onclick="selectC5SchedType(event,'prime')"><div class="c5-sched-dot-sm" style="background:#378ADD;"></div>Prime</div>
+                            <div class="c5-sched-option" onclick="selectC5SchedType(event,'fibonacci')"><div class="c5-sched-dot-sm" style="background:#4ec994;"></div>Fibonacci</div>
+                            <div class="c5-sched-option" onclick="selectC5SchedType(event,'triangular')"><div class="c5-sched-dot-sm" style="background:#ddb56a;"></div>Triangular</div>
+                            <div class="c5-sched-option" onclick="selectC5SchedType(event,'regular')"><div class="c5-sched-dot-sm" style="background:#e8834a;"></div>Regular</div>
+                            <div class="c5-sched-option" onclick="selectC5SchedType(event,'custom')"><div class="c5-sched-dot-sm" style="background:#a78bfa;"></div>Custom</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="c5-schedule-row" id="c5ScheduleRow2">
+                    <span class="c5-status-label">Badge Status</span>
+                    <div class="c5-status-pill" id="c5StatusPill"></div>
+                </div>
+                <div class="c5-schedule-row" id="c5ScheduleRow3">
+                    <span class="c5-status-label">Revision Settings</span>
+                    <div class="c5-settings-pills">
+                        <button class="c5-toggle-btn c5-on" id="c5ToggleBtn" onclick="toggleC5ScheduleActive()">ON</button>
+                        <button class="c5-settings-btn" onclick="openC5SeriesModal()" title="Settings">⚙</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Part 3: Difficulty + Priority -->
+             <div class="c5-actions-section">
+                <div class="c5-label-row">
+                    <span class="c5-label-text">Difficulty</span>
+                    <div class="c5-label-dropdown" id="c5DiffDropdown" onclick="toggleC5Diff()">
+                        <span class="c5-dot" id="c5DiffDot"></span>
+                        <span id="c5DiffLabel">Easy</span>
+                        <span style="font-size:10px;color:#94a3b8;margin-left:auto;">▼</span>
+                        <div class="c5-label-menu" id="c5DiffMenu">
+                            <div class="c5-label-option" data-value="Easy"       data-color="#22c55e" onclick="selectC5Diff(event,'Easy','#22c55e')">Easy</div>
+                            <div class="c5-label-option" data-value="Moderate"   data-color="#f59e0b" onclick="selectC5Diff(event,'Moderate','#f59e0b')">Moderate</div>
+                            <div class="c5-label-option" data-value="Challenging" data-color="#f97316" onclick="selectC5Diff(event,'Challenging','#f97316')">Challenging</div>
+                            <div class="c5-label-option" data-value="Hard"       data-color="#ef4444" onclick="selectC5Diff(event,'Hard','#ef4444')">Hard</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="c5-label-row">
+                    <span class="c5-label-text">Priority</span>
+                    <div class="c5-label-dropdown" id="c5PrioDropdown" onclick="toggleC5Prio()">
+                        <span class="c5-dot" id="c5PrioDot"></span>
+                        <span id="c5PrioLabel">Low</span>
+                        <span style="font-size:10px;color:#94a3b8;margin-left:auto;">▼</span>
+                        <div class="c5-label-menu" id="c5PrioMenu">
+                            <div class="c5-label-option" data-value="Low"      data-color="#94a3b8" onclick="selectC5Prio(event,'Low','#94a3b8')">Low</div>
+                            <div class="c5-label-option" data-value="Medium"   data-color="#3b82f6" onclick="selectC5Prio(event,'Medium','#3b82f6')">Medium</div>
+                            <div class="c5-label-option" data-value="High"     data-color="#f97316" onclick="selectC5Prio(event,'High','#f97316')">High</div>
+                            <div class="c5-label-option" data-value="Critical" data-color="#ef4444" onclick="selectC5Prio(event,'Critical','#ef4444')">Critical</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="c5-divider"></div>
+
+            <!-- Part 4: Stats -->
+            <div class="c5-stats-section">
+                <div class="c5-stat-row">
+                    <span class="c5-stat-label" id="c5StatCount">Revision Count</span>
+                    <span class="c5-stat-value" id="c5StatCountVal">00/16</span>
+                </div>
+                <div class="c5-stat-row">
+                    <span class="c5-stat-label" id="c5StatProgress">Proficiency</span>
+                    <span class="c5-stat-value" id="c5StatProgressVal">Novice</span>
+                </div>
+                <div class="c5-stat-row">
+                    <span class="c5-stat-label" id="c5StatLast">Last Study</span>
+                    <span class="c5-stat-value" id="c5StatLastVal">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="c5-footer" id="c5Footer" onclick="toggleC5Completed()">
+            <span class="c5-footer-main-text" id="c5FooterText">Mark as Completed</span>
+        </div>
+
+    </div>
+
+    <!-- ===== COLUMN 5: DATE PICKER MODAL ===== -->
+    <div class="c5-modal-overlay" id="c5DateModal">
+        <div class="c5-modal">
+            <div class="c5-modal-header">
+                <h3 id="c5ModalTitle">Set Revision Date</h3>
+                <button class="c5-modal-close" onclick="closeC5DatePicker()">✕</button>
+            </div>
+            <div class="c5-modal-body">
+                <div class="c5-cal-nav">
+                    <button class="c5-cal-nav-btn" onclick="c5CalPrev()">◀</button>
+                    <span class="c5-cal-month" id="c5CalMonthLabel"></span>
+                    <button class="c5-cal-nav-btn" onclick="c5CalNext()">▶</button>
+                </div>
+                <div class="c5-cal-grid" id="c5CalGrid"></div>
+            </div>
+            <div class="c5-modal-footer">
+                <button class="c5-btn c5-btn-cancel" onclick="closeC5DatePicker()">Cancel</button>
+                <button class="c5-btn c5-btn-clear" onclick="c5ClearDate()">Clear</button>
+                <button class="c5-btn c5-btn-save" onclick="c5SaveDate()">Save</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== COLUMN 1-2: ADD SECTION MODAL ===== -->
+<div class="c12-modal-overlay" id="c12ModalOverlay">
+    <div class="c12-modal">
+
+        <div class="c12-modal-header">
+            <h3>Manage Sections</h3>
+            <button class="c12-modal-close" onclick="closeAddSectionModal()">✕</button>
+        </div>
+
+        <div class="c12-modal-body" id="c12ModalBody">
+            <div id="c12ModalSections"></div>
+            <div class="c12-modal-add-row">
+                <div class="c12-modal-add-cell" id="c12AddPosCell">+</div>
+                <div class="c12-modal-indent-wrap" id="c12AddIndentWrap">
+                    <div class="c12-modal-add-cell" id="c12AddNumCell">1</div>
+                    <div class="c12-modal-add-cell c12-modal-add-title" id="c12AddTitleCell" onclick="openInputBox()">Add Section</div>
+                </div>
+                <div class="c12-modal-actions-cell">
+                    <button class="c12-action-btn edit" disabled style="opacity:0.3;">✎</button>
+                    <button class="c12-action-btn" disabled>+</button>
+                    <button class="c12-action-btn level-left"  id="c12AddLevelLeft"  onclick="changeNewSectionLevel('left')">◀</button>
+                    <button class="c12-action-btn level-right" id="c12AddLevelRight" onclick="changeNewSectionLevel('right')">▶</button>
+                    <button class="c12-action-btn" disabled>▲</button>
+                    <button class="c12-action-btn" disabled>▼</button>
+                    <button class="c12-action-btn" disabled>🗑️</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="c12-modal-footer">
+            <div style="display:flex; gap:8px;">
+                <button class="c12-btn c12-btn-export" onclick="exportFileData()">📤 Export</button>
+                <button class="c12-btn c12-btn-import" onclick="triggerImportFile()">📥 Import</button>
+                <input type="file" id="c12ImportFileInput" accept=".json" style="display:none;" onchange="importFileData(event)">
+            </div>
+            <button class="c12-btn c12-btn-upload" onclick="triggerUploadTxt()">📄 Upload Text</button>
+            <input type="file" id="c12UploadTxtInput" accept=".txt" style="display:none;" onchange="handleUploadTxt(event)">
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="c12-btn c12-btn-cancel" onclick="closeAddSectionModal()">Cancel</button>
+                <button class="c12-btn c12-btn-save" onclick="saveAndClose()">Save</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Edit box -->
+<div class="c12-input-overlay" id="c12EditOverlay">
+    <div class="c12-input-box" style="width:400px;">
+        <h4 style="text-align:center;">Rename Section</h4>
+        <input type="text" id="c12EditTitleInput" placeholder="Section title..." maxlength="100">
+        <div class="c12-input-row">
+            <button class="c12-btn c12-btn-cancel" onclick="closeEditBox()">Cancel</button>
+            <button class="c12-btn c12-btn-save" onclick="confirmEditSection()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Input box for new section -->
+<div class="c12-input-overlay" id="c12InputOverlay">
+    <div class="c12-input-box" id="c12InputBox">
+        <button class="c12-input-close" onclick="closeInputBox()">✕</button>
+        <h4 id="c12InputTitle">Add New Section</h4>
+        <input type="text" id="c12TitleInput" placeholder="Enter section title..." maxlength="100">
+        <div class="c12-type-row" id="c12TypeRow">
+            <div class="c12-type-card selected" id="typeReal" onclick="selectType('real')">
+                <div class="c12-type-card-top">
+                    <span class="c12-type-card-title">Real Section</span>
+                    <span class="c12-type-radio" id="radioReal"></span>
+                </div>
+                <div class="c12-type-card-desc">Full content section with actual study material</div>
+            </div>
+            <div class="c12-type-card" id="typeDummy" onclick="selectType('dummy')">
+                <div class="c12-type-card-top">
+                    <span class="c12-type-card-title">Dummy Section</span>
+                    <span class="c12-type-radio" id="radioDummy"></span>
+                </div>
+                <div class="c12-type-card-desc">Placeholder section for structure</div>
+            </div>
+        </div>
+        <select id="c12MoveToSelect" style="display:none;"></select>
+        <div class="c12-input-row">
+            <button class="c12-btn c12-btn-cancel" onclick="closeInputBox()">Cancel</button>
+            <button class="c12-btn c12-btn-save" onclick="confirmAddSection()">Save</button>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- ===== COLUMN 4: ADD / EDIT NOTE MODAL ===== -->
+<div class="c4-modal-overlay" id="c4ModalOverlay">
+    <div class="c4-modal">
+
+        <div class="c4-modal-header">
+            <h3 id="c4ModalTitle">Add New Note</h3>
+            <button class="c4-modal-close" onclick="closeC4Modal()">✕</button>
+        </div>
+
+        <div class="c4-modal-body">
+
+            <!-- Category Row -->
+            <div class="c4-form-row category-row">
+                <div class="c4-form-label">Category</div>
+                <div class="c4-modal-dropdown">
+                    <div class="c4-modal-dropdown-trigger" id="c4ModalCategoryTrigger" onclick="toggleModalCategoryDropdown()">
+                        <span id="c4ModalCategoryLabel">General</span>
+                        <span style="font-size:11px;">▼</span>
+                    </div>
+                    <div class="c4-modal-dropdown-menu" id="c4ModalCategoryMenu"></div>
+                </div>
+                <button class="c4-add-category-btn" onclick="openAddCategoryPopup()">Add Category</button>
+            </div>
+
+            <!-- Title Row -->
+            <div class="c4-form-row title-row">
+                <div class="c4-form-label">Title</div>
+                <input type="text" class="c4-form-input" id="c4NoteTitle"
+                       placeholder="Enter title..." maxlength="80"
+                       oninput="updateC4TitleCounter()">
+                <div class="c4-char-counter" id="c4TitleCounter">0/80</div>
+            </div>
+
+            <!-- Content Row -->
+            <div class="c4-form-row content-row">
+                <div class="c4-form-label">Content</div>
+                <textarea class="c4-form-textarea" id="c4NoteContent"
+                          placeholder="Enter content..." maxlength="280"
+                          oninput="updateC4ContentCounter()"></textarea>
+                <div class="c4-char-counter" id="c4ContentCounter">0/280</div>
+            </div>
+
+        </div>
+
+        <div class="c4-modal-footer">
+            <button class="c4-btn c4-btn-cancel" onclick="closeC4Modal()">Cancel</button>
+            <button class="c4-btn c4-btn-save" onclick="saveC4Note()">Save</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== COLUMN 4: ADD CATEGORY POPUP ===== -->
+<div class="c4-popup-overlay" id="c4PopupOverlay">
+    <div class="c4-popup-box">
+        <h4>Add New Category</h4>
+        <input type="text" id="c4NewCategoryInput" placeholder="Category name..." maxlength="40">
+        <div class="c4-popup-btns">
+            <button class="c4-btn c4-btn-cancel" onclick="closeAddCategoryPopup()">Cancel</button>
+            <button class="c4-btn c4-btn-save" onclick="confirmAddCategory()">Add</button>
+        </div>
+    </div>
+</div>
+
+    <!-- EDITOR MODAL -->
+    <div class="c3-editor-overlay" id="c3EditorOverlay">
+        <div class="c3-editor-modal" id="c3EditorModal">
+
+            <div class="c3-editor-mode-bar">
+                <div class="c3-mode-toggle">
+                    <button class="c3-mode-pill-btn active" id="c3ModeIconEdit" onclick="switchEditorMode('edit')">✎ Edit</button>
+                    <button class="c3-mode-pill-btn" id="c3ModeIconView" onclick="switchEditorMode('view')">👁 View</button>
+                </div>
+                <button class="c3-mode-close" onclick="closeEditorModal()">✕</button>
+            </div>
+
+            <div class="c3-editor-modal-header" id="c3EditorModalHeader">
+                <div class="c3-editor-toolbar-row1">
+                    <div class="c3-toolbar-dropdown-wrap" title="Font">
+                        <span class="c3-toolbar-dropdown-label">Font</span>
+                        <select class="c3-toolbar-select c3-toolbar-select-overlay" id="c3FontFamily" onchange="c3Exec('fontName', this.value)">
+                            <option value="Arial">Arial</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Inter">Inter</option>
+                        </select>
+                        <span class="c3-toolbar-dropdown-arrow">▼</span>
+                    </div>
+                    <div class="c3-toolbar-dropdown-wrap" title="Size">
+                        <span class="c3-toolbar-dropdown-label">Size</span>
+                        <select class="c3-toolbar-select c3-toolbar-select-overlay" id="c3FontSize" onchange="c3Exec('fontSize', this.value)">
+                            <option value="1">Small</option>
+                            <option value="3">Normal</option>
+                            <option value="4">Large</option>
+                            <option value="5">X-Large</option>
+                        </select>
+                        <span class="c3-toolbar-dropdown-arrow">▼</span>
+                    </div>
+                    <div class="c3-toolbar-sep"></div>
+                    <div class="c3-toolbar-dropdown-wrap" title="Case">
+                        <span class="c3-toolbar-dropdown-label">Case</span>
+                        <select class="c3-toolbar-select c3-toolbar-select-overlay" id="c3CaseSelect" onchange="c3ChangeCase(this.value); this.value=''">
+                            <option value="">─</option>
+                            <option value="upper">AA UPPERCASE</option>
+                            <option value="lower">aa lowercase</option>
+                            <option value="title">Aa Title Case</option>
+                            <option value="sentence">A_ Sentence case</option>
+                        </select>
+                        <span class="c3-toolbar-dropdown-arrow">▼</span>
+                    </div>
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn" data-cmd="bold" onclick="c3Exec('bold')" title="Bold"><b>B</b></button>
+                    <button class="c3-toolbar-btn" data-cmd="italic" onclick="c3Exec('italic')" title="Italic"><i>I</i></button>
+                    <button class="c3-toolbar-btn" data-cmd="underline" onclick="c3Exec('underline')" title="Underline"><u>U</u></button>
+                    <button class="c3-toolbar-btn" data-cmd="strikeThrough" onclick="c3Exec('strikeThrough')" title="Strikethrough"><s>S</s></button>
+                    <div class="c3-toolbar-sep"></div>
+                    <div class="c3-toolbar-color-group">
+                        <div class="c3-toolbar-color-wrap" title="Text Color">
+                            <button class="c3-toolbar-btn c3-color-trigger" id="c3TextColorApply" onclick="applyLastColor('text')">
+                                <span>A</span>
+                                <span class="c3-color-bar" id="c3TextColorBar" style="background:#111827;"></span>
+                            </button>
+                            <button class="c3-toolbar-btn c3-color-arrow" onclick="toggleColorPalette('text')">▼</button>
+                            <div class="c3-color-palette" id="c3TextColorPalette"></div>
+                        </div>
+                        <div class="c3-toolbar-color-wrap" title="Highlight">
+                            <button class="c3-toolbar-btn c3-color-trigger" id="c3HighlightApply" onclick="applyLastColor('highlight')">
+                                <span>🖊</span>
+                                <span class="c3-color-bar" id="c3HighlightColorBar" style="background:#ffff00;"></span>
+                            </button>
+                            <button class="c3-toolbar-btn c3-color-arrow" onclick="toggleColorPalette('highlight')">▼</button>
+                            <div class="c3-color-palette" id="c3HighlightColorPalette"></div>
+                        </div>
+                        <div class="c3-tbl-swatch-last-wrap" id="c3CellShadingWrap" title="Cell Shading">
+                            <button class="c3-tbl-btn c3-tbl-swatch-btn" id="c3CellShadingApply" onclick="applyLastCellShading()" title="Apply Cell Shading">
+                                <span class="c3-tbl-swatch-fill" id="c3CellShadingBar" style="background:var(--bg-active);"></span>
+                            </button>
+                            <div style="position:relative;">
+                                <button class="c3-tbl-swatch-arrow" onclick="c3ToggleCellShadingPalette(event)" title="Pick Cell Shading">▼</button>
+                                <div class="c3-shading-palette" id="c3CellShadingPalette"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn" data-cmd="insertUnorderedList" onclick="c3Exec('insertUnorderedList')" title="Bullet List">• ≡</button>
+                    <button class="c3-toolbar-btn" data-cmd="insertOrderedList" onclick="c3Exec('insertOrderedList')" title="Numbered List">1.≡</button>
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn" onclick="c3Indent('out')" title="Decrease Indent">⇤</button>
+                    <button class="c3-toolbar-btn" onclick="c3Indent('in')" title="Increase Indent">⇥</button>
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn" data-cmd="justifyLeft" onclick="c3Exec('justifyLeft')" title="Left">≡L</button>
+                    <button class="c3-toolbar-btn" data-cmd="justifyCenter" onclick="c3Exec('justifyCenter')" title="Center">≡C</button>
+                    <button class="c3-toolbar-btn" data-cmd="justifyRight" onclick="c3Exec('justifyRight')" title="Right">≡R</button>
+                    <button class="c3-toolbar-btn" data-cmd="justifyFull" onclick="c3Exec('justifyFull')" title="Justify">≡J</button>
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn" onclick="openInsertTableModal()" title="Insert Table">⊞</button>
+                    <div id="c3CornellToolbarBtns" style="display:flex;align-items:center;gap:1px;">
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn c3-cellrow-btn" id="c3CellRowAbove" onclick="c3InsertCellRow('above')" title="Insert Cell Row Above">
+                        <svg width="22" height="22" viewBox="0 0 22 22">
+                            <rect x="2" y="9" width="18" height="4" fill="#bbf7d0" rx="1"/>
+                            <rect x="2" y="3" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/>
+                            <rect x="2" y="14" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/>
+                            <rect x="2" y="9" width="18" height="4" fill="none" stroke="#22c55e" stroke-width="1" rx="1"/>
+                            <path d="M11 8 L11 2 M8 4 L11 1 L14 4" stroke="#22c55e" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="c3-toolbar-btn c3-cellrow-btn" id="c3CellRowBelow" onclick="c3InsertCellRow('below')" title="Insert Cell Row Below">
+                        <svg width="22" height="22" viewBox="0 0 22 22">
+                            <rect x="2" y="9" width="18" height="4" fill="#bbf7d0" rx="1"/>
+                            <rect x="2" y="3" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/>
+                            <rect x="2" y="14" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/>
+                            <rect x="2" y="9" width="18" height="4" fill="none" stroke="#22c55e" stroke-width="1" rx="1"/>
+                            <path d="M11 14 L11 20 M8 18 L11 21 L14 18" stroke="#22c55e" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="c3-toolbar-btn c3-celldelete-btn" id="c3CellDeleteBtn" onclick="c3DeleteActiveCell()" title="Delete Cell">
+                        <svg width="22" height="22" viewBox="0 0 22 22">
+                            <rect x="2" y="2" width="18" height="18" fill="#fecaca" rx="2"/>
+                            <rect x="2" y="2" width="18" height="5" fill="none" stroke="#ef4444" stroke-width="1" rx="1"/>
+                            <line x1="2" y1="8" x2="20" y2="8" stroke="#ef4444" stroke-width="1"/>
+                            <line x1="2" y1="14" x2="20" y2="14" stroke="#ef4444" stroke-width="1"/>
+                            <path d="M7 10 L15 16 M15 10 L7 16" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="c3-toolbar-btn c3-cellrow-btn" id="c3CellSplitBtn" onclick="c3SplitCell()" title="Split Cell at Current Row" disabled style="opacity:0.3;">
+                        <svg width="22" height="22" viewBox="0 0 22 22">
+                            <rect x="2" y="2" width="18" height="8" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/>
+                            <line x1="2" y1="6" x2="20" y2="6" stroke="#94a3b8" stroke-width="1"/>
+                            <rect x="2" y="12" width="18" height="8" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/>
+                            <line x1="2" y1="16" x2="20" y2="16" stroke="#94a3b8" stroke-width="1"/>
+                            <line x1="1" y1="11" x2="21" y2="11" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3,2"/>
+                            <path d="M5 9 L5 13 M17 9 L17 13" stroke="#3b82f6" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    </div><!-- end c3CornellToolbarBtns -->
+                    <div class="c3-toolbar-sep"></div>
+                    <button class="c3-toolbar-btn c3-undoredo-btn" id="c3UndoBtn" onclick="c3Undo()" title="Undo (Ctrl+Z)" disabled style="opacity:0.3;">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M3.5 7.5 A6.5 6.5 0 1 1 3.5 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                            <polyline points="1,5 3.5,7.5 6,5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </button>
+                    <button class="c3-toolbar-btn c3-undoredo-btn" id="c3RedoBtn" onclick="c3Redo()" title="Redo (Ctrl+Y)" disabled style="opacity:0.3;">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M16.5 7.5 A6.5 6.5 0 1 0 16.5 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                            <polyline points="19,5 16.5,7.5 14,5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="c3-cell-add-row" id="c3CellAddRow">
+                    <button class="c3-cell-add-btn" onclick="c3AddCell('header')">+ Header Cell</button>
+                    <button class="c3-cell-add-btn" onclick="c3AddCell('text')">+ Text Cell</button>
+                    <button class="c3-cell-add-btn" onclick="c3AddCell('code')">+ Code Cell</button>
+                    <button class="c3-cell-add-btn" onclick="c3AddCell('cornell')">+ Cornell Cell</button>
+                    <button class="c3-cell-add-btn" onclick="c3AddCell('header-cornell')">+ Header Cornell Cell</button>
+                </div>
+                <div class="c3-editor-toolbar-row2" id="c3TableToolbarRow2" style="display:none;">
+                    <button class="c3-tbl-btn sel-mode" id="c3SelModeCell" onclick="c3SetSelMode('cell')" title="Cell Selection">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="3" width="7" height="7" rx="1" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1.5"/><rect x="12" y="3" width="7" height="7" rx="1" fill="none" stroke="#94a3b8" stroke-width="1"/><rect x="3" y="12" width="7" height="7" rx="1" fill="none" stroke="#94a3b8" stroke-width="1"/><rect x="12" y="12" width="7" height="7" rx="1" fill="none" stroke="#94a3b8" stroke-width="1"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn sel-mode" id="c3SelModeRow" onclick="c3SetSelMode('row')" title="Row Selection">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="1" fill="none" stroke="#94a3b8" stroke-width="1"/><rect x="3" y="9" width="16" height="4" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1"/><line x1="3" y1="7" x2="19" y2="7" stroke="#94a3b8" stroke-width="1"/><line x1="3" y1="15" x2="19" y2="15" stroke="#94a3b8" stroke-width="1"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn sel-mode" id="c3SelModeCol" onclick="c3SetSelMode('col')" title="Column Selection">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="1" fill="none" stroke="#94a3b8" stroke-width="1"/><rect x="9" y="3" width="4" height="16" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1"/><line x1="7" y1="3" x2="7" y2="19" stroke="#94a3b8" stroke-width="1"/><line x1="15" y1="3" x2="15" y2="19" stroke="#94a3b8" stroke-width="1"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn sel-mode" id="c3SelModeTable" onclick="c3SetSelMode('table')" title="Table Selection">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="1" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1.5"/><line x1="3" y1="7" x2="19" y2="7" stroke="#3b82f6" stroke-width="1"/><line x1="3" y1="11" x2="19" y2="11" stroke="#3b82f6" stroke-width="1"/><line x1="3" y1="15" x2="19" y2="15" stroke="#3b82f6" stroke-width="1"/><line x1="7" y1="3" x2="7" y2="19" stroke="#3b82f6" stroke-width="1"/><line x1="11" y1="3" x2="11" y2="19" stroke="#3b82f6" stroke-width="1"/><line x1="15" y1="3" x2="15" y2="19" stroke="#3b82f6" stroke-width="1"/></svg>
+                    </button>
+                    <div class="c3-tbl-sep"></div>
+                    <button class="c3-tbl-btn insert" onclick="c3TableInsertRow('above')" title="Insert row above">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="9" width="18" height="4" fill="#bfdbfe" rx="1"/><rect x="2" y="3" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="2" y="14" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="2" y="9" width="18" height="4" fill="none" stroke="#3b82f6" stroke-width="1" rx="1"/><path d="M11 8 L11 2 M8 4 L11 1 L14 4" stroke="#3b82f6" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn insert" onclick="c3TableInsertRow('below')" title="Insert row below">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="9" width="18" height="4" fill="#bfdbfe" rx="1"/><rect x="2" y="3" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="2" y="14" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="2" y="9" width="18" height="4" fill="none" stroke="#3b82f6" stroke-width="1" rx="1"/><path d="M11 14 L11 20 M8 18 L11 21 L14 18" stroke="#3b82f6" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn insert" onclick="c3TableInsertCol('left')" title="Insert column left">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="9" y="2" width="4" height="18" fill="#bfdbfe" rx="1"/><rect x="3" y="2" width="5" height="18" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="14" y="2" width="5" height="18" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="9" y="2" width="4" height="18" fill="none" stroke="#3b82f6" stroke-width="1" rx="1"/><path d="M8 11 L2 11 M4 8 L1 11 L4 14" stroke="#3b82f6" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn insert" onclick="c3TableInsertCol('right')" title="Insert column right">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="9" y="2" width="4" height="18" fill="#bfdbfe" rx="1"/><rect x="3" y="2" width="5" height="18" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="14" y="2" width="5" height="18" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="9" y="2" width="4" height="18" fill="none" stroke="#3b82f6" stroke-width="1" rx="1"/><path d="M14 11 L20 11 M18 8 L21 11 L18 14" stroke="#3b82f6" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="c3-tbl-sep"></div>
+                    <button class="c3-tbl-btn delete" id="c3TblDelRow" onclick="c3TableDeleteRow()" title="Delete row">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="9" width="18" height="4" fill="#fecaca" rx="1"/><rect x="2" y="3" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="2" y="14" width="18" height="5" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="2" y="9" width="18" height="4" fill="none" stroke="#ef4444" stroke-width="1" rx="1"/><path d="M8 10.5 L14 13.5 M14 10.5 L8 13.5" stroke="#ef4444" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn delete" id="c3TblDelCol" onclick="c3TableDeleteCol()" title="Delete column">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="9" y="2" width="4" height="18" fill="#fecaca" rx="1"/><rect x="3" y="2" width="5" height="18" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="14" y="2" width="5" height="18" fill="none" stroke="#94a3b8" stroke-width="1" rx="1"/><rect x="9" y="2" width="4" height="18" fill="none" stroke="#ef4444" stroke-width="1" rx="1"/><path d="M10.5 8 L13.5 14 M13.5 8 L10.5 14" stroke="#ef4444" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+                    </button>
+                    <button class="c3-tbl-btn delete" onclick="c3TableDelete()" title="Delete table">
+                        <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" fill="#fecaca" rx="1"/><line x1="2" y1="8" x2="20" y2="8" stroke="#ef4444" stroke-width="1"/><line x1="2" y1="14" x2="20" y2="14" stroke="#ef4444" stroke-width="1"/><line x1="8" y1="2" x2="8" y2="20" stroke="#ef4444" stroke-width="1"/><line x1="14" y1="2" x2="14" y2="20" stroke="#ef4444" stroke-width="1"/><path d="M7 7 L15 15 M15 7 L7 15" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                    <div class="c3-tbl-sep"></div>
+                    <button class="c3-tbl-btn align" onclick="c3TableAlign('top')" title="Align Top"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="4" y1="3" x2="18" y2="3" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/><rect x="7" y="5" width="4" height="10" rx="1" fill="#475569"/><rect x="13" y="5" width="2" height="6" rx="1" fill="#94a3b8"/></svg></button>
+                    <button class="c3-tbl-btn align" onclick="c3TableAlign('middle')" title="Align Middle"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="4" y1="11" x2="18" y2="11" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/><rect x="7" y="4" width="4" height="14" rx="1" fill="#475569"/><rect x="13" y="7" width="2" height="8" rx="1" fill="#94a3b8"/></svg></button>
+                    <button class="c3-tbl-btn align" onclick="c3TableAlign('bottom')" title="Align Bottom"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="4" y1="19" x2="18" y2="19" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/><rect x="7" y="7" width="4" height="10" rx="1" fill="#475569"/><rect x="13" y="11" width="2" height="6" rx="1" fill="#94a3b8"/></svg></button>
+                    <div class="c3-tbl-sep"></div>
+                    <button class="c3-tbl-btn split" onclick="c3TableSplit(false)" title="Split Table"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="7" fill="none" stroke="#475569" stroke-width="1" rx="1"/><line x1="2" y1="5" x2="20" y2="5" stroke="#475569" stroke-width="1"/><line x1="8" y1="2" x2="8" y2="9" stroke="#475569" stroke-width="1"/><line x1="14" y1="2" x2="14" y2="9" stroke="#475569" stroke-width="1"/><rect x="2" y="13" width="18" height="7" fill="none" stroke="#475569" stroke-width="1" rx="1"/><line x1="2" y1="16" x2="20" y2="16" stroke="#475569" stroke-width="1"/><line x1="8" y1="13" x2="8" y2="20" stroke="#475569" stroke-width="1"/><line x1="14" y1="13" x2="14" y2="20" stroke="#475569" stroke-width="1"/></svg></button>
+                    <button class="c3-tbl-btn split" onclick="c3TableSplit(true)" title="Split with Header"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="7" fill="none" stroke="#475569" stroke-width="1" rx="1"/><rect x="2" y="2" width="18" height="3" fill="#bfdbfe" rx="1"/><line x1="2" y1="5" x2="20" y2="5" stroke="#3b82f6" stroke-width="1"/><line x1="8" y1="2" x2="8" y2="9" stroke="#475569" stroke-width="1"/><line x1="14" y1="2" x2="14" y2="9" stroke="#475569" stroke-width="1"/><rect x="2" y="13" width="18" height="7" fill="none" stroke="#475569" stroke-width="1" rx="1"/><rect x="2" y="13" width="18" height="3" fill="#bfdbfe" rx="1"/><line x1="2" y1="16" x2="20" y2="16" stroke="#3b82f6" stroke-width="1"/><line x1="8" y1="13" x2="8" y2="20" stroke="#475569" stroke-width="1"/><line x1="14" y1="13" x2="14" y2="20" stroke="#475569" stroke-width="1"/></svg></button>
+                    <div class="c3-tbl-sep"></div>
+                    <div class="c3-tbl-shading-group" id="c3TblShadingWrap">
+                        <div class="c3-tbl-swatch-last-wrap" style="position:relative;">
+                            <button class="c3-tbl-btn c3-tbl-swatch-btn" id="c3TblShadingApply" onclick="event.stopPropagation();applyLastTblShading()" title="Apply Last Color">
+                                <span class="c3-tbl-swatch-fill" id="c3TblShadingBar" style="background:var(--bg-active);"></span>
+                            </button>
+                            <button class="c3-tbl-swatch-arrow" onclick="c3ToggleTblShadingPalette(event)" title="More Colors">▼</button>
+                            <div class="c3-shading-palette" id="c3TblShadingPalette"></div>
+                        </div>
+                        <button class="c3-tbl-btn c3-tbl-swatch-btn" onclick="event.stopPropagation();c3ApplyTblAppColor('var(--bg-active)')" title="Header Blue">
+                            <span class="c3-tbl-swatch-fill" style="background:var(--bg-active);"></span>
+                        </button>
+                        <button class="c3-tbl-btn c3-tbl-swatch-btn" onclick="event.stopPropagation();c3ApplyTblAppColor('var(--bg-code)')" title="Code Dark">
+                            <span class="c3-tbl-swatch-fill" style="background:var(--bg-code);"></span>
+                        </button>
+                        <button class="c3-tbl-btn c3-tbl-swatch-btn" onclick="event.stopPropagation();c3ApplyTblAppColor('var(--bg-secondary)')" title="Cornell Grey">
+                            <span class="c3-tbl-swatch-fill" style="background:var(--bg-secondary);"></span>
+                        </button>
+                        <button class="c3-tbl-btn c3-tbl-swatch-btn" onclick="event.stopPropagation();c3ApplyTblAppColor('var(--bg-primary)')" title="Base">
+                            <span class="c3-tbl-swatch-fill" style="background:var(--bg-primary);"></span>
+                        </button>
+                    </div>
+                    <div class="c3-tbl-sep"></div>
+                    <button class="c3-tbl-btn align" onclick="c3TblExec('justifyLeft')" title="Align Left">≡L</button>
+                    <button class="c3-tbl-btn align" onclick="c3TblExec('justifyCenter')" title="Align Center">≡C</button>
+                    <button class="c3-tbl-btn align" onclick="c3TblExec('justifyRight')" title="Align Right">≡R</button>
+                    <button class="c3-tbl-btn align" onclick="c3TblExec('justifyFull')" title="Justify">≡J</button>
+                </div>
+            </div><!-- end c3-editor-modal-header -->
+
+            <div class="c3-editor-modal-body" id="c3EditorModalBody"></div>
+            <div class="c3-editor-view-panel" id="c3EditorViewPanel"></div>
+
+            <div class="c3-table-modal-overlay" id="c3TableModalOverlay">
+                <div class="c3-table-modal">
+                    <div class="c3-table-modal-header">
+                        <h4>Insert Table</h4>
+                        <button onclick="closeInsertTableModal()">✕</button>
+                    </div>
+                    <div class="c3-table-modal-body">
+                        <div class="c3-table-field-row">
+                            <label>Rows</label>
+                            <input type="number" id="c3TableRows" value="3" min="1" max="20">
+                        </div>
+                        <div class="c3-table-field-row">
+                            <label>Columns</label>
+                            <input type="number" id="c3TableCols" value="3" min="1" max="10">
+                        </div>
+                        <div class="c3-table-field-row">
+                            <label>Border</label>
+                            <div class="c3-table-toggle-row">
+                                <div class="c3-table-toggle-opt selected" id="c3TableBorderYes" onclick="selectTableBorder(true)">Yes</div>
+                                <div class="c3-table-toggle-opt" id="c3TableBorderNo" onclick="selectTableBorder(false)">No</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="c3-table-modal-footer">
+                        <button class="c3-btn c3-btn-cancel" onclick="closeInsertTableModal()">Cancel</button>
+                        <button class="c3-btn c3-btn-save" onclick="confirmInsertTable()">Insert</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="c3-editor-modal-footer" id="c3EditorModalFooter">
+                <div class="c3-level-switcher" id="c3LevelSwitcher">
+                    <div class="c3-level-trigger" id="c3LevelTrigger" onclick="toggleLevelDropdown()">
+                        <span id="c3LevelLabel">Crisp</span>
+                        <span class="c3-level-arrow">▼</span>
+                    </div>
+                    <div class="c3-level-menu" id="c3LevelMenu">
+                        <div class="c3-level-option" data-level="crisp" onclick="selectEditorLevel('crisp')">Crisp</div>
+                        <div class="c3-level-option" data-level="conceptual" onclick="selectEditorLevel('conceptual')">Conceptual</div>
+                        <div class="c3-level-option" data-level="detailed" onclick="selectEditorLevel('detailed')">Detailed</div>
+                        <div class="c3-level-option" data-level="syntopical" onclick="selectEditorLevel('syntopical')">Syntopical</div>
+                    </div>
+                </div>
+                <button class="c3-btn c3-btn-secondary" onclick="saveTextEditorAsNew()">Save as New Version</button>
+                <button class="c3-btn c3-btn-save" onclick="saveTextEditor()">Update Current Version</button>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- ADD VERSION MODAL -->
+    <div class="c3-add-modal-overlay" id="c3AddModalOverlay">
+        <div class="c3-add-modal">
+            <div class="c3-add-modal-header">
+                <h3 id="c3AddModalTitle">Add Notes</h3>
+                <button class="c3-add-modal-close" onclick="closeAddModal()">✕</button>
+            </div>
+            <div class="c3-add-modal-body" id="c3AddModalBody"></div>
+        </div>
+    </div>
+
+    <!-- COMING SOON MODAL -->
+    <div class="c3-coming-soon-overlay" id="c3ComingSoonOverlay">
+        <div class="c3-coming-soon-modal">
+            <button class="c3-coming-soon-close" onclick="closeComingSoon()">✕</button>
+            <div class="c3-coming-soon-icon">🚧</div>
+            <div class="c3-coming-soon-title">Coming Soon</div>
+            <div class="c3-coming-soon-desc" id="c3ComingSoonDesc">This feature is coming soon. We're working on it!</div>
+        </div>
+    </div>
+
+    <!-- AI POPUP -->
+    <div class="ai-overlay" id="aiOverlay">
+        <div class="ai-modal" id="aiModal">
+            <div class="ai-left">
+                <div class="ai-messages" id="aiMessages"></div>
+                <div class="ai-input-row">
+                    <textarea class="ai-textarea" id="aiTextarea" placeholder="Type here..." rows="1"></textarea>
+                    <button class="ai-send-btn" id="aiSendBtn">▶</button>
+                </div>
+            </div>
+            <div class="ai-right">
+                <div class="ai-actions" id="aiActions">
+                    <div class="ai-version-wrap" id="aiVersionWrap"></div>
+                    <button class="ai-action-btn ai-btn-copy" onclick="aiCopyNotes()" title="Copy">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                    <button class="ai-action-btn ai-btn-import" onclick="aiImportNotes()" title="Import">⬇</button>
+                    <button class="ai-action-btn ai-btn-close" onclick="closeAiModal()" title="Close">✕</button>
+                </div>
+
+                <div class="ai-preview-body" id="aiPreviewBody">
+                    <div class="ai-preview-empty" id="aiPreviewEmpty">
+                        <div class="ai-preview-empty-icon">✦</div>
+                        <div class="ai-preview-empty-text">Notes will appear here</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="c3UploadTxtInput" accept=".txt" style="display:none;">
+    <input type="file" id="c3UploadPdfInput" accept=".pdf" style="display:none;">
+    <input type="file" id="c3UploadDocxInput" accept=".docx" style="display:none;">
+
+    <!-- PDF VIEWER OVERLAY -->
+    <div class="c3-pdf-overlay" id="c3PdfOverlay">
+        <div class="c3-pdf-modal">
+
+            <!-- TOOLBAR -->
+            <div class="c3-pdf-toolbar">
+
+                <!-- LEFT: Search, Fit, Zoom -->
+                <div class="c3-pdf-toolbar-left">
+                    <div class="c3-pdf-search-wrap">
+                        <input type="text" class="c3-pdf-search-input" id="c3PdfSearchInput" placeholder="Search...">
+                        <button class="c3-pdf-search-btn" onclick="pdfSearch()">🔍</button>
+                    </div>
+                    <div class="c3-pdf-fit-wrap" id="c3PdfFitWrap">
+                        <button class="c3-pdf-fit-trigger" id="c3PdfFitTrigger" onclick="document.getElementById('c3PdfFitMenu').classList.toggle('active')">
+                            <span>Fit Width</span><span style="font-size:9px;">▼</span>
+                        </button>
+                        <div class="c3-pdf-fit-menu" id="c3PdfFitMenu">
+                            <div class="c3-pdf-fit-option" onclick="pdfSetFit('width')">Fit Width</div>
+                            <div class="c3-pdf-fit-option" onclick="pdfSetFit('height')">Fit Height</div>
+                            <div class="c3-pdf-fit-option" onclick="pdfSetFit('visible')">Fit Visible</div>
+                            <div class="c3-pdf-fit-option" onclick="pdfSetFit('actual')">Actual Size</div>
+                            <div class="c3-pdf-fit-option" onclick="pdfSetFit('page')">Fit Page</div>
+                        </div>
+                    </div>
+                    <div class="c3-pdf-zoom-wrap">
+                        <button class="c3-pdf-zoom-btn" onclick="pdfZoomOut()">−</button>
+                        <button class="c3-pdf-zoom-btn" onclick="pdfZoomIn()">+</button>
+                    </div>
+                </div>
+
+                <!-- CENTER: Mode toggle -->
+                <div class="c3-pdf-toolbar-center">
+                    <div class="c3-pdf-mode-toggle">
+                        <button class="c3-pdf-mode-pill active" id="c3PdfModeView" onclick="pdfSwitchMode('view')">👁 View</button>
+                        <button class="c3-pdf-mode-pill" id="c3PdfModeEdit" onclick="pdfSwitchMode('edit')">✎ Edit</button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Edit tools -->
+                <div class="c3-pdf-toolbar-right">
+                    <div class="c3-pdf-edit-tools" id="c3PdfEditTools" style="display:none;">
+                        <div class="c3-pdf-annot-group">
+                            <button class="c3-pdf-annot-btn" id="c3PdfAnnot_highlight" onclick="pdfToggleAnnot('highlight')">🖊 Highlight</button>
+                            <div class="c3-pdf-color-wrap" id="c3PdfColorWrap_highlight">
+                                <button class="c3-pdf-color-trigger" onclick="pdfToggleColorPicker('highlight')">
+                                    <span class="c3-pdf-color-dot" id="c3PdfColorDot_highlight" style="background:#FFD700;"></span>
+                                    <span style="font-size:9px;">▼</span>
+                                </button>
+                                <div class="c3-pdf-color-menu" id="c3PdfColorMenu_highlight"></div>
+                            </div>
+                        </div>
+                        <div class="c3-pdf-annot-group">
+                            <button class="c3-pdf-annot-btn" id="c3PdfAnnot_underline" onclick="pdfToggleAnnot('underline')">U̲ Underline</button>
+                            <div class="c3-pdf-color-wrap" id="c3PdfColorWrap_underline">
+                                <button class="c3-pdf-color-trigger" onclick="pdfToggleColorPicker('underline')">
+                                    <span class="c3-pdf-color-dot" id="c3PdfColorDot_underline" style="background:#4d9fec;"></span>
+                                    <span style="font-size:9px;">▼</span>
+                                </button>
+                                <div class="c3-pdf-color-menu" id="c3PdfColorMenu_underline"></div>
+                            </div>
+                        </div>
+                        <div class="c3-pdf-annot-group">
+                            <button class="c3-pdf-annot-btn" id="c3PdfAnnot_strikethrough" onclick="pdfToggleAnnot('strikethrough')">S̶ Strike</button>
+                            <div class="c3-pdf-color-wrap" id="c3PdfColorWrap_strikethrough">
+                                <button class="c3-pdf-color-trigger" onclick="pdfToggleColorPicker('strikethrough')">
+                                    <span class="c3-pdf-color-dot" id="c3PdfColorDot_strikethrough" style="background:#f47067;"></span>
+                                    <span style="font-size:9px;">▼</span>
+                                </button>
+                                <div class="c3-pdf-color-menu" id="c3PdfColorMenu_strikethrough"></div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                <button class="c3-pdf-close-btn" onclick="closePdfViewer()">✕</button>
+            </div>
+
+            <!-- PDF CONTENT -->
+            <div class="c3-pdf-container" id="c3PdfContainer"></div>
+
+            <!-- SAVE ROW (edit mode only) -->
+            <div class="c3-pdf-save-row" id="c3PdfSaveRow" style="display:none;">
+                <button class="c3-btn c3-btn-secondary" onclick="pdfSaveAsNew()">Save as New Version</button>
+                <button class="c3-btn c3-btn-save" onclick="pdfSaveCurrent()">Update Current Version</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="supabase_sync.js"></script>
+    <script>
+        // Hide add-section controls in playlist mode
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('playlistId')) {
+                const footer = document.querySelector('.c12-footer-row');
+                if (footer) footer.style.display = 'none';
+                const sortRow = document.querySelectorAll('.c12-header-row')[1];
+                if (sortRow) sortRow.style.display = 'none';
+            }
+        });
+    </script>
+    <script src="ai-prompt.js" defer></script>
+    <script src="ai-config.js" defer></script>
+  
+    
+    <script src="series_modal.js" defer></script>
+    <script src="column5.js" defer></script>
+    <script src="uploadtext.js" defer></script>
+    <script src="column1-2.js" defer></script>
+    <script src="uploadtextcontent.js" defer></script>
+    <script src="column3.js" defer></script>
+    <script src="fflate.js" defer></script>
+    
+    <script src="ai.js" defer></script>
+    <script src="editor.js" defer></script>
+    <script src="uploadpdf.js" defer></script>
+    <script src="uploaddocx.js" defer></script>
+    <script src="column4.js" defer></script>
+    
+    <script src="libs/mammoth.browser.min.js" defer></script>
+
+<!-- ===== SERIES MODAL OVERLAY ===== -->
+<div class="sm-page-overlay" id="smPageOverlay">
+  <div class="sm-overlay-row">
+
+    <!-- Main Modal -->
+    <div class="sm-modal">
+      <div class="sm-header">
+        <div class="sm-header-title">Revision Schedule</div>
+        <div class="sm-header-tabs">
+          <div class="sm-tab active" data-tab="schedule" onclick="smSwitchTab('schedule',this)">Schedule &amp; Settings</div>
+          <div class="sm-tab" data-tab="info" onclick="smSwitchTab('info',this)">Info</div>
+        </div>
+        <div class="sm-header-right">
+          <button class="sm-close-btn" onclick="smCloseModal()">✕</button>
+        </div>
+      </div>
+
+      <div class="sm-panels">
+        <div class="sm-panel sched-panel active" id="smPanelSchedule">
+
+          <div class="series-col-wrap">
+            <div class="col-header">Series</div>
+            <div class="sched-left" id="smSchedLeft"></div>
+          </div>
+
+          <div class="wmap-col-wrap">
+            <div class="col-header">
+              <div class="wmap-col-header-inner">Week Map</div>
+              <div class="wmap-view-tabs">
+                <button class="wmap-view-tab active" id="smViewTabDay" onclick="smSetWmapView('day')">Day</button>
+                <button class="wmap-view-tab" id="smViewTabWeek" onclick="smSetWmapView('week')">Week</button>
+              </div>
+              <div class="wmap-slot-pos" id="smSlotPosLabel">Current Slot Position — 0</div>
+            </div>
+            <div class="wmap-body" id="smWmapBody"></div>
+          </div>
+
+          <div class="settings-col-wrap">
+            <div class="col-header">Settings</div>
+            <div class="settings-body">
+              <div class="st-block">
+                <div class="st-label">Start Week</div>
+                <div class="st-sub">All gaps are calculated from here</div>
+                <button class="dur-btn" onclick="smOpenWeekPicker('start')" style="margin-top:4px;">
+                  <span class="dur-btn-label">From</span>
+                  <span class="dur-btn-value" id="smStartWeekVal">—</span>
+                  <span class="dur-btn-arrow">▾</span>
+                </button>
+              </div>
+              <div class="st-block" id="smEndWeekBlock">
+                <div class="st-label">End Week</div>
+                <div class="st-sub" id="smEndWeekSub">Auto-calculated from last slot</div>
+                <button class="dur-btn" id="smEndWeekBtn" onclick="smOpenWeekPicker('end')" style="margin-top:4px;">
+                  <span class="dur-btn-label">Until</span>
+                  <span class="dur-btn-value" id="smEndWeekVal">—</span>
+                  <span class="dur-btn-arrow">▾</span>
+                </button>
+              </div>
+              <div class="st-block">
+                <div class="st-top-row">
+                  <div class="st-label">Slots</div>
+                  <div class="st-stepper">
+                    <button class="st-stepper-btn" onclick="smStepSlots(-1)">−</button>
+                    <span class="st-stepper-val" id="smSlotsVal">18</span>
+                    <button class="st-stepper-btn" onclick="smStepSlots(1)">+</button>
+                  </div>
+                </div>
+                <div class="st-sub">Total revision slots for this section</div>
+              </div>
+              <div class="st-block" id="smSeriesDisplayBlock" style="display:none;">
+                <div class="st-label">Weeks that form your series</div>
+                <div class="dur-btn" style="margin-top:4px;cursor:default;">
+                  <span class="dur-btn-value" id="smSeriesDisplayNums">—</span>
+                </div>
+              </div>
+              <div class="st-block" id="smCustomGapsBlock" style="display:none;">
+                <div class="st-label">Custom Series</div>
+                <div class="st-sub">Pick week numbers that form your series</div>
+                <button class="dur-btn" onclick="smOpenNumPicker()" style="margin-top:4px;">
+                  <span class="dur-btn-value" id="smCustomGapsSummary">1</span>
+                  <span class="dur-btn-arrow">▾</span>
+                </button>
+              </div>
+              <div class="st-block" id="smRegularBlock" style="display:none;">
+                <div class="st-top-row">
+                  <div class="st-label">Interval</div>
+                  <div class="st-stepper">
+                    <button class="st-stepper-btn" onclick="smStepInterval(-1)">−</button>
+                    <span class="st-stepper-val" id="smIntervalVal">4</span>
+                    <button class="st-stepper-btn" onclick="smStepInterval(1)">+</button>
+                  </div>
+                </div>
+                <div class="st-sub">Weeks between each revision</div>
+              </div>
+              <div class="st-block">
+                <div class="st-top-row">
+                  <div class="st-label">Revisions per Week</div>
+                  <div class="st-stepper">
+                    <button class="st-stepper-btn" onclick="smStepRPW(-1)">−</button>
+                    <span class="st-stepper-val" id="smRpwVal">1</span>
+                    <button class="st-stepper-btn" onclick="smStepRPW(1)">+</button>
+                  </div>
+                </div>
+                <div class="st-sub">Max revisions in any single week</div>
+              </div>
+              <div class="st-block">
+                <div class="st-top-row">
+                  <div class="st-label">Grace Period</div>
+                  <div class="st-stepper">
+                    <button class="st-stepper-btn" onclick="smStepGrace(-1)">−</button>
+                    <span class="st-stepper-val" id="smGraceVal">0</span>
+                    <button class="st-stepper-btn" onclick="smStepGrace(1)">+</button>
+                  </div>
+                </div>
+                <div class="st-sub">Buffer weeks before a missed slot triggers penalty</div>
+              </div>
+              <div class="st-block">
+                <div class="st-top-row">
+                  <div class="st-label">Penalty</div>
+                  <div class="st-stepper">
+                    <button class="st-stepper-btn" onclick="smStepPenalty(-1)">−</button>
+                    <span class="st-stepper-val" id="smPenaltyVal">1</span>
+                    <button class="st-stepper-btn" onclick="smStepPenalty(1)">+</button>
+                  </div>
+                </div>
+                <div class="st-sub">Slots to drop back on missed or late revision</div>
+              </div>
+              <div class="st-block" id="smMissedBlock" style="display:none;">
+                <div class="st-label">Missed Behaviour</div>
+                <div class="st-sub" style="margin-bottom:6px;">What happens when a slot week is missed</div>
+                <div class="radio-list">
+                  <div class="radio-row active" data-mode="no-hunt" onclick="smMissedSelect(this,'no-hunt')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><span class="radio-text">No Hunt</span></div>
+                  <div class="radio-row" data-mode="next-slot" onclick="smMissedSelect(this,'next-slot')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><span class="radio-text">Hunt — Till Next Slot</span></div>
+                  <div class="radio-row" data-mode="infinite" onclick="smMissedSelect(this,'infinite')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><span class="radio-text">Hunt — Infinitely</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-panel info-panel" id="smPanelInfo">
+          <div class="info-col-headers">
+            <div class="info-col-hdr">Series</div>
+            <div class="info-col-hdr">How it works</div>
+            <div class="info-col-hdr">Good for</div>
+          </div>
+          <div class="info-rows" id="smInfoRows"></div>
+        </div>
+      </div>
+
+      <div class="sm-footer">
+        <div class="sm-footer-info">Selected: <span id="smFooterSelected">Prime</span></div>
+        <div class="sm-footer-btns">
+          <button class="sm-btn sm-btn-cancel" onclick="smCloseModal()">Cancel</button>
+          <button class="sm-btn sm-btn-confirm" onclick="smOnConfirm()">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revision Boxes Panel -->
+    <div class="rev-panel">
+      <div class="rev-panel-header">Revision Boxes</div>
+      <div class="rev-panel-body">
+        <div class="rev-dates-grid" id="smRevDatesGrid"></div>
+      </div>
+    </div>
+
+  </div><!-- end sm-overlay-row -->
+
+  <!-- Revision Calendar Modal -->
+  <div class="rev-cal-overlay" id="smRevCalOverlay">
+    <div class="rev-cal-modal">
+      <div class="rev-cal-header">
+        <span class="rev-cal-title" id="smRevCalTitle">Set Revision Date</span>
+        <button class="rev-cal-close" onclick="smRevCloseCalendar()">✕</button>
+      </div>
+      <div class="rev-cal-body">
+        <div class="rev-cal-nav">
+          <button class="rev-cal-nav-btn" onclick="smRevCalNav(-1)">◀</button>
+          <span class="rev-cal-month-label" id="smRevCalMonthLabel"></span>
+          <button class="rev-cal-nav-btn" onclick="smRevCalNav(1)">▶</button>
+        </div>
+        <div class="rev-cal-grid" id="smRevCalGrid"></div>
+      </div>
+      <div class="rev-cal-footer">
+        <button class="rev-cal-btn rev-cal-btn-clear" id="smRevCalClearBtn" onclick="smRevClearDate()">Clear</button>
+        <button class="rev-cal-btn rev-cal-btn-cancel" onclick="smRevCloseCalendar()">Cancel</button>
+        <button class="rev-cal-btn rev-cal-btn-save" onclick="smRevSaveDate()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week Picker -->
+  <div class="wk-picker-overlay" id="smWkPickerOverlay" onclick="smHandleWkOverlayClick(event)">
+    <div class="wk-picker">
+      <div class="wk-picker-header">
+        <span class="wk-picker-title" id="smWkPickerTitle">Select Start Week</span>
+        <button class="wk-picker-close" onclick="smCloseWeekPicker()">✕</button>
+      </div>
+      <div class="wk-picker-nav">
+        <button class="wk-picker-nav-btn" onclick="smWkNavMonth(-1)">◀</button>
+        <span class="wk-picker-month-label" id="smWkPickerMonthLabel"></span>
+        <button class="wk-picker-nav-btn" onclick="smWkNavMonth(1)">▶</button>
+      </div>
+      <div class="wk-picker-grid" id="smWkPickerGrid"></div>
+      <div class="wk-picker-footer">
+        <button class="wk-cancel-btn" onclick="smCloseWeekPicker()">Cancel</button>
+        <button class="wk-done-btn" onclick="smConfirmWeekPicker()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Number Picker -->
+  <div class="num-picker-overlay" id="smNumPickerOverlay" onclick="smHandleNumPickerOverlayClick(event)">
+    <div class="num-picker">
+      <div class="num-picker-header">
+        <span class="num-picker-title">Custom Series — Pick Week Numbers</span>
+        <button class="num-picker-close" onclick="smCancelNumPicker()">✕</button>
+      </div>
+      <div class="num-picker-summary-bar" id="smNpSummaryBar">1</div>
+      <div class="num-picker-grid" id="smNumPickerGrid"></div>
+      <div class="num-picker-footer">
+        <button class="np-cancel-btn" onclick="smCancelNumPicker()">Cancel</button>
+        <button class="np-done-btn" onclick="smConfirmNumPicker()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end smPageOverlay -->
+
+</body>
+</html>

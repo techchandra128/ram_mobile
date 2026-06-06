@@ -1,5 +1,18 @@
-# Only track hub files and CLAUDE.md from root
-# Web/mobile/prototypes have their own git repos
+# App subfolders have their own git repos
 01. Web App Files/
 02. Mobile App Files/
 03. Prototypes/
+
+# Local server files - not needed online
+server.js
+proxy.js
+
+# Local scripts
+01. start.vbs
+02. stop.vbs
+
+# Secret keys - never commit
+ai-config.js
+
+# Local data
+data/
