@@ -88,6 +88,7 @@ If yes — run `push_hub.bat` from the root folder.
 ---
 
 ## What NOT To Do — Ever
+- Never push `API Key.txt` or `ai-config.js` to git — these contain secret keys. They are gitignored but always double-check before any push.
 - Do not assume what Mouli wants — always confirm first
 - Do not rewrite everything when a small fix is enough
 - Do not use words like: refactor, asynchronous, callback, DOM, props, state, runtime, instance, deprecated, render, iterate — unless you immediately explain with an analogy
