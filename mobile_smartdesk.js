@@ -130,7 +130,7 @@ function makePlaylistCard(pl) {
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
     card.style.background = `linear-gradient(135deg,${g1},${g2})`;
-    card.style.borderColor = 'rgba(255,255,255,0.06)';
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

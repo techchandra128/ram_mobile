@@ -21,6 +21,9 @@
 .oa-card-grad .oa-name { color: #e2e8f0; }
 .oa-card-grad .oa-meta { color: #94a3b8; }
 .oa-card-grad .oa-dot { background: rgba(255,255,255,0.2); }
+[data-theme="light"] .oa-card-grad .oa-name { color: #1e293b; }
+[data-theme="light"] .oa-card-grad .oa-meta { color: #64748b; }
+[data-theme="light"] .oa-card-grad .oa-dot { background: rgba(0,0,0,0.15); }
 
 .oa-info { flex: 1; min-width: 0; }
 .oa-name {
@@ -71,6 +74,8 @@
     line-height: 1.35;
 }
 .gc-meta { font-size: 10px; color: #94a3b8; }
+[data-theme="light"] .gc-name { color: #1e293b; }
+[data-theme="light"] .gc-meta { color: #64748b; }
 
 .gc-bottom {
     background: var(--card-bg);

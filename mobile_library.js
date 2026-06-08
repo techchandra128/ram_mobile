@@ -125,11 +125,13 @@ function getLibDisplayColor(pct) {
     return getLibProgressColor(pct);
 }
 function getGridGradient(pct) {
-    if (pct === 0) return ['#0c1524', '#334155'];
-    if (pct <= 25) return ['#1e1b4b', '#94a3b840'];
-    if (pct <= 50) return ['#451a03', '#f59e0b40'];
-    if (pct <= 75) return ['#431407', '#f9731640'];
-    return ['#064e3b', '#22c55e40'];
+    const dark = [['#0c1524','#334155'],['#1e1b4b','#94a3b840'],['#451a03','#f59e0b40'],['#431407','#f9731640'],['#064e3b','#22c55e40']];
+    const light = [['#f1f5f9','#e2e8f0'],['#f1f5f9','#e2e8f0'],['#fef9ec','#fef3c7'],['#fff7ed','#ffedd5'],['#f0fdf4','#dcfce7']];
+    const idx = pct === 0 ? 0 : pct <= 25 ? 1 : pct <= 50 ? 2 : pct <= 75 ? 3 : 4;
+    return (mState.theme === 'dark' ? dark : light)[idx];
+}
+function getCardBorderColor() {
+    return mState.theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'var(--card-border)';
 }
 
 const SC_DIFF_COLOR = { 'Easy': '#22c55e', 'Moderate': '#f59e0b', 'Challenging': '#f97316', 'Hard': '#ef4444' };
@@ -250,7 +252,7 @@ function makeListFolderCard(folder) {
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
     card.style.background = `linear-gradient(135deg,${g1},${g2})`;
-    card.style.borderColor = 'rgba(255,255,255,0.06)';
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -292,7 +294,7 @@ function makeListFileCard(file) {
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
     card.style.background = `linear-gradient(135deg,${g1},${g2})`;
-    card.style.borderColor = 'rgba(255,255,255,0.06)';
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -489,7 +491,7 @@ function makeFileCard(file, context) {
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
     card.style.background = `linear-gradient(135deg,${g1},${g2})`;
-    card.style.borderColor = 'rgba(255,255,255,0.06)';
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
