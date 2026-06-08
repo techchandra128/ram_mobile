@@ -132,6 +132,113 @@ function getGridGradient(pct) {
     return ['#064e3b', '#22c55e40'];
 }
 
+const SC_DIFF_COLOR = { 'Easy': '#22c55e', 'Moderate': '#f59e0b', 'Challenging': '#f97316', 'Hard': '#ef4444' };
+const SC_PRIO_COLOR = { 'Low': '#94a3b8', 'Medium': '#3b82f6', 'High': '#f97316', 'Critical': '#ef4444' };
+
+function getSectionGradient(pct) {
+    const dark = [['#1a2035','#1e2a3d'],['#221c0e','#2e2410'],['#221508','#2e1c08'],['#0e2018','#122818']];
+    const light = [['#f1f5f9','#e2e8f0'],['#fef9ec','#fef3c7'],['#fff7ed','#ffedd5'],['#f0fdf4','#dcfce7']];
+    const idx = pct <= 25 ? 0 : pct <= 50 ? 1 : pct <= 75 ? 2 : 3;
+    return (mState.theme === 'dark' ? dark : light)[idx];
+}
+function getSectionBadgeColor(type) {
+    if (type === 'done' || type === 'cleared') return 'var(--accent-green)';
+    if (type === 'missed') return 'var(--accent-red)';
+    if (['early','grace','not-done','partial','off-schedule'].includes(type)) return 'var(--accent-amber)';
+    if (['defending','defended','overdue'].includes(type)) return 'var(--accent-orange)';
+    if (['defending-current','in-progress','scheduled'].includes(type)) return 'var(--accent-blue)';
+    if (type === 'hunting-current' || type === 'hunted') return '#22d3ee';
+    return 'var(--text-muted)';
+}
+
+// ===== SECTION LIST CARD =====
+function makeSectionListCard(title, c5, showFile, fileName) {
+    const pct = c5?.proficiency || 0;
+    const diff = c5?.difficulty;
+    const prio = c5?.priority;
+    const rc = getLibProgressColor(pct);
+    const [g1, g2] = getSectionGradient(pct);
+    const isDark = mState.theme === 'dark';
+    const titleColor = isDark ? '#e2e8f0' : '#1e293b';
+    const fileColor = isDark ? '#94a3b8' : '#64748b';
+    const trackColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+    const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'var(--card-border)';
+    const r = 14, circ = +(2 * Math.PI * r).toFixed(2);
+    const offset = +(circ - (pct / 100) * circ).toFixed(2);
+
+    const pills = [];
+    if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; pills.push(`<span class="sc-pill" style="color:${dc};border-color:${dc}44;background:${dc}12">${diff}</span>`); }
+    if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; pills.push(`<span class="sc-pill" style="color:${pc};border-color:${pc}44;background:${pc}12">${prio}</span>`); }
+    const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+    if (badge) { const bc = getSectionBadgeColor(badge.type); pills.push(`<span class="sc-pill" style="color:${bc};border-color:${bc}44;background:${bc}12">${badge.label}</span>`); }
+
+    const card = document.createElement('div');
+    card.className = 'sc-list';
+    card.style.borderColor = borderColor;
+    card.innerHTML = `
+        <div class="sc-top-row" style="background:linear-gradient(135deg,${g1},${g2})">
+            <div class="sc-top-text">
+                <div class="sc-title" style="color:${titleColor}">${escHtml(title)}</div>
+                ${showFile && fileName ? `<div class="sc-filename" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
+            </div>
+            <div class="sc-ring-wrap">
+                <div class="sc-ring">
+                    <svg viewBox="0 0 38 38" width="38" height="38">
+                        <circle cx="19" cy="19" r="${r}" fill="none" stroke="${trackColor}" stroke-width="2.5"/>
+                        ${pct > 0 ? `<circle cx="19" cy="19" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5"
+                            stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+                            transform="rotate(-90 19 19)"/>` : ''}
+                    </svg>
+                    <div class="sc-ring-num" style="color:${pct > 0 ? rc : 'var(--text-muted)'}">${pct}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="sc-bottom-row">
+            <div class="sc-pills">${pills.length ? pills.join('') : ''}</div>
+        </div>
+    `;
+    return card;
+}
+
+// ===== SECTION GRID CARD =====
+function makeSectionGridCard(title, c5, showFile, fileName) {
+    const pct = c5?.proficiency || 0;
+    const diff = c5?.difficulty;
+    const prio = c5?.priority;
+    const rc = getLibProgressColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const [g1, g2] = getSectionGradient(pct);
+    const isDark = mState.theme === 'dark';
+    const titleColor = isDark ? '#e2e8f0' : '#1e293b';
+    const fileColor = isDark ? '#94a3b8' : '#64748b';
+
+    const midPills = [];
+    if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; midPills.push(`<span class="sc-grid-pill" style="color:${dc};border-color:${dc}44;background:${dc}15">${diff}</span>`); }
+    if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; midPills.push(`<span class="sc-grid-pill" style="color:${pc};border-color:${pc}44;background:${pc}15">${prio}</span>`); }
+    const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+    if (badge) { const bc = getSectionBadgeColor(badge.type); midPills.push(`<span class="sc-grid-pill" style="color:${bc};border-color:${bc}44;background:${bc}15">${badge.label}</span>`); }
+
+    const card = document.createElement('div');
+    card.className = 'sc-grid';
+    card.innerHTML = `
+        <div class="sc-grid-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div>
+            ${showFile && fileName ? `<div class="sc-grid-file" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
+        </div>
+        <div class="sc-grid-middle">${midPills.length ? midPills.join('') : ''}</div>
+        <div class="sc-grid-bottom">
+            <div class="sc-grid-row">
+                <span class="sc-grid-prof" style="color:${rc}">${profLabel}</span>
+                <span class="sc-grid-pct" style="color:${rc}">${pct}%</span>
+            </div>
+            <div class="sc-grid-bar-track">
+                <div class="sc-grid-bar" style="width:${pct}%;background:${rc}"></div>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
 // ===== LIST VIEW: FOLDER CARD =====
 function makeListFolderCard(folder) {
     const pct = folder.progress || 0;
@@ -431,6 +538,8 @@ function toggleLibView() {
     if (mState.activePage === 'Library') {
         if (!libTop || mState.libStack.length === 0) {
             renderLibraryRoot();
+        } else if (libTop.screen === 'screenSections') {
+            renderSectionList('lib');
         } else if (libTop.screen === 'screenLibraryFolder') {
             renderFolderFiles(libTop.title, libTop.folder.contents);
         }
@@ -438,6 +547,8 @@ function toggleLibView() {
         const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
         if (activeTab === 'playlists') {
             renderSDPlaylistList();
+        } else if (getSDScreen() === 'screenSDSections') {
+            renderSectionList('sd');
         } else {
             renderSDFileList();
         }
@@ -467,18 +578,11 @@ function renderSectionList(context) {
 
     container.innerHTML = '';
 
-    const navC5 = c5Store['navigation'];
-    const navPct = navC5?.proficiency || 0;
-    const navColor = getLibProgressColor(navPct);
-    const navCard = document.createElement('div');
-    navCard.className = 'm-file-card m-section-card';
-    navCard.innerHTML = `
-        <div class="m-file-icon">📋</div>
-        <div class="m-file-info">
-            <div class="m-file-name">0. Table of Contents</div>
-        </div>
-        <div class="m-pct-badge" style="color:${navColor};border-color:${navColor}">${navPct}%</div>
-    `;
+    const isGrid = mState.libView === 'grid';
+    const navC5 = c5Store['navigation'] || {};
+    const navCard = isGrid
+        ? makeSectionGridCard('Table of Contents', navC5, false, null)
+        : makeSectionListCard('Table of Contents', navC5, false, null);
     navCard.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
     container.appendChild(navCard);
 
@@ -487,15 +591,9 @@ function renderSectionList(context) {
 }
 
 function renderSectionItems(container, sections, c5Store, sort, context) {
-    Array.from(container.querySelectorAll('.m-file-card:not(:first-child), .m-empty')).forEach(el => el.remove());
+    const realSections = sections.filter(s => s.type === 'real');
 
-    // Build numMap from ALL sections including dummies (order matters for numbering)
-    const numbers = generateNumbers(sections);
-    const numMap = {};
-    sections.forEach((s, i) => { numMap[s.id] = numbers[i]; });
-
-    const hasReal = sections.some(s => s.type === 'real');
-    if (!hasReal) {
+    if (!realSections.length) {
         const empty = document.createElement('div');
         empty.className = 'm-empty';
         empty.textContent = 'No sections yet.';
@@ -503,48 +601,35 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
         return;
     }
 
-    // Outline sort: show real + dummy in original order
-    // Other sorts: real sections only, sorted (dummies are positional, meaningless when reordered)
+    // numMap for sort reference only (section-count sort uses hierarchy)
+    const numbers = generateNumbers(sections);
+    const numMap = {};
+    sections.forEach((s, i) => { numMap[s.id] = numbers[i]; });
+
     const isOutline = !sort || sort === 'outline';
+    const isGrid = mState.libView === 'grid';
     const displaySections = isOutline
-        ? sections
-        : sortSections(sections.filter(s => s.type === 'real'), c5Store, sort, numMap);
+        ? realSections
+        : sortSections(realSections, c5Store, sort, numMap);
 
-    displaySections.forEach(section => {
-        const isDummy = section.type === 'dummy';
-        const num = numMap[section.id] || '';
-        const titleDisplay = num ? `${num}. ${escHtml(section.title)}` : escHtml(section.title);
-
-        const card = document.createElement('div');
-
-        if (isDummy) {
-            card.className = 'm-file-card m-section-card m-dummy-card';
-            card.innerHTML = `
-                <div class="m-file-icon">📋</div>
-                <div class="m-file-info">
-                    <div class="m-file-name">${titleDisplay}</div>
-                </div>
-            `;
-        } else {
-            card.className = 'm-file-card m-section-card';
-            const c5 = c5Store[section.id];
-            const pct = c5?.proficiency || 0;
-            const color = getLibProgressColor(pct);
-            const metaParts = [];
-            if (c5?.isCompleted) metaParts.push('✓ Done');
-            if (c5 && isStudiedToday(c5)) metaParts.push('Today');
-            card.innerHTML = `
-                <div class="m-file-icon">📋</div>
-                <div class="m-file-info">
-                    <div class="m-file-name">${titleDisplay}</div>
-                    ${metaParts.length ? `<div class="m-file-meta">${metaParts.join(' · ')}</div>` : ''}
-                </div>
-                <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-            `;
+    if (isGrid) {
+        const grid = document.createElement('div');
+        grid.className = 'sc-section-grid';
+        displaySections.forEach(section => {
+            const c5 = c5Store[section.id] || {};
+            const card = makeSectionGridCard(section.title, c5, false, null);
             card.addEventListener('click', () => openSection(section.id, section.title, context));
-        }
-        container.appendChild(card);
-    });
+            grid.appendChild(card);
+        });
+        container.appendChild(grid);
+    } else {
+        displaySections.forEach(section => {
+            const c5 = c5Store[section.id] || {};
+            const card = makeSectionListCard(section.title, c5, false, null);
+            card.addEventListener('click', () => openSection(section.id, section.title, context));
+            container.appendChild(card);
+        });
+    }
 }
 
 function sortSections(sections, c5Store, sort, numMap) {

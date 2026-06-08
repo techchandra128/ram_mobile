@@ -367,27 +367,13 @@ function mdGetTBCForWeek() {
 }
 
 function mdMakeEntryCard(entry, entryIdx) {
-    const diffColor = MD_DIFF_COLORS[entry.difficulty] || '#94a3b8';
-    const prioColor = MD_PRIO_COLORS[entry.priority] || '#94a3b8';
-    const profColor = entry.progress <= 25 ? '#94a3b8'
-        : entry.progress <= 50 ? '#f59e0b'
-        : entry.progress <= 75 ? '#f97316'
-        : '#22c55e';
+    // Get c5 data for badge
+    const fileData = getFileData(entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`);
+    const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
+    const c5 = c5Store[String(entry.sectionId)] || c5Store[entry.sectionId] || {};
 
-    let rightLabel = '';
-    if (mdState.mode === 'completed') {
-        rightLabel = entry.dateDisplay || '';
-    } else {
-        const d = entry.lastRevDaysAgo;
-        if (entry.progress >= 100) rightLabel = 'Done';
-        else if (d === null) rightLabel = 'Never';
-        else if (d === 0) rightLabel = 'Today';
-        else rightLabel = `${d}d ago`;
-    }
-
-    const card = document.createElement('div');
-    card.className = 'md-entry-card';
-    card.style.borderLeftColor = diffColor;
+    // Use sc-list card design (with file name shown — diary shows sections from multiple books)
+    const card = makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName);
     card.addEventListener('click', () => {
         mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
         mState.currentFileName = entry.fileName;
@@ -397,19 +383,6 @@ function mdMakeEntryCard(entry, entryIdx) {
         mState.diaryReturn = true;
         openSection(entry.sectionId, entry.sectionTitle, 'lib');
     });
-    card.innerHTML = `
-        <div class="md-entry-top">
-            <div class="md-entry-title">${escHtml(entry.sectionTitle)}</div>
-            <div class="md-entry-right">${escHtml(rightLabel)}</div>
-        </div>
-        <div class="md-entry-file">${escHtml(entry.fileName)}</div>
-        <div class="md-entry-badges">
-            <span class="md-badge" style="background:${diffColor}18;color:${diffColor};border:1px solid ${diffColor}44">${entry.difficulty}</span>
-            <span class="md-badge" style="background:${prioColor}18;color:${prioColor};border:1px solid ${prioColor}44">${entry.priority}</span>
-            <span class="md-badge" style="background:${profColor}18;color:${profColor};border:1px solid ${profColor}44">${entry.proficiency}</span>
-            <span class="md-badge" style="background:${profColor}18;color:${profColor};border:1px solid ${profColor}44">${entry.progress}%</span>
-        </div>
-    `;
     return card;
 }
 
