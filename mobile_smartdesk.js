@@ -202,36 +202,35 @@ function renderPlaylistSectionList(pl) {
 
     const fs = getFileSystem();
     const allFiles = fs ? collectFiles(fs) : [];
+    const isGrid = mState.libView === 'grid';
 
-    pl.sections.forEach(ref => {
+    const makeCard = (ref) => {
         const fileData = getFileData(ref.fileId);
         const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
         const section = sections.find(s => s.id === ref.sectionId || s.id === Number(ref.sectionId));
         const title = section?.title || `Section ${ref.sectionId}`;
-
         const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
-        const c5 = c5Store[ref.sectionId] || c5Store[String(ref.sectionId)];
-        const pct = c5?.proficiency || 0;
-        const color = getLibProgressColor(pct);
-
+        const c5 = c5Store[ref.sectionId] || c5Store[String(ref.sectionId)] || {};
         const fileObj = allFiles.find(f => f.id === ref.fileId);
         const fileName = fileObj?.name || '';
 
-        const card = document.createElement('div');
-        card.className = 'm-file-card m-section-card';
-        card.innerHTML = `
-            <div class="m-file-icon">📄</div>
-            <div class="m-file-info">
-                <div class="m-file-name">${escHtml(title)}</div>
-                ${fileName ? `<div class="m-file-meta">${escHtml(fileName)}</div>` : ''}
-            </div>
-            <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-        `;
+        const card = isGrid
+            ? makeSectionGridCard(title, c5, true, fileName, 'prof')
+            : makeSectionListCard(title, c5, true, fileName, 'prof');
         card.addEventListener('click', () => {
             mState.currentFileId = ref.fileId;
             mState.currentFileName = fileName;
             openSection(ref.sectionId, title, 'sd');
         });
-        container.appendChild(card);
-    });
+        return card;
+    };
+
+    if (isGrid) {
+        const grid = document.createElement('div');
+        grid.className = 'sc-section-grid';
+        pl.sections.forEach(ref => grid.appendChild(makeCard(ref)));
+        container.appendChild(grid);
+    } else {
+        pl.sections.forEach(ref => container.appendChild(makeCard(ref)));
+    }
 }

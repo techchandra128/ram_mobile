@@ -121,6 +121,8 @@ function rerenderCurrentView() {
             if (activeTab === 'playlists') renderSDPlaylistList();
             else renderSDFileList();
         }
+    } else if (mState.activePage === 'Diary') {
+        mdRenderContent();
     }
 }
 
@@ -150,7 +152,8 @@ function updateTopbar() {
 
     const showLibView = (mState.activePage === 'Library' &&
         (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder' || libTop?.screen === 'screenSections'))
-        || (mState.activePage === 'SmartDesk' && (getSDScreen() === 'screenSDFiles' || getSDScreen() === 'screenSDSections'));
+        || (mState.activePage === 'SmartDesk' && (getSDScreen() === 'screenSDFiles' || getSDScreen() === 'screenSDSections'))
+        || mState.activePage === 'Diary';
     document.querySelectorAll('.m-lib-view-ctrl').forEach(el => {
         el.style.display = showLibView ? 'flex' : 'none';
     });

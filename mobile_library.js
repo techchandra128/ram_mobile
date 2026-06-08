@@ -567,6 +567,8 @@ function toggleLibView() {
         } else {
             renderSDFileList();
         }
+    } else if (mState.activePage === 'Diary') {
+        mdRenderContent();
     }
 }
 

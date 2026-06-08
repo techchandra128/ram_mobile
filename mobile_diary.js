@@ -348,10 +348,17 @@ function mdRenderContent() {
 
     mdState.currentEntries = entries;
 
-    const list = document.createElement('div');
-    list.className = 'md-diary-list';
-    entries.forEach((e, i) => list.appendChild(mdMakeEntryCard(e, i)));
-    container.appendChild(list);
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'sc-section-grid';
+        entries.forEach((e, i) => grid.appendChild(mdMakeEntryCard(e, i)));
+        container.appendChild(grid);
+    } else {
+        const list = document.createElement('div');
+        list.className = 'md-diary-list';
+        entries.forEach((e, i) => list.appendChild(mdMakeEntryCard(e, i)));
+        container.appendChild(list);
+    }
 }
 
 function mdGetCompletedForWeek() {
@@ -372,8 +379,9 @@ function mdMakeEntryCard(entry, entryIdx) {
     const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
     const c5 = c5Store[String(entry.sectionId)] || c5Store[entry.sectionId] || {};
 
-    // Use sc-list card design (with file name shown — diary shows sections from multiple books)
-    const card = makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName, 'badge');
+    const card = mState.libView === 'grid'
+        ? makeSectionGridCard(entry.sectionTitle, c5, true, entry.fileName, 'badge')
+        : makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName, 'badge');
     card.addEventListener('click', () => {
         mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
         mState.currentFileName = entry.fileName;
