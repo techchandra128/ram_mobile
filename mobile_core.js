@@ -24,6 +24,7 @@ const mState = {
     libSort: 'outline',
     sdSort: 'outline',
     libRootSort: 'name-asc',
+    libView: 'list',
     activeDash: 'heatmap',
 
     theme: localStorage.getItem('ram_mobile_theme') || 'dark',
@@ -126,6 +127,13 @@ function updateTopbar() {
         || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections');
     document.querySelectorAll('.m-lib-ctrl').forEach(el => {
         el.style.display = showLibCtrl ? 'flex' : 'none';
+    });
+
+    const showLibView = (mState.activePage === 'Library' &&
+        (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder'))
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDFiles');
+    document.querySelectorAll('.m-lib-view-ctrl').forEach(el => {
+        el.style.display = showLibView ? 'flex' : 'none';
     });
 
     if (depth === 0) {
@@ -288,7 +296,7 @@ function getFileSystem() {
 function collectFiles(node, result = []) {
     if (!node || typeof node !== 'object') return result;
     Object.entries(node).forEach(([key, item]) => {
-        if (item.type === 'file') result.push({ id: item.fileId, name: key });
+        if (item.type === 'file') result.push({ id: item.fileId, name: key, progress: item.progress || 0 });
         else if (item.type === 'folder' && item.contents) collectFiles(item.contents, result);
     });
     return result;

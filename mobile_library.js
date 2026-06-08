@@ -75,6 +75,8 @@ function closeSecSortSheet() {
 // ===== LIBRARY: TOOLBAR BIND =====
 function bindLibRootToolbar() {
     document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
+    document.getElementById('mLibViewBtn')?.addEventListener('click', toggleLibView);
+    updateViewBtn();
 
     document.querySelector('#mLibSortSheet .m-sort-backdrop').addEventListener('click', closeLibSortSheet);
     document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
@@ -110,20 +112,55 @@ function bindLibRootToolbar() {
     });
 }
 
+// ===== CARD HELPERS =====
+function getLibProficiencyLabel(pct) {
+    if (pct === 0) return 'Not started';
+    if (pct <= 25) return 'Novice';
+    if (pct <= 50) return 'Apprentice';
+    if (pct <= 75) return 'Competent';
+    return 'Proficient';
+}
+function getLibDisplayColor(pct) {
+    if (pct === 0) return '#475569';
+    return getLibProgressColor(pct);
+}
+function getGridGradient(pct) {
+    if (pct === 0) return ['#0c1524', '#334155'];
+    if (pct <= 25) return ['#1e1b4b', '#94a3b840'];
+    if (pct <= 50) return ['#451a03', '#f59e0b40'];
+    if (pct <= 75) return ['#431407', '#f9731640'];
+    return ['#064e3b', '#22c55e40'];
+}
+
 // ===== LIST VIEW: FOLDER CARD =====
 function makeListFolderCard(folder) {
     const pct = folder.progress || 0;
-    const color = getLibProgressColor(pct);
-    const fileCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const color = getLibDisplayColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const bookCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'm-file-card m-folder-card';
+    card.className = 'oa-card';
     card.innerHTML = `
-        <div class="m-file-icon"><svg width="30" height="25" viewBox="0 0 30 25" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="mfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#74B4F0"/><stop offset="100%" stop-color="#4D9FEC"/></linearGradient></defs><path d="M1.8 5 L1.8 1.8 Q1.8 0 3.6 0 L9 0 Q12 0 12 2.4 L12 5 Z" fill="#7DBAF2"/><rect x="0" y="4.25" width="30" height="20.75" rx="3" fill="url(#mfg)"/><path d="M0 20.5 L0 22.2 Q0 25 3 25 L27 25 Q30 25 30 22.2 L30 20.5 Z" fill="#448CD0"/><line x1="5" y1="5.3" x2="25" y2="5.3" stroke="white" stroke-width="0.8" stroke-opacity="0.24"/></svg></div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(folder.name)}</div>
-            <div class="m-file-meta">${fileCount} file${fileCount !== 1 ? 's' : ''}</div>
+        <div class="oa-icon f">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
         </div>
-        <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(folder.name)}</div>
+            <div class="oa-meta">
+                <span>${bookCount} book${bookCount !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
     `;
     card.addEventListener('click', () => {
         pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
@@ -138,16 +175,32 @@ function makeListFileCard(file) {
     const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
     const sectionCount = sections.filter(s => s.type === 'real').length;
     const pct = file.progress || 0;
-    const color = getLibProgressColor(pct);
+    const color = getLibDisplayColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'm-file-card';
+    card.className = 'oa-card';
     card.innerHTML = `
-        <div class="m-file-icon">📘</div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(file.name)}</div>
-            <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        <div class="oa-icon b">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
         </div>
-        <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(file.name)}</div>
+            <div class="oa-meta">
+                <span>${sectionCount} section${sectionCount !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
     `;
     card.addEventListener('click', () => {
         mState.currentFileId = file.id;
@@ -157,6 +210,76 @@ function makeListFileCard(file) {
         renderSectionList('lib');
         showLibScreen('screenSections');
         updateTopbar();
+    });
+    return card;
+}
+
+// ===== GRID VIEW: FOLDER CARD =====
+function makeGridFolderCard(folder) {
+    const pct = folder.progress || 0;
+    const color = getLibDisplayColor(pct);
+    const bookCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const [g1, g2] = getGridGradient(pct);
+    const card = document.createElement('div');
+    card.className = 'gc-card';
+    card.innerHTML = `
+        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <div class="gc-name">${escHtml(folder.name)}</div>
+            <div class="gc-meta">${bookCount} book${bookCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="gc-bottom">
+            <div class="gc-bar-track"><div class="gc-bar" style="width:${pct}%;background:${color}"></div></div>
+            <span class="gc-pct" style="color:${color}">${pct}%</span>
+        </div>
+    `;
+    card.addEventListener('click', () => {
+        pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
+        renderFolderFiles(folder.name, folder.contents);
+    });
+    return card;
+}
+
+// ===== GRID VIEW: FILE CARD =====
+function makeGridFileCard(file, context = 'lib') {
+    const fileData = getFileData(file.id);
+    const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
+    const sectionCount = sections.filter(s => s.type === 'real').length;
+    const pct = file.progress || 0;
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const card = document.createElement('div');
+    card.className = 'gc-card';
+    card.innerHTML = `
+        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <div class="gc-name">${escHtml(file.name)}</div>
+            <div class="gc-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="gc-bottom">
+            <div class="gc-bar-track"><div class="gc-bar" style="width:${pct}%;background:${color}"></div></div>
+            <span class="gc-pct" style="color:${color}">${pct}%</span>
+        </div>
+    `;
+    card.addEventListener('click', () => {
+        mState.currentFileId = file.id;
+        mState.currentFileName = file.name;
+        mState.currentContext = context;
+        if (context === 'lib') {
+            pushLibStack({ screen: 'screenSections', title: file.name });
+            renderSectionList('lib');
+            showLibScreen('screenSections');
+            updateTopbar();
+        } else {
+            renderSectionList('sd');
+            showSDScreen('screenSDSections');
+            updateTopbar();
+        }
     });
     return card;
 }
@@ -178,8 +301,16 @@ function renderLibraryRoot() {
     const sortedFolders = sortLibItems(folders);
     const sortedFiles = sortLibItems(files);
 
-    sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
-    sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'lib-grid';
+        sortedFolders.forEach(folder => grid.appendChild(makeGridFolderCard(folder)));
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileCard(file, 'lib')));
+        container.appendChild(grid);
+    } else {
+        sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
+        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    }
 }
 
 // ===== LIBRARY: FOLDER FILES =====
@@ -193,7 +324,14 @@ function renderFolderFiles(folderName, contents) {
         return;
     }
     const sortedFiles = sortLibItems(files);
-    sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'lib-grid';
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileCard(file, 'lib')));
+        container.appendChild(grid);
+    } else {
+        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    }
     showLibScreen('screenLibraryFolder');
 }
 
@@ -224,21 +362,39 @@ function showLibScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
-// ===== MAKE FILE CARD =====
+// ===== MAKE FILE CARD (Smart Desk list view) =====
 function makeFileCard(file, context) {
     const fileData = getFileData(file.id);
     const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
     const sectionCount = sections.filter(s => s.type === 'real').length;
+    const pct = file.progress || 0;
+    const color = getLibDisplayColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
 
     const card = document.createElement('div');
-    card.className = 'm-file-card';
+    card.className = 'oa-card';
     card.innerHTML = `
-        <div class="m-file-icon">📘</div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(file.name)}</div>
-            <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        <div class="oa-icon b">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
         </div>
-        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(file.name)}</div>
+            <div class="oa-meta">
+                <span>${sectionCount} section${sectionCount !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
     `;
     card.addEventListener('click', () => {
         mState.currentFileId = file.id;
@@ -256,6 +412,37 @@ function makeFileCard(file, context) {
         }
     });
     return card;
+}
+
+// ===== VIEW TOGGLE =====
+function toggleLibView() {
+    mState.libView = mState.libView === 'list' ? 'grid' : 'list';
+    updateViewBtn();
+    const libTop = mState.libStack[mState.libStack.length - 1];
+    if (mState.activePage === 'Library') {
+        if (!libTop || mState.libStack.length === 0) {
+            renderLibraryRoot();
+        } else if (libTop.screen === 'screenLibraryFolder') {
+            renderFolderFiles(libTop.title, libTop.folder.contents);
+        }
+    } else if (mState.activePage === 'SmartDesk') {
+        const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
+        if (activeTab === 'playlists') {
+            renderSDPlaylistList();
+        } else {
+            renderSDFileList();
+        }
+    }
+}
+
+function updateViewBtn() {
+    const btn = document.getElementById('mLibViewBtn');
+    if (!btn) return;
+    const isGrid = mState.libView === 'grid';
+    btn.innerHTML = isGrid
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`;
+    btn.title = isGrid ? 'Switch to list view' : 'Switch to grid view';
 }
 
 // ===== SECTION LIST =====
