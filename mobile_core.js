@@ -115,7 +115,8 @@ function rerenderCurrentView() {
         else if (libTop.screen === 'screenLibraryFolder' && libTop.folder) renderFolderFiles(libTop.title, libTop.folder.contents);
     } else if (mState.activePage === 'SmartDesk') {
         const sd = getSDScreen();
-        if (sd === 'screenSDSections') renderSectionList('sd');
+        if (sd === 'screenSDDetail') { /* reading a section — don't disturb */ }
+        else if (sd === 'screenSDSections') renderSectionList('sd');
         else {
             const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
             if (activeTab === 'playlists') renderSDPlaylistList();
