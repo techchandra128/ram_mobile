@@ -128,9 +128,11 @@ function makePlaylistCard(pl) {
     const profLabel = getLibProficiencyLabel(pct);
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'oa-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = 'rgba(255,255,255,0.06)';
     card.innerHTML = `
-        <div class="oa-icon" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
@@ -144,7 +146,7 @@ function makePlaylistCard(pl) {
         </div>
         <div class="oa-ring">
             <svg viewBox="0 0 38 38" width="38" height="38">
-                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
                 ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
             </svg>
             <div class="oa-ring-num" style="color:${color}">${pct}%</div>

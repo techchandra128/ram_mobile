@@ -141,9 +141,11 @@ function makeListFolderCard(folder) {
     const bookCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'oa-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = 'rgba(255,255,255,0.06)';
     card.innerHTML = `
-        <div class="oa-icon" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
             </svg>
@@ -157,7 +159,7 @@ function makeListFolderCard(folder) {
         </div>
         <div class="oa-ring">
             <svg viewBox="0 0 38 38" width="38" height="38">
-                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
                 ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
             </svg>
             <div class="oa-ring-num" style="color:${color}">${pct}%</div>
@@ -181,9 +183,11 @@ function makeListFileCard(file) {
     const profLabel = getLibProficiencyLabel(pct);
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'oa-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = 'rgba(255,255,255,0.06)';
     card.innerHTML = `
-        <div class="oa-icon" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -198,7 +202,7 @@ function makeListFileCard(file) {
         </div>
         <div class="oa-ring">
             <svg viewBox="0 0 38 38" width="38" height="38">
-                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
                 ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
             </svg>
             <div class="oa-ring-num" style="color:${color}">${pct}%</div>
@@ -376,9 +380,11 @@ function makeFileCard(file, context) {
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
 
     const card = document.createElement('div');
-    card.className = 'oa-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = 'rgba(255,255,255,0.06)';
     card.innerHTML = `
-        <div class="oa-icon" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="oa-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -393,7 +399,7 @@ function makeFileCard(file, context) {
         </div>
         <div class="oa-ring">
             <svg viewBox="0 0 38 38" width="38" height="38">
-                <circle cx="19" cy="19" r="15" fill="none" style="stroke:var(--ring-track)" stroke-width="3"/>
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
                 ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
             </svg>
             <div class="oa-ring-num" style="color:${color}">${pct}%</div>
