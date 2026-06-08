@@ -124,13 +124,14 @@ function makePlaylistCard(pl) {
     const count = pl.sections ? pl.sections.length : 0;
     const pct = getPlaylistProgress(pl);
     const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
     const profLabel = getLibProficiencyLabel(pct);
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
     card.className = 'oa-card';
     card.innerHTML = `
-        <div class="oa-icon s">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <div class="oa-icon" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
         </div>
@@ -162,11 +163,12 @@ function makeGridPlaylistCard(pl) {
     const count = pl.sections ? pl.sections.length : 0;
     const pct = getPlaylistProgress(pl);
     const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
     const card = document.createElement('div');
     card.className = 'gc-card';
     card.innerHTML = `
-        <div class="gc-top" style="background:linear-gradient(135deg,#1c0a00,#f9731640)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
             <div class="gc-name">${escHtml(pl.name)}</div>
