@@ -144,13 +144,16 @@ function getSectionGradient(pct) {
     return (mState.theme === 'dark' ? dark : light)[idx];
 }
 function getSectionBadgeColor(type) {
-    if (type === 'done' || type === 'cleared') return 'var(--accent-green)';
-    if (type === 'missed') return 'var(--accent-red)';
-    if (['early','grace','not-done','partial','off-schedule'].includes(type)) return 'var(--accent-amber)';
-    if (['defending','defended','overdue'].includes(type)) return 'var(--accent-orange)';
-    if (['defending-current','in-progress','scheduled'].includes(type)) return 'var(--accent-blue)';
+    const dark  = { green: '#4ec994', red: '#f47067', amber: '#ddb56a', orange: '#e8834a', blue: '#4d9fec', muted: '#475569' };
+    const light = { green: '#22c55e', red: '#ef4444', amber: '#f59e0b', orange: '#f97316', blue: '#3b82f6', muted: '#94a3b8' };
+    const c = mState.theme === 'dark' ? dark : light;
+    if (type === 'done' || type === 'cleared') return c.green;
+    if (type === 'missed') return c.red;
+    if (['early','grace','not-done','partial','off-schedule'].includes(type)) return c.amber;
+    if (['defending','defended','overdue'].includes(type)) return c.orange;
+    if (['defending-current','in-progress','scheduled'].includes(type)) return c.blue;
     if (type === 'hunting-current' || type === 'hunted') return '#22d3ee';
-    return 'var(--text-muted)';
+    return c.muted;
 }
 
 // ===== SECTION LIST CARD =====
