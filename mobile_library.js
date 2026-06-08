@@ -147,17 +147,17 @@ function getSectionBadgeColor(type) {
     const dark  = { green: '#4ec994', red: '#f47067', amber: '#ddb56a', orange: '#e8834a', blue: '#4d9fec', muted: '#475569' };
     const light = { green: '#22c55e', red: '#ef4444', amber: '#f59e0b', orange: '#f97316', blue: '#3b82f6', muted: '#94a3b8' };
     const c = mState.theme === 'dark' ? dark : light;
-    if (type === 'done' || type === 'cleared') return c.green;
-    if (type === 'missed') return c.red;
-    if (['early','grace','not-done','partial','off-schedule'].includes(type)) return c.amber;
-    if (['defending','defended','overdue'].includes(type)) return c.orange;
-    if (['defending-current','in-progress','scheduled'].includes(type)) return c.blue;
-    if (type === 'hunting-current' || type === 'hunted') return '#22d3ee';
+    if (type === 'done' || type === 'cleared' || type === 'early') return c.green;
+    if (type === 'missed' || type === 'partial') return c.red;
+    if (type === 'in-progress') return c.amber;
+    if (type === 'not-done' || type === 'grace' || type === 'off-schedule') return c.orange;
+    if (['scheduled','hunting-current','defending-current','hunted','defended','defending'].includes(type)) return c.blue;
     return c.muted;
 }
 
 // ===== SECTION LIST CARD =====
-function makeSectionListCard(title, c5, showFile, fileName) {
+// thirdPill: 'prof' (default) = proficiency label, 'badge' = current week badge status
+function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof') {
     const pct = c5?.proficiency || 0;
     const diff = c5?.difficulty;
     const prio = c5?.priority;
@@ -174,8 +174,13 @@ function makeSectionListCard(title, c5, showFile, fileName) {
     const pills = [];
     if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; pills.push(`<span class="sc-pill" style="color:${dc};border-color:${dc}44;background:${dc}12">${diff}</span>`); }
     if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; pills.push(`<span class="sc-pill" style="color:${pc};border-color:${pc}44;background:${pc}12">${prio}</span>`); }
-    const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
-    if (badge) { const bc = getSectionBadgeColor(badge.type); pills.push(`<span class="sc-pill" style="color:${bc};border-color:${bc}44;background:${bc}12">${badge.label}</span>`); }
+    if (thirdPill === 'badge') {
+        const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+        if (badge) { const bc = getSectionBadgeColor(badge.type); pills.push(`<span class="sc-pill" style="color:${bc};border-color:${bc}44;background:${bc}12">${badge.label}</span>`); }
+    } else {
+        const profLabel = getLibProficiencyLabel(pct);
+        pills.push(`<span class="sc-pill" style="color:${rc};border-color:${rc}44;background:${rc}12">${profLabel}</span>`);
+    }
 
     const card = document.createElement('div');
     card.className = 'sc-list';
@@ -206,7 +211,8 @@ function makeSectionListCard(title, c5, showFile, fileName) {
 }
 
 // ===== SECTION GRID CARD =====
-function makeSectionGridCard(title, c5, showFile, fileName) {
+// thirdPill: 'prof' (default) = proficiency label, 'badge' = current week badge status
+function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof') {
     const pct = c5?.proficiency || 0;
     const diff = c5?.difficulty;
     const prio = c5?.priority;
@@ -220,8 +226,12 @@ function makeSectionGridCard(title, c5, showFile, fileName) {
     const midPills = [];
     if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; midPills.push(`<span class="sc-grid-pill" style="color:${dc};border-color:${dc}44;background:${dc}15">${diff}</span>`); }
     if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; midPills.push(`<span class="sc-grid-pill" style="color:${pc};border-color:${pc}44;background:${pc}15">${prio}</span>`); }
-    const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
-    if (badge) { const bc = getSectionBadgeColor(badge.type); midPills.push(`<span class="sc-grid-pill" style="color:${bc};border-color:${bc}44;background:${bc}15">${badge.label}</span>`); }
+    if (thirdPill === 'badge') {
+        const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+        if (badge) { const bc = getSectionBadgeColor(badge.type); midPills.push(`<span class="sc-grid-pill" style="color:${bc};border-color:${bc}44;background:${bc}15">${badge.label}</span>`); }
+    } else {
+        midPills.push(`<span class="sc-grid-pill" style="color:${rc};border-color:${rc}44;background:${rc}15">${profLabel}</span>`);
+    }
 
     const card = document.createElement('div');
     card.className = 'sc-grid';
@@ -584,10 +594,12 @@ function renderSectionList(context) {
     container.innerHTML = '';
 
     const isGrid = mState.libView === 'grid';
+    const showFile = context === 'sd';
+    const fileName = mState.currentFileName || '';
     const navC5 = c5Store['navigation'] || {};
     const navCard = isGrid
-        ? makeSectionGridCard('Table of Contents', navC5, false, null)
-        : makeSectionListCard('Table of Contents', navC5, false, null);
+        ? makeSectionGridCard('Table of Contents', navC5, showFile, fileName)
+        : makeSectionListCard('Table of Contents', navC5, showFile, fileName);
     navCard.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
     container.appendChild(navCard);
 
@@ -617,12 +629,15 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
         ? realSections
         : sortSections(realSections, c5Store, sort, numMap);
 
+    const showFile = context === 'sd';
+    const fileName = mState.currentFileName || '';
+
     if (isGrid) {
         const grid = document.createElement('div');
         grid.className = 'sc-section-grid';
         displaySections.forEach(section => {
             const c5 = c5Store[section.id] || {};
-            const card = makeSectionGridCard(section.title, c5, false, null);
+            const card = makeSectionGridCard(section.title, c5, showFile, fileName);
             card.addEventListener('click', () => openSection(section.id, section.title, context));
             grid.appendChild(card);
         });
@@ -630,7 +645,7 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
     } else {
         displaySections.forEach(section => {
             const c5 = c5Store[section.id] || {};
-            const card = makeSectionListCard(section.title, c5, false, null);
+            const card = makeSectionListCard(section.title, c5, showFile, fileName);
             card.addEventListener('click', () => openSection(section.id, section.title, context));
             container.appendChild(card);
         });

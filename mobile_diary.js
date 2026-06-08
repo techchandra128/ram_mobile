@@ -373,7 +373,7 @@ function mdMakeEntryCard(entry, entryIdx) {
     const c5 = c5Store[String(entry.sectionId)] || c5Store[entry.sectionId] || {};
 
     // Use sc-list card design (with file name shown — diary shows sections from multiple books)
-    const card = makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName);
+    const card = makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName, 'badge');
     card.addEventListener('click', () => {
         mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
         mState.currentFileName = entry.fileName;

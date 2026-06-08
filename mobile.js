@@ -97,6 +97,30 @@ function applyTheme(theme) {
     } else {
         icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
     }
+    // Re-render current view so inline gradient/text colors update
+    rerenderCurrentView();
+}
+
+function rerenderCurrentView() {
+    if (mState.activePage === 'Library') {
+        const libTop = mState.libStack[mState.libStack.length - 1];
+        if (!libTop || mState.libStack.length === 0) {
+            renderLibraryRoot();
+        } else if (libTop.screen === 'screenSections') {
+            renderSectionList('lib');
+        } else if (libTop.screen === 'screenLibraryFolder' && libTop.folder) {
+            renderFolderFiles(libTop.title, libTop.folder.contents);
+        }
+    } else if (mState.activePage === 'SmartDesk') {
+        const sd = getSDScreen();
+        if (sd === 'screenSDSections') {
+            renderSectionList('sd');
+        } else {
+            const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
+            if (activeTab === 'playlists') renderSDPlaylistList();
+            else renderSDFileList();
+        }
+    }
 }
 
 // ===== TOPBAR =====
