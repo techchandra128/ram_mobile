@@ -72,9 +72,34 @@ function closeSecSortSheet() {
     document.getElementById('mSecSortSheet').classList.remove('active');
 }
 
+// ===== SORT ORDER INDICATOR =====
+function updateSortOrderIndicator() {
+    const el = document.getElementById('mSortOrderIndicator');
+    if (!el) return;
+    const isSD = mState.activePage === 'SmartDesk';
+    const sort = isSD ? mState.sdSort : mState.libSort;
+    const order = isSD ? (mState.sdSortOrder || 'asc') : (mState.libSortOrder || 'asc');
+    const isOriginal = !sort || sort === 'outline';
+    el.textContent = isOriginal ? '—' : (order === 'asc' ? '↑' : '↓');
+    el.classList.toggle('disabled', isOriginal);
+}
+
 // ===== LIBRARY: TOOLBAR BIND =====
 function bindLibRootToolbar() {
     document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
+    document.getElementById('mSortOrderIndicator')?.addEventListener('click', () => {
+        const isSD = mState.activePage === 'SmartDesk';
+        const sort = isSD ? mState.sdSort : mState.libSort;
+        if (!sort || sort === 'outline') return;
+        const currentOrder = isSD ? (mState.sdSortOrder || 'asc') : (mState.libSortOrder || 'asc');
+        const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+        if (isSD) { mState.sdSortOrder = newOrder; renderSectionList('sd'); }
+        else       { mState.libSortOrder = newOrder; renderSectionList('lib'); }
+        document.querySelectorAll('#mSecSortSheet .m-sort-order-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.order === newOrder);
+        });
+        updateSortOrderIndicator();
+    });
     document.getElementById('mLibViewBtn')?.addEventListener('click', toggleLibView);
     updateViewBtn();
 
@@ -98,15 +123,15 @@ function bindLibRootToolbar() {
             const isSD = mState.activePage === 'SmartDesk';
             if (isSD) {
                 mState.sdSort = btn.dataset.sort;
-                const sections = mState._sdSections;
-                const c5Store = mState._sdC5Store;
-                if (sections && c5Store) {
-                    renderSectionItems(document.getElementById('mSDSectionList'), sections, c5Store, mState.sdSort, 'sd');
-                }
+                renderSectionList('sd');
             } else {
                 mState.libSort = btn.dataset.sort;
                 renderSectionList('lib');
             }
+            document.querySelectorAll('#mSecSortSheet .m-sort-option').forEach(b => {
+                b.classList.toggle('active', b.dataset.sort === btn.dataset.sort);
+            });
+            updateSortOrderIndicator();
             closeSecSortSheet();
         });
     });
@@ -155,13 +180,34 @@ function getSectionBadgeColor(type) {
     return c.muted;
 }
 
+// ===== SECTION CARD HELPERS =====
+function getLastRevLabel(c5) {
+    const revs = c5?.revisions?.filter(r => r.date);
+    if (!revs?.length) return '—';
+    const last = revs[revs.length - 1];
+    const [d, m] = last.date.split('/');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(d)} ${months[parseInt(m)-1]}`;
+}
+function getRevisionCount(c5) {
+    return c5?.revisions?.filter(r => r.date).length || 0;
+}
+function getProgressPercent(c5) {
+    if (!c5?.activatedCount) return 0;
+    const filled = c5?.revisions?.filter(r => r.date).length || 0;
+    return Math.round((filled / c5.activatedCount) * 100);
+}
+
 // ===== SECTION LIST CARD =====
 // thirdPill: 'prof' (default) = proficiency label, 'badge' = current week badge status
-function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof') {
+// sort: current sort type — controls what the bottom row and right element show
+// sectionMeta: { studiedCount, totalCount } — used for section-count sort
+function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof', sort = 'outline', sectionMeta = {}) {
     const pct = c5?.proficiency || 0;
     const diff = c5?.difficulty;
     const prio = c5?.priority;
     const rc = getLibProgressColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
     const [g1, g2] = getSectionGradient(pct);
     const isDark = mState.theme === 'dark';
     const titleColor = isDark ? '#e2e8f0' : '#1e293b';
@@ -171,15 +217,74 @@ function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof') 
     const r = 14, circ = +(2 * Math.PI * r).toFixed(2);
     const offset = +(circ - (pct / 100) * circ).toFixed(2);
 
-    const pills = [];
-    if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; pills.push(`<span class="sc-pill" style="color:${dc};border-color:${dc}44;background:${dc}12">${diff}</span>`); }
-    if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; pills.push(`<span class="sc-pill" style="color:${pc};border-color:${pc}44;background:${pc}12">${prio}</span>`); }
-    if (thirdPill === 'badge') {
-        const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
-        if (badge) { const bc = getSectionBadgeColor(badge.type); pills.push(`<span class="sc-pill" style="color:${bc};border-color:${bc}44;background:${bc}12">${badge.label}</span>`); }
-    } else {
-        const profLabel = getLibProficiencyLabel(pct);
-        pills.push(`<span class="sc-pill" style="color:${rc};border-color:${rc}44;background:${rc}12">${profLabel}</span>`);
+    const makePill = (text, color) => `<span class="sc-pill" style="color:${color};border-color:${color}44;background:${color}12">${text}</span>`;
+
+    // Right side: ring or count badge
+    const showRing = sort !== 'section-count';
+    const rightEl = showRing
+        ? `<div class="sc-ring-wrap"><div class="sc-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="${r}" fill="none" stroke="${trackColor}" stroke-width="2.5"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5"
+                    stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+                    transform="rotate(-90 19 19)"/>` : ''}
+            </svg>
+            <div class="sc-ring-num" style="color:${pct > 0 ? rc : 'var(--text-muted)'}">${pct}%</div>
+          </div></div>`
+        : `<span class="sc-count-badge">[${sectionMeta.count ?? 0}/${sectionMeta.totalCount ?? 0}]</span>`;
+
+    // Bottom row: sort-aware
+    let bottomContent = '';
+    switch(sort) {
+        case 'outline':
+        case 'alpha':
+        case 'section-count': {
+            const pills = [];
+            if (diff) pills.push(makePill(diff, SC_DIFF_COLOR[diff] || '#94a3b8'));
+            if (prio) pills.push(makePill(prio, SC_PRIO_COLOR[prio] || '#94a3b8'));
+            if (thirdPill === 'badge') {
+                const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+                if (badge) pills.push(makePill(badge.label, getSectionBadgeColor(badge.type)));
+            } else {
+                pills.push(makePill(profLabel, rc));
+            }
+            bottomContent = `<div class="sc-pills">${pills.join('')}</div>`;
+            break;
+        }
+        case 'proficiency':
+            bottomContent = `<div class="sc-bar-row"><div class="sc-bar-track"><div class="sc-bar" style="width:${pct}%;background:${rc}"></div></div><span class="sc-bar-label" style="color:${rc}">${profLabel}</span></div>`;
+            break;
+        case 'difficulty':
+            bottomContent = diff
+                ? `<div class="sc-pills">${makePill(diff, SC_DIFF_COLOR[diff] || '#94a3b8')}</div>`
+                : `<div class="sc-pills"><span class="sc-meta">—</span></div>`;
+            break;
+        case 'priority':
+            bottomContent = prio
+                ? `<div class="sc-pills">${makePill(prio, SC_PRIO_COLOR[prio] || '#94a3b8')}</div>`
+                : `<div class="sc-pills"><span class="sc-meta">—</span></div>`;
+            break;
+        case 'progress': {
+            const progPct = getProgressPercent(c5);
+            const progColor = getLibProgressColor(progPct);
+            bottomContent = `<div class="sc-bar-row"><div class="sc-bar-track"><div class="sc-bar" style="width:${progPct}%;background:${progColor}"></div></div></div>`;
+            break;
+        }
+        case 'last-revised':
+            bottomContent = `<div class="sc-pills"><span class="sc-meta">Last Revised: ${getLastRevLabel(c5)}</span></div>`;
+            break;
+        case 'revision-count': {
+            const rvc = getRevisionCount(c5);
+            bottomContent = `<div class="sc-pills"><span class="sc-meta">${rvc} revision${rvc !== 1 ? 's' : ''}</span></div>`;
+            break;
+        }
+        default: {
+            const pills = [];
+            if (diff) pills.push(makePill(diff, SC_DIFF_COLOR[diff] || '#94a3b8'));
+            if (prio) pills.push(makePill(prio, SC_PRIO_COLOR[prio] || '#94a3b8'));
+            pills.push(makePill(profLabel, rc));
+            bottomContent = `<div class="sc-pills">${pills.join('')}</div>`;
+        }
     }
 
     const card = document.createElement('div');
@@ -191,20 +296,10 @@ function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof') 
                 <div class="sc-title" style="color:${titleColor}">${escHtml(title)}</div>
                 ${showFile && fileName ? `<div class="sc-filename" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
             </div>
-            <div class="sc-ring-wrap">
-                <div class="sc-ring">
-                    <svg viewBox="0 0 38 38" width="38" height="38">
-                        <circle cx="19" cy="19" r="${r}" fill="none" stroke="${trackColor}" stroke-width="2.5"/>
-                        ${pct > 0 ? `<circle cx="19" cy="19" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5"
-                            stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
-                            transform="rotate(-90 19 19)"/>` : ''}
-                    </svg>
-                    <div class="sc-ring-num" style="color:${pct > 0 ? rc : 'var(--text-muted)'}">${pct}%</div>
-                </div>
-            </div>
+            ${rightEl}
         </div>
         <div class="sc-bottom-row">
-            <div class="sc-pills">${pills.length ? pills.join('') : ''}</div>
+            ${bottomContent}
         </div>
     `;
     return card;
@@ -212,7 +307,9 @@ function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof') 
 
 // ===== SECTION GRID CARD =====
 // thirdPill: 'prof' (default) = proficiency label, 'badge' = current week badge status
-function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof') {
+// sort: current sort type — controls middle/bottom row visibility and content
+// sectionMeta: { studiedCount, totalCount } — used for section-count sort
+function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof', sort = 'outline', sectionMeta = {}) {
     const pct = c5?.proficiency || 0;
     const diff = c5?.difficulty;
     const prio = c5?.priority;
@@ -223,34 +320,77 @@ function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof') 
     const titleColor = isDark ? '#e2e8f0' : '#1e293b';
     const fileColor = isDark ? '#94a3b8' : '#64748b';
 
-    const topPills = [];
-    if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; topPills.push(`<span class="sc-grid-pill" style="color:${dc};border-color:${dc}44;background:${dc}15">${diff}</span>`); }
-    if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; topPills.push(`<span class="sc-grid-pill" style="color:${pc};border-color:${pc}44;background:${pc}15">${prio}</span>`); }
-    let profPill = '';
-    if (thirdPill === 'badge') {
-        const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
-        if (badge) { const bc = getSectionBadgeColor(badge.type); profPill = `<span class="sc-grid-pill" style="color:${bc};border-color:${bc}44;background:${bc}15">${badge.label}</span>`; }
-    } else {
-        profPill = `<span class="sc-grid-pill" style="color:${rc};border-color:${rc}44;background:${rc}15">${profLabel}</span>`;
+    const makeGridPill = (text, color) => `<span class="sc-grid-pill" style="color:${color};border-color:${color}44;background:${color}15">${text}</span>`;
+
+    // Top area: section-count shows [xx/nn] to right of title
+    const gridTopInner = sort === 'section-count'
+        ? `<div class="sc-grid-top-row"><div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div><span class="sc-grid-count" style="color:var(--text-muted)">[${sectionMeta.count ?? 0}/${sectionMeta.totalCount ?? 0}]</span></div>`
+        : `<div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div>`;
+
+    // Middle row visibility and content
+    const showMiddle = !['proficiency', 'progress'].includes(sort);
+    let middleContent = '';
+    if (showMiddle) {
+        switch(sort) {
+            case 'outline':
+            case 'alpha':
+            case 'section-count': {
+                const topPills = [];
+                if (diff) topPills.push(makeGridPill(diff, SC_DIFF_COLOR[diff] || '#94a3b8'));
+                if (prio) topPills.push(makeGridPill(prio, SC_PRIO_COLOR[prio] || '#94a3b8'));
+                let profPillHtml = '';
+                if (thirdPill === 'badge') {
+                    const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+                    if (badge) { const bc = getSectionBadgeColor(badge.type); profPillHtml = makeGridPill(badge.label, bc); }
+                } else {
+                    profPillHtml = makeGridPill(profLabel, rc);
+                }
+                middleContent = (topPills.length ? `<div class="sc-grid-pill-row">${topPills.join('')}</div>` : '') +
+                    (profPillHtml ? `<div class="sc-grid-pill-row">${profPillHtml}</div>` : '');
+                break;
+            }
+            case 'difficulty':
+                middleContent = diff
+                    ? `<div class="sc-grid-pill-row">${makeGridPill(diff, SC_DIFF_COLOR[diff] || '#94a3b8')}</div>`
+                    : `<div class="sc-grid-pill-row"><span class="sc-grid-meta">—</span></div>`;
+                break;
+            case 'priority':
+                middleContent = prio
+                    ? `<div class="sc-grid-pill-row">${makeGridPill(prio, SC_PRIO_COLOR[prio] || '#94a3b8')}</div>`
+                    : `<div class="sc-grid-pill-row"><span class="sc-grid-meta">—</span></div>`;
+                break;
+            case 'last-revised':
+                middleContent = `<div class="sc-grid-pill-row"><span class="sc-grid-meta">Last Revised: ${getLastRevLabel(c5)}</span></div>`;
+                break;
+            case 'revision-count': {
+                const rvc = getRevisionCount(c5);
+                middleContent = `<div class="sc-grid-pill-row"><span class="sc-grid-meta">${rvc} rev${rvc !== 1 ? 's' : ''}</span></div>`;
+                break;
+            }
+        }
     }
+
+    // Bottom row visibility
+    const showBottom = !['difficulty', 'priority', 'last-revised', 'revision-count'].includes(sort);
+    const bottomHtml = showBottom ? `<div class="sc-grid-bottom">
+        <div class="sc-grid-row">
+            <span class="sc-grid-prof" style="color:${rc}">${profLabel}</span>
+            <span class="sc-grid-pct" style="color:${rc}">${pct}%</span>
+        </div>
+        <div class="sc-grid-bar-track">
+            <div class="sc-grid-bar" style="width:${pct}%;background:${rc}"></div>
+        </div>
+    </div>` : '';
 
     const card = document.createElement('div');
     card.className = 'sc-grid';
     card.innerHTML = `
         <div class="sc-grid-top" style="background:linear-gradient(135deg,${g1},${g2})">
-            <div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div>
+            ${gridTopInner}
             ${showFile && fileName ? `<div class="sc-grid-file" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
         </div>
-        <div class="sc-grid-middle">${topPills.length ? `<div class="sc-grid-pill-row">${topPills.join('')}</div>` : ''}${profPill ? `<div class="sc-grid-pill-row">${profPill}</div>` : ''}</div>
-        <div class="sc-grid-bottom">
-            <div class="sc-grid-row">
-                <span class="sc-grid-prof" style="color:${rc}">${profLabel}</span>
-                <span class="sc-grid-pct" style="color:${rc}">${pct}%</span>
-            </div>
-            <div class="sc-grid-bar-track">
-                <div class="sc-grid-bar" style="width:${pct}%;background:${rc}"></div>
-            </div>
-        </div>
+        ${showMiddle ? `<div class="sc-grid-middle">${middleContent}</div>` : ''}
+        ${bottomHtml}
     `;
     return card;
 }
@@ -599,14 +739,23 @@ function renderSectionList(context) {
     const isGrid = mState.libView === 'grid';
     const showFile = context === 'sd';
     const fileName = mState.currentFileName || '';
+    const sort = context === 'lib' ? mState.libSort : mState.sdSort;
+
+    const realSectionsForCount = sections.filter(s => s.type === 'real');
+    const totalCount = 1 + realSectionsForCount.length; // nav + all real sections
+    // Original position map: navigation=1, real sections in original order = 2,3,4...
+    const origPosMapNav = { navigation: 1 };
+    let navPosCounter = 2;
+    sections.forEach(s => { if (s.type === 'real') origPosMapNav[s.id] = navPosCounter++; });
+    const navSectionMeta = { count: 1, totalCount };
+
     const navC5 = c5Store['navigation'] || {};
     const navCard = isGrid
-        ? makeSectionGridCard('Table of Contents', navC5, showFile, fileName)
-        : makeSectionListCard('Table of Contents', navC5, showFile, fileName);
+        ? makeSectionGridCard('Table of Contents', navC5, showFile, fileName, 'prof', sort, navSectionMeta)
+        : makeSectionListCard('Table of Contents', navC5, showFile, fileName, 'prof', sort, navSectionMeta);
     navCard.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
     container.appendChild(navCard);
 
-    const sort = context === 'lib' ? mState.libSort : mState.sdSort;
     renderSectionItems(container, sections, c5Store, sort, context);
 }
 
@@ -628,19 +777,27 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
 
     const isOutline = !sort || sort === 'outline';
     const isGrid = mState.libView === 'grid';
+    const order = context === 'lib' ? (mState.libSortOrder || 'asc') : (mState.sdSortOrder || 'asc');
     const displaySections = isOutline
         ? realSections
-        : sortSections(realSections, c5Store, sort, numMap);
+        : sortSections(realSections, c5Store, sort, numMap, order);
 
     const showFile = context === 'sd';
     const fileName = mState.currentFileName || '';
+
+    // Original position map: navigation=1, real sections in original order = 2,3,4...
+    const totalCount = 1 + realSections.length;
+    const origPosMap = {};
+    let posCounter = 2;
+    sections.forEach(s => { if (s.type === 'real') origPosMap[s.id] = posCounter++; });
 
     if (isGrid) {
         const grid = document.createElement('div');
         grid.className = 'sc-section-grid';
         displaySections.forEach(section => {
             const c5 = c5Store[section.id] || {};
-            const card = makeSectionGridCard(section.title, c5, showFile, fileName);
+            const sectionMeta = { count: origPosMap[section.id] || 0, totalCount };
+            const card = makeSectionGridCard(section.title, c5, showFile, fileName, 'prof', sort, sectionMeta);
             card.addEventListener('click', () => openSection(section.id, section.title, context));
             grid.appendChild(card);
         });
@@ -648,21 +805,23 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
     } else {
         displaySections.forEach(section => {
             const c5 = c5Store[section.id] || {};
-            const card = makeSectionListCard(section.title, c5, showFile, fileName);
+            const sectionMeta = { count: origPosMap[section.id] || 0, totalCount };
+            const card = makeSectionListCard(section.title, c5, showFile, fileName, 'prof', sort, sectionMeta);
             card.addEventListener('click', () => openSection(section.id, section.title, context));
             container.appendChild(card);
         });
     }
 }
 
-function sortSections(sections, c5Store, sort, numMap) {
+function sortSections(sections, c5Store, sort, numMap, order = 'asc') {
     const arr = [...sections];
     const diffOrder = { 'Easy': 1, 'Moderate': 2, 'Challenging': 3, 'Hard': 4 };
     const prioOrder = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
+    const dir = order === 'desc' ? -1 : 1;
 
     switch(sort) {
         case 'alpha':
-            return arr.sort((a, b) => a.title.localeCompare(b.title));
+            return arr.sort((a, b) => dir * a.title.localeCompare(b.title));
         case 'section-count': {
             const getSubCount = s => {
                 const num = numMap?.[s.id];
@@ -673,24 +832,22 @@ function sortSections(sections, c5Store, sort, numMap) {
                     return xNum && xNum.startsWith(prefix);
                 }).length;
             };
-            return arr.sort((a, b) => getSubCount(b) - getSubCount(a));
+            return arr.sort((a, b) => dir * (getSubCount(a) - getSubCount(b)));
         }
         case 'proficiency':
-            return arr.sort((a, b) => (c5Store[b.id]?.proficiency || 0) - (c5Store[a.id]?.proficiency || 0));
+            return arr.sort((a, b) => dir * ((c5Store[a.id]?.proficiency || 0) - (c5Store[b.id]?.proficiency || 0)));
         case 'progress': {
             const getProg = id => {
                 const c5 = c5Store[id];
                 if (!c5?.activatedCount) return 0;
                 return (c5.revisions.filter(r => r.date).length / c5.activatedCount) * 100;
             };
-            return arr.sort((a, b) => getProg(b.id) - getProg(a.id));
+            return arr.sort((a, b) => dir * (getProg(a.id) - getProg(b.id)));
         }
         case 'difficulty':
-            return arr.sort((a, b) =>
-                (diffOrder[c5Store[b.id]?.difficulty] || 0) - (diffOrder[c5Store[a.id]?.difficulty] || 0));
+            return arr.sort((a, b) => dir * ((diffOrder[c5Store[a.id]?.difficulty] || 0) - (diffOrder[c5Store[b.id]?.difficulty] || 0)));
         case 'priority':
-            return arr.sort((a, b) =>
-                (prioOrder[c5Store[b.id]?.priority] || 0) - (prioOrder[c5Store[a.id]?.priority] || 0));
+            return arr.sort((a, b) => dir * ((prioOrder[c5Store[a.id]?.priority] || 0) - (prioOrder[c5Store[b.id]?.priority] || 0)));
         case 'last-revised': {
             const getLastDate = id => {
                 const c5 = c5Store[id];
@@ -703,16 +860,16 @@ function sortSections(sections, c5Store, sort, numMap) {
             return arr.sort((a, b) => {
                 const da = getLastDate(a.id), db = getLastDate(b.id);
                 if (!da && !db) return 0;
-                if (!da) return -1;
-                if (!db) return 1;
-                return da - db;
+                if (!da) return 1;   // no date always goes to end
+                if (!db) return -1;
+                return dir * (da - db);
             });
         }
         case 'revision-count':
             return arr.sort((a, b) => {
                 const ca = c5Store[a.id]?.revisions?.filter(r => r.date).length || 0;
                 const cb = c5Store[b.id]?.revisions?.filter(r => r.date).length || 0;
-                return ca - cb;
+                return dir * (ca - cb);
             });
         default: // 'outline' — preserve original order
             return arr;

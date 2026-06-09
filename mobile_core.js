@@ -23,6 +23,8 @@ const mState = {
 
     libSort: 'outline',
     sdSort: 'outline',
+    libSortOrder: 'asc',
+    sdSortOrder: 'asc',
     libRootSort: 'name-asc',
     libView: 'list',
     activeDash: 'heatmap',
@@ -151,6 +153,14 @@ function updateTopbar() {
     document.querySelectorAll('.m-lib-ctrl').forEach(el => {
         el.style.display = showLibCtrl ? 'flex' : 'none';
     });
+
+    const showOrderIndicator = (mState.activePage === 'Library' && libTop?.screen === 'screenSections')
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections');
+    const orderIndicatorEl = document.getElementById('mSortOrderIndicator');
+    if (orderIndicatorEl) {
+        orderIndicatorEl.style.display = showOrderIndicator ? 'flex' : 'none';
+        if (showOrderIndicator && typeof updateSortOrderIndicator === 'function') updateSortOrderIndicator();
+    }
 
     const showLibView = (mState.activePage === 'Library' &&
         (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder' || libTop?.screen === 'screenSections'))
