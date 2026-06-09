@@ -223,14 +223,15 @@ function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof') 
     const titleColor = isDark ? '#e2e8f0' : '#1e293b';
     const fileColor = isDark ? '#94a3b8' : '#64748b';
 
-    const midPills = [];
-    if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; midPills.push(`<span class="sc-grid-pill" style="color:${dc};border-color:${dc}44;background:${dc}15">${diff}</span>`); }
-    if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; midPills.push(`<span class="sc-grid-pill" style="color:${pc};border-color:${pc}44;background:${pc}15">${prio}</span>`); }
+    const topPills = [];
+    if (diff) { const dc = SC_DIFF_COLOR[diff] || '#94a3b8'; topPills.push(`<span class="sc-grid-pill" style="color:${dc};border-color:${dc}44;background:${dc}15">${diff}</span>`); }
+    if (prio) { const pc = SC_PRIO_COLOR[prio] || '#94a3b8'; topPills.push(`<span class="sc-grid-pill" style="color:${pc};border-color:${pc}44;background:${pc}15">${prio}</span>`); }
+    let profPill = '';
     if (thirdPill === 'badge') {
         const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
-        if (badge) { const bc = getSectionBadgeColor(badge.type); midPills.push(`<span class="sc-grid-pill" style="color:${bc};border-color:${bc}44;background:${bc}15">${badge.label}</span>`); }
+        if (badge) { const bc = getSectionBadgeColor(badge.type); profPill = `<span class="sc-grid-pill" style="color:${bc};border-color:${bc}44;background:${bc}15">${badge.label}</span>`; }
     } else {
-        midPills.push(`<span class="sc-grid-pill" style="color:${rc};border-color:${rc}44;background:${rc}15">${profLabel}</span>`);
+        profPill = `<span class="sc-grid-pill" style="color:${rc};border-color:${rc}44;background:${rc}15">${profLabel}</span>`;
     }
 
     const card = document.createElement('div');
@@ -240,7 +241,7 @@ function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof') 
             <div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div>
             ${showFile && fileName ? `<div class="sc-grid-file" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
         </div>
-        <div class="sc-grid-middle">${midPills.length ? midPills.join('') : ''}</div>
+        <div class="sc-grid-middle">${topPills.length ? `<div class="sc-grid-pill-row">${topPills.join('')}</div>` : ''}${profPill ? `<div class="sc-grid-pill-row">${profPill}</div>` : ''}</div>
         <div class="sc-grid-bottom">
             <div class="sc-grid-row">
                 <span class="sc-grid-prof" style="color:${rc}">${profLabel}</span>
