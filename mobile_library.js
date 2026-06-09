@@ -766,6 +766,10 @@ function renderDetailFooter(tab) {
     if (!footer) return;
     footer.innerHTML = '';
 
+    if (tab === 'notes' && mState.currentSectionId === 'navigation') {
+        return;
+    }
+
     if (tab === 'notes') {
         const fileData = getFileData(mState.currentFileId);
         const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
@@ -897,8 +901,54 @@ function renderDetailFooter(tab) {
     }
 }
 
+// ===== TABLE OF CONTENTS =====
+function renderTOC(container) {
+    const fileData = getFileData(mState.currentFileId);
+    const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
+
+    if (sections.length === 0) {
+        container.innerHTML = '<div class="m-notes-empty">No sections yet.</div>';
+        return;
+    }
+
+    const numbers = generateNumbers(sections);
+    const context = mState.activePage === 'SmartDesk' ? 'sd' : 'lib';
+
+    const list = document.createElement('div');
+    list.className = 'm-toc-list';
+
+    sections.forEach((section, i) => {
+        const item = document.createElement('div');
+        item.className = `m-toc-item m-toc-level-${section.level || 1}${section.type === 'dummy' ? ' m-toc-dummy' : ' m-toc-real'}`;
+
+        const num = document.createElement('span');
+        num.className = 'm-toc-num';
+        num.textContent = numbers[i] + '.';
+
+        const title = document.createElement('span');
+        title.className = 'm-toc-title';
+        title.textContent = section.title;
+
+        item.appendChild(num);
+        item.appendChild(title);
+
+        if (section.type === 'real') {
+            item.addEventListener('click', () => openSection(section.id, section.title, context));
+        }
+
+        list.appendChild(item);
+    });
+
+    container.appendChild(list);
+}
+
 // ===== NOTES TAB =====
 function renderNotesTab(container) {
+    if (mState.currentSectionId === 'navigation') {
+        renderTOC(container);
+        return;
+    }
+
     const fileData = getFileData(mState.currentFileId);
     const c3Data = fileData?.c3_data ? JSON.parse(fileData.c3_data) : {};
     const sectionData = c3Data[mState.currentSectionId] || c3Data[String(mState.currentSectionId)] || c3Data[Number(mState.currentSectionId)];
