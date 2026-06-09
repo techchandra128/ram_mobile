@@ -209,10 +209,10 @@
 
 /* ===== TOPBAR SORT ORDER INDICATOR ===== */
 .m-sort-order-indicator {
-    width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px;
-    background: none; color: var(--text-muted); font-size: 14px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-family: inherit; transition: all 0.15s; flex-shrink: 0;
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; padding: 7px; border-radius: 8px;
+    display: flex; align-items: center;
+    font-size: 17px; font-weight: 700; line-height: 1; flex-shrink: 0; transform: translateY(-2px);
 }
 .m-sort-order-indicator:active { background: var(--bg3); }
 .m-sort-order-indicator.disabled { cursor: default; opacity: 0.45; }

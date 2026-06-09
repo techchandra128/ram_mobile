@@ -149,13 +149,15 @@ function updateTopbar() {
     const libTop = mState.libStack[mState.libStack.length - 1];
     const showLibCtrl = (mState.activePage === 'Library' &&
         (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder' || libTop?.screen === 'screenSections'))
-        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections');
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections')
+        || mState.activePage === 'Diary';
     document.querySelectorAll('.m-lib-ctrl').forEach(el => {
         el.style.display = showLibCtrl ? 'flex' : 'none';
     });
 
     const showOrderIndicator = (mState.activePage === 'Library' && libTop?.screen === 'screenSections')
-        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections');
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections')
+        || mState.activePage === 'Diary';
     const orderIndicatorEl = document.getElementById('mSortOrderIndicator');
     if (orderIndicatorEl) {
         orderIndicatorEl.style.display = showOrderIndicator ? 'flex' : 'none';

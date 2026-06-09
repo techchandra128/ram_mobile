@@ -10,6 +10,8 @@ const mdState = {
     currentEntries: [],
     selectedWeekKey: null,
     mode: 'tbc',
+    sort: 'outline',
+    sortOrder: 'asc',
 };
 
 // ===== WEEK HELPERS (same logic as web diary) =====
@@ -334,9 +336,9 @@ function mdRenderContent() {
         container.appendChild(toggle);
     }
 
-    const entries = mdState.mode === 'completed' ? mdGetCompletedForWeek() : mdGetTBCForWeek();
+    const rawEntries = mdState.mode === 'completed' ? mdGetCompletedForWeek() : mdGetTBCForWeek();
 
-    if (entries.length === 0) {
+    if (rawEntries.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'm-empty';
         empty.textContent = mdState.mode === 'completed'
@@ -346,17 +348,31 @@ function mdRenderContent() {
         return;
     }
 
+    // Build original position map before sorting
+    const totalCount = rawEntries.length;
+    const origPosMap = {};
+    rawEntries.forEach((e, i) => { origPosMap[`${e.fileId}_${e.sectionId}_${i}`] = i + 1; });
+
+    const entries = mdSortEntries(rawEntries, mdState.sort, mdState.sortOrder);
     mdState.currentEntries = entries;
 
     if (mState.libView === 'grid') {
         const grid = document.createElement('div');
         grid.className = 'sc-section-grid';
-        entries.forEach((e, i) => grid.appendChild(mdMakeEntryCard(e, i)));
+        entries.forEach((e, i) => {
+            const origIdx = rawEntries.indexOf(e);
+            const sectionMeta = { count: origIdx + 1, totalCount };
+            grid.appendChild(mdMakeEntryCard(e, i, mdState.sort, sectionMeta));
+        });
         container.appendChild(grid);
     } else {
         const list = document.createElement('div');
         list.className = 'md-diary-list';
-        entries.forEach((e, i) => list.appendChild(mdMakeEntryCard(e, i)));
+        entries.forEach((e, i) => {
+            const origIdx = rawEntries.indexOf(e);
+            const sectionMeta = { count: origIdx + 1, totalCount };
+            list.appendChild(mdMakeEntryCard(e, i, mdState.sort, sectionMeta));
+        });
         container.appendChild(list);
     }
 }
@@ -373,15 +389,15 @@ function mdGetTBCForWeek() {
     return mdState.tbcEntries.filter(e => e.scheduledWeek === selW && e.scheduledYear === selY);
 }
 
-function mdMakeEntryCard(entry, entryIdx) {
+function mdMakeEntryCard(entry, entryIdx, sort = 'outline', sectionMeta = {}) {
     // Get c5 data for badge
     const fileData = getFileData(entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`);
     const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
     const c5 = c5Store[String(entry.sectionId)] || c5Store[entry.sectionId] || {};
 
     const card = mState.libView === 'grid'
-        ? makeSectionGridCard(entry.sectionTitle, c5, true, entry.fileName, 'badge')
-        : makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName, 'badge');
+        ? makeSectionGridCard(entry.sectionTitle, c5, true, entry.fileName, 'badge', sort, sectionMeta)
+        : makeSectionListCard(entry.sectionTitle, c5, true, entry.fileName, 'badge', sort, sectionMeta);
     card.addEventListener('click', () => {
         mState.currentFileId = entry.fileId.startsWith('f_') ? entry.fileId : `f_${entry.fileId}`;
         mState.currentFileName = entry.fileName;
@@ -394,6 +410,62 @@ function mdMakeEntryCard(entry, entryIdx) {
     return card;
 }
 
+// ===== SORT =====
+function mdSortEntries(entries, sort, order = 'asc') {
+    const arr = [...entries];
+    if (!sort || sort === 'outline') return arr;
+    const dir = order === 'desc' ? -1 : 1;
+    const diffOrder = { 'Easy': 1, 'Moderate': 2, 'Challenging': 3, 'Hard': 4 };
+    const prioOrder = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
+    const profOrder = { 'Novice': 1, 'Apprentice': 2, 'Competent': 3, 'Proficient': 4 };
+    switch (sort) {
+        case 'alpha':
+            return arr.sort((a, b) => dir * a.sectionTitle.localeCompare(b.sectionTitle, undefined, { numeric: true, sensitivity: 'base' }));
+        case 'section-count':
+            return arr; // ascending only — original order is the position order
+        case 'proficiency':
+            return arr.sort((a, b) => dir * ((profOrder[a.proficiency] || 0) - (profOrder[b.proficiency] || 0)));
+        case 'progress':
+            return arr.sort((a, b) => dir * ((a.progress || 0) - (b.progress || 0)));
+        case 'difficulty':
+            return arr.sort((a, b) => dir * ((diffOrder[a.difficulty] || 0) - (diffOrder[b.difficulty] || 0)));
+        case 'priority':
+            return arr.sort((a, b) => dir * ((prioOrder[a.priority] || 0) - (prioOrder[b.priority] || 0)));
+        case 'last-revised':
+            return arr.sort((a, b) => dir * (a.dateKey || '').localeCompare(b.dateKey || ''));
+        case 'revision-count':
+            return arr.sort((a, b) => dir * ((a.revCount || 0) - (b.revCount || 0)));
+        default:
+            return arr;
+    }
+}
+
+function openDiarySortSheet() {
+    document.querySelectorAll('#mDiarySortSheet .m-sort-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === mdState.sort);
+    });
+    document.getElementById('mDiarySortSheet').classList.add('active');
+}
+
+function closeDiarySortSheet() {
+    document.getElementById('mDiarySortSheet').classList.remove('active');
+}
+
+function bindDiarySortSheet() {
+    const sheet = document.getElementById('mDiarySortSheet');
+    if (!sheet) return;
+    sheet.querySelector('.m-sort-backdrop')?.addEventListener('click', closeDiarySortSheet);
+    sheet.querySelectorAll('.m-sort-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            mdState.sort = btn.dataset.sort;
+            if (mdState.sort === 'outline' || mdState.sort === 'section-count') mdState.sortOrder = 'asc';
+            closeDiarySortSheet();
+            mdRenderContent();
+            if (typeof updateSortOrderIndicator === 'function') updateSortOrderIndicator();
+        });
+    });
+}
+
 // ===== INIT =====
 function mdDiaryInit() {
     const prevWeek = mdState.selectedWeekKey;
@@ -403,6 +475,7 @@ function mdDiaryInit() {
         mdState.selectedWeekKey = mdGetCurrentWeekKey();
         mdState.mode = 'tbc';
     }
+    bindDiarySortSheet();
     mdBuildWeekNav();
     mdRenderContent();
 }

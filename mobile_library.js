@@ -42,6 +42,10 @@ function sortLibItems(items) {
 
 // ===== LIBRARY: SORT SHEET =====
 function openLibSortSheet() {
+    if (mState.activePage === 'Diary') {
+        if (typeof openDiarySortSheet === 'function') openDiarySortSheet();
+        return;
+    }
     const libTop = mState.libStack[mState.libStack.length - 1];
     const onSections = mState.activePage === 'Library' && libTop?.screen === 'screenSections';
     const onSDSections = mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections';
@@ -76,10 +80,16 @@ function closeSecSortSheet() {
 function updateSortOrderIndicator() {
     const el = document.getElementById('mSortOrderIndicator');
     if (!el) return;
-    const isSD = mState.activePage === 'SmartDesk';
-    const sort = isSD ? mState.sdSort : mState.libSort;
-    const order = isSD ? (mState.sdSortOrder || 'asc') : (mState.libSortOrder || 'asc');
-    const isOriginal = !sort || sort === 'outline';
+    const page = mState.activePage;
+    let sort, order;
+    if (page === 'SmartDesk') {
+        sort = mState.sdSort; order = mState.sdSortOrder || 'asc';
+    } else if (page === 'Diary') {
+        sort = mdState?.sort; order = mdState?.sortOrder || 'asc';
+    } else {
+        sort = mState.libSort; order = mState.libSortOrder || 'asc';
+    }
+    const isOriginal = !sort || sort === 'outline' || sort === 'section-count';
     el.textContent = isOriginal ? '—' : (order === 'asc' ? '↑' : '↓');
     el.classList.toggle('disabled', isOriginal);
 }
@@ -88,16 +98,18 @@ function updateSortOrderIndicator() {
 function bindLibRootToolbar() {
     document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
     document.getElementById('mSortOrderIndicator')?.addEventListener('click', () => {
-        const isSD = mState.activePage === 'SmartDesk';
-        const sort = isSD ? mState.sdSort : mState.libSort;
-        if (!sort || sort === 'outline') return;
-        const currentOrder = isSD ? (mState.sdSortOrder || 'asc') : (mState.libSortOrder || 'asc');
-        const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-        if (isSD) { mState.sdSortOrder = newOrder; renderSectionList('sd'); }
-        else       { mState.libSortOrder = newOrder; renderSectionList('lib'); }
-        document.querySelectorAll('#mSecSortSheet .m-sort-order-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.order === newOrder);
-        });
+        const page = mState.activePage;
+        const sort = page === 'SmartDesk' ? mState.sdSort : page === 'Diary' ? mdState?.sort : mState.libSort;
+        if (!sort || sort === 'outline' || sort === 'section-count') return;
+        if (page === 'Diary') {
+            mdState.sortOrder = (mdState.sortOrder || 'asc') === 'asc' ? 'desc' : 'asc';
+            if (typeof mdRenderContent === 'function') mdRenderContent();
+        } else {
+            const currentOrder = page === 'SmartDesk' ? (mState.sdSortOrder || 'asc') : (mState.libSortOrder || 'asc');
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            if (page === 'SmartDesk') { mState.sdSortOrder = newOrder; renderSectionList('sd'); }
+            else                      { mState.libSortOrder = newOrder; renderSectionList('lib'); }
+        }
         updateSortOrderIndicator();
     });
     document.getElementById('mLibViewBtn')?.addEventListener('click', toggleLibView);
@@ -821,7 +833,7 @@ function sortSections(sections, c5Store, sort, numMap, order = 'asc') {
 
     switch(sort) {
         case 'alpha':
-            return arr.sort((a, b) => dir * a.title.localeCompare(b.title));
+            return arr.sort((a, b) => dir * a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
         case 'section-count': {
             const getSubCount = s => {
                 const num = numMap?.[s.id];
@@ -832,7 +844,7 @@ function sortSections(sections, c5Store, sort, numMap, order = 'asc') {
                     return xNum && xNum.startsWith(prefix);
                 }).length;
             };
-            return arr.sort((a, b) => dir * (getSubCount(a) - getSubCount(b)));
+            return arr.sort((a, b) => getSubCount(a) - getSubCount(b));
         }
         case 'proficiency':
             return arr.sort((a, b) => dir * ((c5Store[a.id]?.proficiency || 0) - (c5Store[b.id]?.proficiency || 0)));
