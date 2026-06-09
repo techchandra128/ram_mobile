@@ -108,23 +108,24 @@ function applyTheme(theme) {
 
 function rerenderCurrentView() {
     if (!mState.syncData) return; // not yet initialised
+
+    // Re-render Library (all levels except detail view)
     const libTop = mState.libStack[mState.libStack.length - 1];
-    if (mState.activePage === 'Library') {
-        if (!libTop || mState.libStack.length === 0) renderLibraryRoot();
-        else if (libTop.screen === 'screenSections') renderSectionList('lib');
-        else if (libTop.screen === 'screenLibraryFolder' && libTop.folder) renderFolderFiles(libTop.title, libTop.folder.contents);
-    } else if (mState.activePage === 'SmartDesk') {
-        const sd = getSDScreen();
-        if (sd === 'screenSDDetail') { /* reading a section — don't disturb */ }
-        else if (sd === 'screenSDSections') renderSectionList('sd');
-        else {
-            const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
-            if (activeTab === 'playlists') renderSDPlaylistList();
-            else renderSDFileList();
-        }
-    } else if (mState.activePage === 'Diary') {
-        mdRenderContent();
+    if (!libTop || mState.libStack.length === 0) renderLibraryRoot();
+    else if (libTop.screen === 'screenSections') renderSectionList('lib');
+    else if (libTop.screen === 'screenLibraryFolder' && libTop.folder) renderFolderFiles(libTop.title, libTop.folder.contents);
+
+    // Re-render SmartDesk (all levels except detail view)
+    const sd = getSDScreen();
+    if (sd === 'screenSDSections') renderSectionList('sd');
+    else if (sd !== 'screenSDDetail') {
+        const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
+        if (activeTab === 'playlists') renderSDPlaylistList();
+        else renderSDFileList();
     }
+
+    // Re-render Diary
+    mdRenderContent();
 }
 
 // ===== TOPBAR =====
