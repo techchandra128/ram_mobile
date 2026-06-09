@@ -766,10 +766,6 @@ function renderDetailFooter(tab) {
     if (!footer) return;
     footer.innerHTML = '';
 
-    if (tab === 'notes' && mState.currentSectionId === 'navigation') {
-        return;
-    }
-
     if (tab === 'notes') {
         const fileData = getFileData(mState.currentFileId);
         const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
@@ -825,9 +821,10 @@ function renderDetailFooter(tab) {
             });
         } else {
             const allSectionsData = getFileData(mState.currentFileId);
-            const allSections = allSectionsData?.c12_sections
+            const realSections = allSectionsData?.c12_sections
                 ? JSON.parse(allSectionsData.c12_sections).filter(s => s.type === 'real')
                 : [];
+            const allSections = [{ id: 'navigation', title: 'Table of Contents' }, ...realSections];
             const currentIdx = allSections.findIndex(s => String(s.id) === String(mState.currentSectionId));
             prevBtn.disabled = currentIdx <= 0;
             prevBtn.addEventListener('click', () => {
