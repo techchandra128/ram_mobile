@@ -212,7 +212,7 @@
     background: none; border: none; color: var(--text-muted);
     cursor: pointer; padding: 7px; border-radius: 8px;
     display: flex; align-items: center;
-    font-size: 19px; font-weight: 700; line-height: 1; flex-shrink: 0;
+    font-size: 21px; font-weight: 700; line-height: 1; flex-shrink: 0;
 }
 .m-sort-order-indicator:active { background: var(--bg3); }
 .m-sort-order-indicator.disabled { cursor: default; opacity: 0.45; }
