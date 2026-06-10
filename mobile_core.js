@@ -220,6 +220,12 @@ function switchPage(page) {
         b.classList.toggle('active', b.dataset.page === page);
     });
 
+    if (page === 'Library') {
+        mState.libStack = [];
+        if (typeof showLibScreen === 'function') showLibScreen('screenLibraryRoot');
+        if (typeof renderLibraryRoot === 'function' && mState.syncData) renderLibraryRoot();
+    }
+
     updateTopbar();
 
     if (page === 'Dashboard' && !mState.dashInit) {
