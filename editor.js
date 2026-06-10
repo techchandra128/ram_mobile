@@ -433,40 +433,23 @@ function buildViewPanel(viewPanel, editBody) {
 function c3Exec(cmd, value) {
     const editor = document.getElementById('c3EditorModalBody');
 
-    // Browser's execCommand('insertUnorderedList') moves a middle LI to end of list.
-    // LI reference captured at mousedown time (c3BulletTargetLI) before focus could shift.
-    if (cmd === 'insertUnorderedList' && c3BulletTargetLI) {
-        const li = c3BulletTargetLI;
-        c3BulletTargetLI = null;
-        editor.focus();
-        const ul = li.parentElement;
-        const items = Array.from(ul.children);
-        const idx = items.indexOf(li);
-        const before = items.slice(0, idx);
-        const after = items.slice(idx + 1);
-        const p = document.createElement('p');
-        p.innerHTML = li.innerHTML || '<br>';
-        const parent = ul.parentNode;
-        if (before.length > 0) {
-            const bul = document.createElement('ul');
-            before.forEach(i => bul.appendChild(i));
-            parent.insertBefore(bul, ul);
-        }
-        parent.insertBefore(p, ul);
-        if (after.length > 0) {
-            const aul = document.createElement('ul');
-            after.forEach(i => aul.appendChild(i));
-            parent.insertBefore(aul, ul);
-        }
-        ul.remove();
+    if (cmd === 'insertUnorderedList') {
         const sel = window.getSelection();
-        const r = document.createRange();
-        r.setStart(p.firstChild || p, 0);
-        r.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(r);
-        updateToolbarState();
-        return;
+        if (sel && sel.rangeCount > 0) {
+            // Clear leftover indent on current block before applying bullets.
+            // Without this, a previously de-bulleted paragraph with residual margin/padding
+            // causes the browser to create a nested list instead of a same-level bullet.
+            let node = sel.anchorNode;
+            if (node && node.nodeType === 3) node = node.parentElement;
+            while (node && node !== editor && !['P','DIV','LI','TD','BODY'].includes(node.tagName)) {
+                node = node.parentElement;
+            }
+            if (node && (node.tagName === 'P' || node.tagName === 'DIV')) {
+                node.style.marginLeft = '';
+                node.style.paddingLeft = '';
+            }
+        }
+        c3BulletTargetLI = null;
     }
 
     editor.focus();
