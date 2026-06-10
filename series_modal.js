@@ -676,12 +676,22 @@
         const el = document.getElementById('smPenaltyVal'); const val = Math.max(0, Math.min(4, parseInt(el.textContent) + dir)); el.textContent = val;
         updateStepperStates('smPenaltyVal', val, 0, 4);
         const mb = document.getElementById('smMissedBlock'); if (mb) mb.style.display = val === 0 ? '' : 'none';
+        if (val === 0) { const body = document.querySelector('#smPageOverlay .settings-body'); if (body) requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; }); }
         updateWeekMap();
     }
     function stepRPW(dir) { const el = document.getElementById('smRpwVal'); let val = Math.max(1, Math.min(7, parseInt(el.textContent) + dir)); el.textContent = val; seriesRPW[activeSeries] = val; perSlotRPW[activeSeries] = {}; updateStepperStates('smRpwVal', val, 1, 7); updateWeekMap(); }
     function stepInterval(dir) {
         regularInterval = Math.max(1, Math.min(52, regularInterval + dir)); const iv = document.getElementById('smIntervalVal'); if (iv) iv.textContent = regularInterval;
         updateStepperStates('smIntervalVal', regularInterval, 1, 52); seriesSelected['regular'] = null; wkRevCounts['regular'] = {}; updateWeekMap(); updateSeriesDisplay();
+        const rpw = seriesRPW['regular'] || 1;
+        if (rpw > 1) {
+            const activeSet = seriesSelected['regular'];
+            if (activeSet) activeSet.forEach(key => { wkRevCounts['regular'][key] = rpw; });
+            document.querySelectorAll('#smPageOverlay .wk-cell.has-count').forEach(cell => {
+                const k = cell.dataset.key;
+                if (k) { wkRevCounts['regular'][k] = rpw; const sup = cell.querySelector('.wk-sup'); const inlVal = cell.querySelector('.wk-inline-val'); if (sup) sup.textContent = rpw; if (inlVal) inlVal.textContent = rpw; }
+            });
+        }
     }
     function missedSelect(el, mode) { el.closest('.radio-list').querySelectorAll('.radio-row').forEach(r => r.classList.remove('active')); el.classList.add('active'); missedMode = mode; updateWeekMap(); }
 
@@ -759,7 +769,7 @@
     }
     function confirmWeekPicker() {
         if (!wkPickerSelected) { closeWeekPicker(); return; }
-        if (wkPickerMode === 'start') { startWeek = { ...wkPickerSelected }; const sv = document.getElementById('smStartWeekVal'); if (sv) sv.textContent = formatWeekLabel(startWeek); Object.keys(seriesSelected).forEach(k => seriesSelected[k] = null); if (activeSeries === 'custom') syncCustomGaps(); }
+        if (wkPickerMode === 'start') { startWeek = { ...wkPickerSelected }; const sv = document.getElementById('smStartWeekVal'); if (sv) sv.textContent = formatWeekLabel(startWeek); Object.keys(seriesSelected).forEach(k => seriesSelected[k] = null); if (activeSeries === 'custom') { customEndWeek = offsetWeeks(customGaps[customGaps.length - 1] - 1); const ev = document.getElementById('smEndWeekVal'); if (ev) ev.textContent = formatWeekLabel(customEndWeek); syncCustomGaps(); } }
         else { customEndWeek = { ...wkPickerSelected }; const ev = document.getElementById('smEndWeekVal'); if (ev) ev.textContent = formatWeekLabel(customEndWeek); seriesSelected['custom'] = null; syncCustomGaps(); }
         closeWeekPicker(); updateWeekMap(); updateSeriesDisplay();
     }
@@ -956,6 +966,7 @@
         customEndWeek = offsetWeeks(4);
         const s = SERIES.find(x => x.key === activeSeries);
         slotCount = s ? s.defaultSlots : 18;
+        if (activeSeries === 'custom' && customGaps.length > 0) { slotCount = customGaps.length; customEndWeek = offsetWeeks(customGaps[customGaps.length - 1] - 1); }
         // Reset wkRevCounts for current series
         if (['prime','fibonacci','triangular'].includes(activeSeries)) { wkRevCounts[activeSeries] = buildDefaultRevCounts(); }
         // Reset UI steppers
