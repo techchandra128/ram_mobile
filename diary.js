@@ -65,7 +65,10 @@ function drGetEarliestRevDate() {
 
 // Build all calendar weeks: earliest rev date → today + 18 months
 function drBuildAllWeeks() {
-    const startDate = drGetWeekStart(drGetEarliestRevDate());
+    const earliest = drGetEarliestRevDate(); // 1st of earliest month
+    const day = earliest.getDay();
+    earliest.setDate(earliest.getDate() + (8 - day) % 7); // first Monday on or after 1st
+    const startDate = earliest;
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 18);
     const weeks = [];

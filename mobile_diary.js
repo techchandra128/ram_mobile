@@ -49,7 +49,10 @@ function mdGetEarliestRevDate() {
     return new Date(earliest.getFullYear(), earliest.getMonth(), 1);
 }
 function mdBuildAllWeeks() {
-    const startDate = mdGetWeekStart(mdGetEarliestRevDate());
+    const earliest = mdGetEarliestRevDate(); // 1st of earliest month
+    const day = earliest.getDay();
+    earliest.setDate(earliest.getDate() + (8 - day) % 7); // first Monday on or after 1st
+    const startDate = earliest;
     const endDate = new Date(); endDate.setMonth(endDate.getMonth() + 18);
     const weeks = []; const cur = new Date(startDate);
     while (cur <= endDate) { weeks.push(new Date(cur)); cur.setDate(cur.getDate() + 7); }
