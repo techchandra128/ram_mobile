@@ -6,6 +6,7 @@ let c3TableBorder = true;
 let c3ActiveCell = null;
 let c3ActiveTable = null;
 let c3SavedSelection = null;
+let c3BulletTargetLI = null;
 let c3EditorContext = null; // { sectionId, tab, levelId, template, editing, viewOnly }
 
 // ===== UNDO/REDO STACK =====
@@ -433,48 +434,39 @@ function c3Exec(cmd, value) {
     const editor = document.getElementById('c3EditorModalBody');
 
     // Browser's execCommand('insertUnorderedList') moves a middle LI to end of list.
-    // Custom handler: read live selection first (before focus/restore ops), split UL in place.
-    if (cmd === 'insertUnorderedList') {
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0);
-            let node = sel.anchorNode;
-            let li = null;
-            while (node && node !== editor) {
-                if (node.nodeName === 'LI') { li = node; break; }
-                node = node.parentNode;
-            }
-            if (li && range.collapsed) {
-                editor.focus();
-                const ul = li.parentElement;
-                const items = Array.from(ul.children);
-                const idx = items.indexOf(li);
-                const before = items.slice(0, idx);
-                const after = items.slice(idx + 1);
-                const p = document.createElement('p');
-                p.innerHTML = li.innerHTML || '<br>';
-                const parent = ul.parentNode;
-                if (before.length > 0) {
-                    const bul = document.createElement('ul');
-                    before.forEach(i => bul.appendChild(i));
-                    parent.insertBefore(bul, ul);
-                }
-                parent.insertBefore(p, ul);
-                if (after.length > 0) {
-                    const aul = document.createElement('ul');
-                    after.forEach(i => aul.appendChild(i));
-                    parent.insertBefore(aul, ul);
-                }
-                ul.remove();
-                const r = document.createRange();
-                r.setStart(p.firstChild || p, 0);
-                r.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(r);
-                updateToolbarState();
-                return;
-            }
+    // LI reference captured at mousedown time (c3BulletTargetLI) before focus could shift.
+    if (cmd === 'insertUnorderedList' && c3BulletTargetLI) {
+        const li = c3BulletTargetLI;
+        c3BulletTargetLI = null;
+        editor.focus();
+        const ul = li.parentElement;
+        const items = Array.from(ul.children);
+        const idx = items.indexOf(li);
+        const before = items.slice(0, idx);
+        const after = items.slice(idx + 1);
+        const p = document.createElement('p');
+        p.innerHTML = li.innerHTML || '<br>';
+        const parent = ul.parentNode;
+        if (before.length > 0) {
+            const bul = document.createElement('ul');
+            before.forEach(i => bul.appendChild(i));
+            parent.insertBefore(bul, ul);
         }
+        parent.insertBefore(p, ul);
+        if (after.length > 0) {
+            const aul = document.createElement('ul');
+            after.forEach(i => aul.appendChild(i));
+            parent.insertBefore(aul, ul);
+        }
+        ul.remove();
+        const sel = window.getSelection();
+        const r = document.createRange();
+        r.setStart(p.firstChild || p, 0);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        updateToolbarState();
+        return;
     }
 
     editor.focus();
@@ -829,7 +821,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolbar = document.querySelector('.c3-editor-toolbar-row1');
     if (toolbar) toolbar.addEventListener('mousedown', (e) => {
         saveSelection();
-        if (e.target.closest('button')) e.preventDefault();
+        c3BulletTargetLI = null;
+        if (e.target.closest('button')) {
+            const editorEl = document.getElementById('c3EditorModalBody');
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0 && sel.getRangeAt(0).collapsed) {
+                let node = sel.anchorNode;
+                while (node && node !== editorEl) {
+                    if (node.nodeName === 'LI') { c3BulletTargetLI = node; break; }
+                    node = node.parentNode;
+                }
+            }
+            e.preventDefault();
+        }
     });
 
     const editor = document.getElementById('c3EditorModalBody');
