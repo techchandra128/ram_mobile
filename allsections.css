@@ -358,8 +358,9 @@ th.sorted .as-sort-arrow { opacity: 1; }
 .as-pct-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: 44px;
     height: 26px;
-    padding: 0 8px;
     border-radius: 5px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
