@@ -3,8 +3,6 @@ const CACHE = 'ram-v1';
 const FILES = [
     '/',
     'index.html',
-    'main_page_index.css',
-    'main_page_index.js',
     'theme.css',
     'supabase_sync.js',
     'fileview.html',
