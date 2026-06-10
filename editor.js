@@ -431,11 +431,9 @@ function buildViewPanel(viewPanel, editBody) {
 // ===== TOOLBAR ACTIONS =====
 function c3Exec(cmd, value) {
     const editor = document.getElementById('c3EditorModalBody');
-    editor.focus();
-    restoreSelection();
 
-    // Browser's execCommand('insertUnorderedList') moves a middle LI to the end of the list.
-    // Custom handler: split the UL at the cursor's LI and insert a <p> in place.
+    // Browser's execCommand('insertUnorderedList') moves a middle LI to end of list.
+    // Custom handler: read live selection first (before focus/restore ops), split UL in place.
     if (cmd === 'insertUnorderedList') {
         const sel = window.getSelection();
         if (sel && sel.rangeCount > 0) {
@@ -447,6 +445,7 @@ function c3Exec(cmd, value) {
                 node = node.parentNode;
             }
             if (li && range.collapsed) {
+                editor.focus();
                 const ul = li.parentElement;
                 const items = Array.from(ul.children);
                 const idx = items.indexOf(li);
@@ -478,6 +477,8 @@ function c3Exec(cmd, value) {
         }
     }
 
+    editor.focus();
+    restoreSelection();
     document.execCommand(cmd, false, value || null);
     updateToolbarState();
 }
@@ -826,7 +827,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (header) header.addEventListener('mousedown', () => saveSelection());
 
     const toolbar = document.querySelector('.c3-editor-toolbar-row1');
-    if (toolbar) toolbar.addEventListener('mousedown', () => saveSelection());
+    if (toolbar) toolbar.addEventListener('mousedown', (e) => {
+        saveSelection();
+        if (e.target.closest('button')) e.preventDefault();
+    });
 
     const editor = document.getElementById('c3EditorModalBody');
     if (editor) {
