@@ -604,9 +604,9 @@
 .m-c5-box.filled .m-c5-box-bottom { background: var(--c5-filled-bg); border-color: #4ec994; color: #4ec994; }
 
 /* Action buttons */
-.m-c5-act-row { display: flex; gap: 8px; padding: 8px 10px 12px; border-top: 1px solid var(--card-border); }
+.m-c5-act-row { display: flex; gap: 8px; padding: 9px 10px; border-top: 1px solid var(--card-border); align-items: center; justify-content: center; }
 .m-c5-act-btn {
-    flex: 1; padding: 8px 6px; border-radius: 7px; font-size: 12px; font-weight: 600;
+    padding: 5px 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
     cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
     color: var(--text-muted); font-family: inherit;
 }
