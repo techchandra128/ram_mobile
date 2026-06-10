@@ -436,16 +436,17 @@ function c3Exec(cmd, value) {
 
     // Browser's execCommand('insertUnorderedList') moves a middle LI to the end of the list.
     // Custom handler: split the UL at the cursor's LI and insert a <p> in place.
-    if (cmd === 'insertUnorderedList' && document.queryCommandState('insertUnorderedList')) {
+    if (cmd === 'insertUnorderedList') {
         const sel = window.getSelection();
         if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
             let node = sel.anchorNode;
             let li = null;
             while (node && node !== editor) {
                 if (node.nodeName === 'LI') { li = node; break; }
                 node = node.parentNode;
             }
-            if (li) {
+            if (li && range.collapsed) {
                 const ul = li.parentElement;
                 const items = Array.from(ul.children);
                 const idx = items.indexOf(li);
