@@ -433,6 +433,50 @@ function c3Exec(cmd, value) {
     const editor = document.getElementById('c3EditorModalBody');
     editor.focus();
     restoreSelection();
+
+    // Browser's execCommand('insertUnorderedList') moves a middle LI to the end of the list.
+    // Custom handler: split the UL at the cursor's LI and insert a <p> in place.
+    if (cmd === 'insertUnorderedList' && document.queryCommandState('insertUnorderedList')) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            let node = sel.anchorNode;
+            let li = null;
+            while (node && node !== editor) {
+                if (node.nodeName === 'LI') { li = node; break; }
+                node = node.parentNode;
+            }
+            if (li) {
+                const ul = li.parentElement;
+                const items = Array.from(ul.children);
+                const idx = items.indexOf(li);
+                const before = items.slice(0, idx);
+                const after = items.slice(idx + 1);
+                const p = document.createElement('p');
+                p.innerHTML = li.innerHTML || '<br>';
+                const parent = ul.parentNode;
+                if (before.length > 0) {
+                    const bul = document.createElement('ul');
+                    before.forEach(i => bul.appendChild(i));
+                    parent.insertBefore(bul, ul);
+                }
+                parent.insertBefore(p, ul);
+                if (after.length > 0) {
+                    const aul = document.createElement('ul');
+                    after.forEach(i => aul.appendChild(i));
+                    parent.insertBefore(aul, ul);
+                }
+                ul.remove();
+                const r = document.createRange();
+                r.setStart(p.firstChild || p, 0);
+                r.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(r);
+                updateToolbarState();
+                return;
+            }
+        }
+    }
+
     document.execCommand(cmd, false, value || null);
     updateToolbarState();
 }
