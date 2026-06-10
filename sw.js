@@ -1,4 +1,4 @@
-const CACHE = 'ram-v1';
+const CACHE = 'ram-v2';
 
 const FILES = [
     '/',
