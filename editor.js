@@ -780,6 +780,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const header = document.getElementById('c3EditorModalHeader');
     if (header) header.addEventListener('mousedown', () => saveSelection());
 
+    const toolbar = document.querySelector('.c3-editor-toolbar-row1');
+    if (toolbar) toolbar.addEventListener('mousedown', () => saveSelection());
+
     const editor = document.getElementById('c3EditorModalBody');
     if (editor) {
         editor.addEventListener('keyup', updateToolbarState);
