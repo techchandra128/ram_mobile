@@ -544,7 +544,24 @@
                     }
                     if (isInteractive && !treatAsPast && activeSet) {
                         cell.addEventListener('click', () => {
-                            if (activeSet.has(key)) { activeSet.delete(key); delete wkRevCounts[activeSeries][key]; } else activeSet.add(key);
+                            const gapNum = keyToGapNumber(key);
+                            if (!gapNum || gapNum < 1) return;
+                            const activeGaps = customGaps.slice(0, slotCount);
+                            if (gapNum === activeGaps[0] || gapNum === activeGaps[activeGaps.length - 1]) return;
+                            const gIdx = customGaps.indexOf(gapNum);
+                            if (gIdx !== -1) {
+                                if (customGaps.length === 1) return;
+                                customGaps.splice(gIdx, 1);
+                            } else {
+                                customGaps.push(gapNum);
+                                customGaps.sort((a, b) => a - b);
+                            }
+                            slotCount = customGaps.length;
+                            const sv = document.getElementById('smSlotsVal'); if (sv) sv.textContent = slotCount;
+                            updateStepperStates('smSlotsVal', slotCount, 1, customGaps.length);
+                            updateCustomGapsSummary();
+                            syncCustomEndWeek();
+                            seriesSelected['custom'] = null;
                             updateWeekMap();
                         });
                     }
@@ -592,7 +609,29 @@
                         inl.querySelectorAll('.wk-inline-btn').forEach(btn => { btn.addEventListener('click', e => { e.stopPropagation(); const k = btn.dataset.key; const d = parseInt(btn.dataset.dir); const sIdx = _weekSlotMap[k]; let cur = sIdx !== undefined ? getFinalSlotRPW(sIdx) : (wkRevCounts[activeSeries][k] || 1); const newVal = Math.max(1, Math.min(7, cur + d)); if (sIdx !== undefined) perSlotRPW[activeSeries][sIdx] = newVal; wkRevCounts[activeSeries][k] = newVal; updateWeekMap(); }); });
                         cell.appendChild(inl);
                     }
-                    if (isInteractive && activeSet) { cell.addEventListener('click', () => { if (activeSet.has(key)) { activeSet.delete(key); delete wkRevCounts[activeSeries][key]; } else activeSet.add(key); updateWeekMap(); }); }
+                    if (isInteractive && activeSet) {
+                        cell.addEventListener('click', () => {
+                            const gapNum = keyToGapNumber(key);
+                            if (!gapNum || gapNum < 1) return;
+                            const activeGaps = customGaps.slice(0, slotCount);
+                            if (gapNum === activeGaps[0] || gapNum === activeGaps[activeGaps.length - 1]) return;
+                            const gIdx = customGaps.indexOf(gapNum);
+                            if (gIdx !== -1) {
+                                if (customGaps.length === 1) return;
+                                customGaps.splice(gIdx, 1);
+                            } else {
+                                customGaps.push(gapNum);
+                                customGaps.sort((a, b) => a - b);
+                            }
+                            slotCount = customGaps.length;
+                            const sv = document.getElementById('smSlotsVal'); if (sv) sv.textContent = slotCount;
+                            updateStepperStates('smSlotsVal', slotCount, 1, customGaps.length);
+                            updateCustomGapsSummary();
+                            syncCustomEndWeek();
+                            seriesSelected['custom'] = null;
+                            updateWeekMap();
+                        });
+                    }
                     weekCol.appendChild(cell); row.appendChild(weekCol);
                     // Days
                     const daysCol = document.createElement('div'); daysCol.className = 'wmap-days-col';
