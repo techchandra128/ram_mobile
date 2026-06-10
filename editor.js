@@ -6,7 +6,6 @@ let c3TableBorder = true;
 let c3ActiveCell = null;
 let c3ActiveTable = null;
 let c3SavedSelection = null;
-let c3BulletTargetLI = null;
 let c3EditorContext = null; // { sectionId, tab, levelId, template, editing, viewOnly }
 
 // ===== UNDO/REDO STACK =====
@@ -432,26 +431,6 @@ function buildViewPanel(viewPanel, editBody) {
 // ===== TOOLBAR ACTIONS =====
 function c3Exec(cmd, value) {
     const editor = document.getElementById('c3EditorModalBody');
-
-    if (cmd === 'insertUnorderedList') {
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) {
-            // Clear leftover indent on current block before applying bullets.
-            // Without this, a previously de-bulleted paragraph with residual margin/padding
-            // causes the browser to create a nested list instead of a same-level bullet.
-            let node = sel.anchorNode;
-            if (node && node.nodeType === 3) node = node.parentElement;
-            while (node && node !== editor && !['P','DIV','LI','TD','BODY'].includes(node.tagName)) {
-                node = node.parentElement;
-            }
-            if (node && (node.tagName === 'P' || node.tagName === 'DIV')) {
-                node.style.marginLeft = '';
-                node.style.paddingLeft = '';
-            }
-        }
-        c3BulletTargetLI = null;
-    }
-
     editor.focus();
     restoreSelection();
     document.execCommand(cmd, false, value || null);
@@ -800,29 +779,6 @@ function updateToolbarState() {
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.getElementById('c3EditorModalHeader');
     if (header) header.addEventListener('mousedown', () => saveSelection());
-
-    const toolbar = document.querySelector('.c3-editor-toolbar-row1');
-    if (toolbar) toolbar.addEventListener('mousedown', (e) => {
-        saveSelection();
-        c3BulletTargetLI = null;
-        if (e.target.closest('button')) {
-            const editorEl = document.getElementById('c3EditorModalBody');
-            const sel = window.getSelection();
-            if (sel && sel.rangeCount > 0) {
-                const findLI = (node) => {
-                    while (node && node !== editorEl) {
-                        if (node.nodeName === 'LI') return node;
-                        node = node.parentNode;
-                    }
-                    return null;
-                };
-                const anchorLI = findLI(sel.anchorNode);
-                const focusLI  = findLI(sel.focusNode);
-                if (anchorLI && anchorLI === focusLI) c3BulletTargetLI = anchorLI;
-            }
-            e.preventDefault();
-        }
-    });
 
     const editor = document.getElementById('c3EditorModalBody');
     if (editor) {
