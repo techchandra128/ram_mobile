@@ -435,11 +435,9 @@ function c3Exec(cmd, value) {
 
     // Browser's execCommand('insertUnorderedList') moves a middle LI to end of list.
     // LI reference captured at mousedown time (c3BulletTargetLI) before focus could shift.
-    console.log('[BULLET DEBUG] c3Exec called, cmd:', cmd, 'c3BulletTargetLI:', c3BulletTargetLI);
     if (cmd === 'insertUnorderedList' && c3BulletTargetLI) {
         const li = c3BulletTargetLI;
         c3BulletTargetLI = null;
-        console.log('[BULLET DEBUG] custom handler running for LI:', li.textContent.substring(0, 30));
         editor.focus();
         const ul = li.parentElement;
         const items = Array.from(ul.children);
@@ -824,19 +822,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toolbar) toolbar.addEventListener('mousedown', (e) => {
         saveSelection();
         c3BulletTargetLI = null;
-        console.log('[BULLET DEBUG] toolbar mousedown, target:', e.target.tagName, e.target.className);
         if (e.target.closest('button')) {
             const editorEl = document.getElementById('c3EditorModalBody');
             const sel = window.getSelection();
-            console.log('[BULLET DEBUG] rangeCount:', sel?.rangeCount, 'collapsed:', sel?.rangeCount > 0 ? sel.getRangeAt(0).collapsed : 'n/a');
-            if (sel && sel.rangeCount > 0 && sel.getRangeAt(0).collapsed) {
-                let node = sel.anchorNode;
-                while (node && node !== editorEl) {
-                    if (node.nodeName === 'LI') { c3BulletTargetLI = node; break; }
-                    node = node.parentNode;
-                }
+            if (sel && sel.rangeCount > 0) {
+                const findLI = (node) => {
+                    while (node && node !== editorEl) {
+                        if (node.nodeName === 'LI') return node;
+                        node = node.parentNode;
+                    }
+                    return null;
+                };
+                const anchorLI = findLI(sel.anchorNode);
+                const focusLI  = findLI(sel.focusNode);
+                if (anchorLI && anchorLI === focusLI) c3BulletTargetLI = anchorLI;
             }
-            console.log('[BULLET DEBUG] c3BulletTargetLI:', c3BulletTargetLI);
             e.preventDefault();
         }
     });
