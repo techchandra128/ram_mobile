@@ -303,7 +303,7 @@ function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof', 
     card.className = 'sc-list';
     card.style.borderColor = borderColor;
     card.innerHTML = `
-        <div class="sc-top-row" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="sc-top-row" style="background:linear-gradient(to bottom,${g1},${g2})">
             <div class="sc-top-text">
                 <div class="sc-title" style="color:${titleColor}">${escHtml(title)}</div>
                 ${showFile && fileName ? `<div class="sc-filename" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
@@ -397,7 +397,7 @@ function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof', 
     const card = document.createElement('div');
     card.className = 'sc-grid';
     card.innerHTML = `
-        <div class="sc-grid-top" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="sc-grid-top" style="background:linear-gradient(to bottom,${g1},${g2})">
             ${gridTopInner}
             ${showFile && fileName ? `<div class="sc-grid-file" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
         </div>
@@ -417,7 +417,7 @@ function makeListFolderCard(folder) {
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
-    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.background = `linear-gradient(to bottom,${g1},${g2})`;
     card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
@@ -459,7 +459,7 @@ function makeListFileCard(file) {
     const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
-    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.background = `linear-gradient(to bottom,${g1},${g2})`;
     card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
@@ -504,7 +504,7 @@ function makeGridFolderCard(folder) {
     const card = document.createElement('div');
     card.className = 'gc-card';
     card.innerHTML = `
-        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="gc-top" style="background:linear-gradient(to bottom,${g1},${g2})">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
             </svg>
@@ -534,7 +534,7 @@ function makeGridFileCard(file, context = 'lib') {
     const card = document.createElement('div');
     card.className = 'gc-card';
     card.innerHTML = `
-        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="gc-top" style="background:linear-gradient(to bottom,${g1},${g2})">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -656,7 +656,7 @@ function makeFileCard(file, context) {
 
     const card = document.createElement('div');
     card.className = 'oa-card oa-card-grad';
-    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.background = `linear-gradient(to bottom,${g1},${g2})`;
     card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
         <div class="oa-icon">
