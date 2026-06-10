@@ -367,7 +367,7 @@ function cpShowAddItemModal() {
     const plLabel = document.createElement('div');
     plLabel.className = 'cp-modal-section-label';
     plLabel.style.marginTop = '8px';
-    plLabel.textContent = 'Collections';
+    plLabel.textContent = 'Sets';
     body.appendChild(plLabel);
 
     const allPlaylists = cpCollectAllPlaylists();

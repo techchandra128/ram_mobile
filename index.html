@@ -46,9 +46,9 @@
                     <span class="nav-icon"><i data-lucide="folder-open"></i></span>
                     <span class="nav-text">Books</span>
                 </button>
-                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Collections">
+                <button class="nav-item" id="navPlaylists" onclick="showPlaylists()" title="Sets">
                     <span class="nav-icon"><i data-lucide="music-2"></i></span>
-                    <span class="nav-text">Collections</span>
+                    <span class="nav-text">Sets</span>
                 </button>
                 <button class="nav-item" id="navAllSections" onclick="showAllSections()" title="All Sections">
                     <span class="nav-icon"><i data-lucide="layout-list"></i></span>
@@ -278,12 +278,12 @@
                 <!-- PLAYLISTS SECTION -->
                 <div class="section-block">
                     <div class="section-header-row">
-                        <span class="section-label">Collections</span>
+                        <span class="section-label">Sets</span>
                         <div style="display:flex;align-items:center;gap:16px;">
-                            <div class="sd-action-btn add" onclick="sdShowAddModal('playlists')" title="Add Collections">
+                            <div class="sd-action-btn add" onclick="sdShowAddModal('playlists')" title="Add Sets">
                                 <div class="section-add-rect">+</div>
                             </div>
-                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('playlists')" title="Remove Collections">
+                            <div class="sd-action-btn remove" onclick="sdShowRemoveModal('playlists')" title="Remove Sets">
                                 <div class="section-add-rect sd-remove-rect">−</div>
                             </div>
                         </div>
@@ -545,7 +545,7 @@
         <!-- Top bar: same as Smart Desk -->
         <div class="sd-top-bar">
             <div style="flex:1;"></div>
-            <span class="sd-top-title">Collections</span>
+            <span class="sd-top-title">Sets</span>
             <div class="topbar-right">
                 <div class="topbar-divider"></div>
                 <div class="view-toggle-group">
@@ -572,7 +572,7 @@
         <div class="content-area sd-content-area" id="plContentArea">
             <div class="section-block">
                 <div class="section-header-row">
-                    <span class="section-label">Collections</span>
+                    <span class="section-label">Sets</span>
                 </div>
                 <div class="items-grid" id="plFilesGrid"></div>
                 <div class="items-list" id="plFilesList" style="display:none;"></div>
@@ -726,7 +726,7 @@
 <div class="cp-modal-overlay" id="cpAddItemModal">
     <div class="cp-modal-box wide">
         <div class="cp-modal-header">
-            <h3>Add Books / Collections</h3>
+            <h3>Add Books / Sets</h3>
             <button class="cp-modal-close" onclick="cpCloseAddItemModal()">✕</button>
         </div>
         <div class="cp-modal-body">

@@ -413,10 +413,10 @@ function sdShowAddModal(type) {
             });
         }
     } else {
-        title.textContent = 'Add Collections to Smart Desk';
+        title.textContent = 'Add Sets to Smart Desk';
         const allPlaylists = JSON.parse(localStorage.getItem('ram_playlists') || '[]');
         if (allPlaylists.length === 0) {
-            body.innerHTML = '<div class="sd-modal-empty">No collections yet.</div>';
+            body.innerHTML = '<div class="sd-modal-empty">No sets yet.</div>';
         } else {
             allPlaylists.forEach(pl => {
                 const alreadyAdded = sdPlaylistShortcuts.includes(pl.id);
@@ -489,11 +489,11 @@ function sdShowRemoveModal(type) {
             });
         }
     } else {
-        title.textContent = 'Remove Collections from Smart Desk';
+        title.textContent = 'Remove Sets from Smart Desk';
         const allPlaylists = JSON.parse(localStorage.getItem('ram_playlists') || '[]');
         const myPlaylists = sdPlaylistShortcuts.map(pid => allPlaylists.find(p => p.id === pid)).filter(Boolean);
         if (myPlaylists.length === 0) {
-            body.innerHTML = '<div class="sd-modal-empty">No collections on Smart Desk yet.</div>';
+            body.innerHTML = '<div class="sd-modal-empty">No sets on Smart Desk yet.</div>';
         } else {
             myPlaylists.forEach(pl => {
                 const row = document.createElement('label');
