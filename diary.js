@@ -42,9 +42,30 @@ function drGetCurrentWeekKey() {
     return drMakeWeekKey(new Date().toISOString().slice(0, 10));
 }
 
-// Build all calendar weeks Jan 2026 → today + 18 months (same as heatmap)
+function drGetEarliestRevDate() {
+    let earliest = null;
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith('c5_sectionStore_')) continue;
+        try {
+            const store = JSON.parse(localStorage.getItem(key));
+            Object.values(store).forEach(sec => {
+                (sec?.revisions || []).forEach(r => {
+                    if (!r?.date || !r?.year) return;
+                    const [d, m] = r.date.split('/').map(Number);
+                    const dt = new Date(Number(r.year), m - 1, d);
+                    if (!earliest || dt < earliest) earliest = dt;
+                });
+            });
+        } catch(e) {}
+    }
+    if (!earliest) return new Date();
+    return new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+}
+
+// Build all calendar weeks: earliest rev date → today + 18 months
 function drBuildAllWeeks() {
-    const startDate = drGetWeekStart(new Date(2026, 0, 1));
+    const startDate = drGetWeekStart(drGetEarliestRevDate());
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 18);
     const weeks = [];
