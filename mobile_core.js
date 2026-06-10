@@ -23,7 +23,10 @@ const mState = {
 
     libSort: 'outline',
     sdSort: 'outline',
+    libSortOrder: 'asc',
+    sdSortOrder: 'asc',
     libRootSort: 'name-asc',
+    libView: 'list',
     activeDash: 'heatmap',
 
     theme: localStorage.getItem('ram_mobile_theme') || 'dark',
@@ -102,6 +105,29 @@ function applyTheme(theme) {
     } else {
         icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
     }
+    rerenderCurrentView();
+}
+
+function rerenderCurrentView() {
+    if (!mState.syncData) return; // not yet initialised
+
+    // Re-render Library (all levels except detail view)
+    const libTop = mState.libStack[mState.libStack.length - 1];
+    if (!libTop || mState.libStack.length === 0) renderLibraryRoot();
+    else if (libTop.screen === 'screenSections') renderSectionList('lib');
+    else if (libTop.screen === 'screenLibraryFolder' && libTop.folder) renderFolderFiles(libTop.title, libTop.folder.contents);
+
+    // Re-render SmartDesk (all levels except detail view)
+    const sd = getSDScreen();
+    if (sd === 'screenSDSections') renderSectionList('sd');
+    else if (sd !== 'screenSDDetail') {
+        const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
+        if (activeTab === 'playlists') renderSDPlaylistList();
+        else renderSDFileList();
+    }
+
+    // Re-render Diary
+    mdRenderContent();
 }
 
 // ===== TOPBAR =====
@@ -123,9 +149,27 @@ function updateTopbar() {
     const libTop = mState.libStack[mState.libStack.length - 1];
     const showLibCtrl = (mState.activePage === 'Library' &&
         (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder' || libTop?.screen === 'screenSections'))
-        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections');
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections')
+        || mState.activePage === 'Diary';
     document.querySelectorAll('.m-lib-ctrl').forEach(el => {
         el.style.display = showLibCtrl ? 'flex' : 'none';
+    });
+
+    const showOrderIndicator = (mState.activePage === 'Library' && libTop?.screen === 'screenSections')
+        || (mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections')
+        || mState.activePage === 'Diary';
+    const orderIndicatorEl = document.getElementById('mSortOrderIndicator');
+    if (orderIndicatorEl) {
+        orderIndicatorEl.style.display = showOrderIndicator ? 'flex' : 'none';
+        if (showOrderIndicator && typeof updateSortOrderIndicator === 'function') updateSortOrderIndicator();
+    }
+
+    const showLibView = (mState.activePage === 'Library' &&
+        (mState.libStack.length === 0 || libTop?.screen === 'screenLibraryFolder' || libTop?.screen === 'screenSections'))
+        || (mState.activePage === 'SmartDesk' && (getSDScreen() === 'screenSDFiles' || getSDScreen() === 'screenSDSections'))
+        || mState.activePage === 'Diary';
+    document.querySelectorAll('.m-lib-view-ctrl').forEach(el => {
+        el.style.display = showLibView ? 'flex' : 'none';
     });
 
     if (depth === 0) {
@@ -288,7 +332,7 @@ function getFileSystem() {
 function collectFiles(node, result = []) {
     if (!node || typeof node !== 'object') return result;
     Object.entries(node).forEach(([key, item]) => {
-        if (item.type === 'file') result.push({ id: item.fileId, name: key });
+        if (item.type === 'file') result.push({ id: item.fileId, name: key, progress: item.progress || 0 });
         else if (item.type === 'folder' && item.contents) collectFiles(item.contents, result);
     });
     return result;

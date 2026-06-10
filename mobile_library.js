@@ -42,6 +42,10 @@ function sortLibItems(items) {
 
 // ===== LIBRARY: SORT SHEET =====
 function openLibSortSheet() {
+    if (mState.activePage === 'Diary') {
+        if (typeof openDiarySortSheet === 'function') openDiarySortSheet();
+        return;
+    }
     const libTop = mState.libStack[mState.libStack.length - 1];
     const onSections = mState.activePage === 'Library' && libTop?.screen === 'screenSections';
     const onSDSections = mState.activePage === 'SmartDesk' && getSDScreen() === 'screenSDSections';
@@ -72,9 +76,44 @@ function closeSecSortSheet() {
     document.getElementById('mSecSortSheet').classList.remove('active');
 }
 
+// ===== SORT ORDER INDICATOR =====
+function updateSortOrderIndicator() {
+    const el = document.getElementById('mSortOrderIndicator');
+    if (!el) return;
+    const page = mState.activePage;
+    let sort, order;
+    if (page === 'SmartDesk') {
+        sort = mState.sdSort; order = mState.sdSortOrder || 'asc';
+    } else if (page === 'Diary') {
+        sort = mdState?.sort; order = mdState?.sortOrder || 'asc';
+    } else {
+        sort = mState.libSort; order = mState.libSortOrder || 'asc';
+    }
+    const isOriginal = !sort || sort === 'outline' || sort === 'section-count';
+    el.textContent = isOriginal ? '—' : (order === 'asc' ? '↑' : '↓');
+    el.classList.toggle('disabled', isOriginal);
+}
+
 // ===== LIBRARY: TOOLBAR BIND =====
 function bindLibRootToolbar() {
     document.getElementById('mLibSortBtn').addEventListener('click', openLibSortSheet);
+    document.getElementById('mSortOrderIndicator')?.addEventListener('click', () => {
+        const page = mState.activePage;
+        const sort = page === 'SmartDesk' ? mState.sdSort : page === 'Diary' ? mdState?.sort : mState.libSort;
+        if (!sort || sort === 'outline' || sort === 'section-count') return;
+        if (page === 'Diary') {
+            mdState.sortOrder = (mdState.sortOrder || 'asc') === 'asc' ? 'desc' : 'asc';
+            if (typeof mdRenderContent === 'function') mdRenderContent();
+        } else {
+            const currentOrder = page === 'SmartDesk' ? (mState.sdSortOrder || 'asc') : (mState.libSortOrder || 'asc');
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            if (page === 'SmartDesk') { mState.sdSortOrder = newOrder; renderSectionList('sd'); }
+            else                      { mState.libSortOrder = newOrder; renderSectionList('lib'); }
+        }
+        updateSortOrderIndicator();
+    });
+    document.getElementById('mLibViewBtn')?.addEventListener('click', toggleLibView);
+    updateViewBtn();
 
     document.querySelector('#mLibSortSheet .m-sort-backdrop').addEventListener('click', closeLibSortSheet);
     document.querySelectorAll('#mLibSortSheet .m-sort-option').forEach(btn => {
@@ -96,34 +135,310 @@ function bindLibRootToolbar() {
             const isSD = mState.activePage === 'SmartDesk';
             if (isSD) {
                 mState.sdSort = btn.dataset.sort;
-                const sections = mState._sdSections;
-                const c5Store = mState._sdC5Store;
-                if (sections && c5Store) {
-                    renderSectionItems(document.getElementById('mSDSectionList'), sections, c5Store, mState.sdSort, 'sd');
-                }
+                renderSectionList('sd');
             } else {
                 mState.libSort = btn.dataset.sort;
                 renderSectionList('lib');
             }
+            document.querySelectorAll('#mSecSortSheet .m-sort-option').forEach(b => {
+                b.classList.toggle('active', b.dataset.sort === btn.dataset.sort);
+            });
+            updateSortOrderIndicator();
             closeSecSortSheet();
         });
     });
 }
 
+// ===== CARD HELPERS =====
+function getLibProficiencyLabel(pct) {
+    if (pct === 0) return 'Not started';
+    if (pct <= 25) return 'Novice';
+    if (pct <= 50) return 'Apprentice';
+    if (pct <= 75) return 'Competent';
+    return 'Proficient';
+}
+function getLibDisplayColor(pct) {
+    if (pct === 0) return '#475569';
+    return getLibProgressColor(pct);
+}
+function getGridGradient(pct) {
+    const dark = [['#0c1524','#334155'],['#1e1b4b','#94a3b840'],['#451a03','#f59e0b40'],['#431407','#f9731640'],['#064e3b','#22c55e40']];
+    const light = [['#f1f5f9','#e2e8f0'],['#f1f5f9','#e2e8f0'],['#fef9ec','#fef3c7'],['#fff7ed','#ffedd5'],['#f0fdf4','#dcfce7']];
+    const idx = pct === 0 ? 0 : pct <= 25 ? 1 : pct <= 50 ? 2 : pct <= 75 ? 3 : 4;
+    return (mState.theme === 'dark' ? dark : light)[idx];
+}
+function getCardBorderColor() {
+    return mState.theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'var(--card-border)';
+}
+
+const SC_DIFF_COLOR = { 'Easy': '#22c55e', 'Moderate': '#f59e0b', 'Challenging': '#f97316', 'Hard': '#ef4444' };
+const SC_PRIO_COLOR = { 'Low': '#94a3b8', 'Medium': '#3b82f6', 'High': '#f97316', 'Critical': '#ef4444' };
+
+function getSectionGradient(pct) {
+    const dark = [['#1a2035','#1e2a3d'],['#221c0e','#2e2410'],['#221508','#2e1c08'],['#0e2018','#122818']];
+    const light = [['#f1f5f9','#e2e8f0'],['#fef9ec','#fef3c7'],['#fff7ed','#ffedd5'],['#f0fdf4','#dcfce7']];
+    const idx = pct <= 25 ? 0 : pct <= 50 ? 1 : pct <= 75 ? 2 : 3;
+    return (mState.theme === 'dark' ? dark : light)[idx];
+}
+function getSectionBadgeColor(type) {
+    const dark  = { green: '#4ec994', red: '#f47067', amber: '#ddb56a', orange: '#e8834a', blue: '#4d9fec', muted: '#475569' };
+    const light = { green: '#22c55e', red: '#ef4444', amber: '#f59e0b', orange: '#f97316', blue: '#3b82f6', muted: '#94a3b8' };
+    const c = mState.theme === 'dark' ? dark : light;
+    if (type === 'done' || type === 'cleared' || type === 'early') return c.green;
+    if (type === 'missed' || type === 'partial') return c.red;
+    if (type === 'in-progress') return c.amber;
+    if (type === 'not-done' || type === 'grace' || type === 'off-schedule') return c.orange;
+    if (['scheduled','hunting-current','defending-current','hunted','defended','defending'].includes(type)) return c.blue;
+    return c.muted;
+}
+
+// ===== SECTION CARD HELPERS =====
+function getLastRevLabel(c5) {
+    const revs = c5?.revisions?.filter(r => r.date);
+    if (!revs?.length) return '—';
+    const last = revs[revs.length - 1];
+    const [d, m] = last.date.split('/');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(d)} ${months[parseInt(m)-1]}`;
+}
+function getRevisionCount(c5) {
+    return c5?.revisions?.filter(r => r.date).length || 0;
+}
+function getProgressPercent(c5) {
+    if (!c5?.activatedCount) return 0;
+    const filled = c5?.revisions?.filter(r => r.date).length || 0;
+    return Math.round((filled / c5.activatedCount) * 100);
+}
+
+// ===== SECTION LIST CARD =====
+// thirdPill: 'prof' (default) = proficiency label, 'badge' = current week badge status
+// sort: current sort type — controls what the bottom row and right element show
+// sectionMeta: { studiedCount, totalCount } — used for section-count sort
+function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof', sort = 'outline', sectionMeta = {}) {
+    const pct = c5?.proficiency || 0;
+    const diff = c5?.difficulty;
+    const prio = c5?.priority;
+    const rc = getLibProgressColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const [g1, g2] = getSectionGradient(pct);
+    const isDark = mState.theme === 'dark';
+    const titleColor = isDark ? '#e2e8f0' : '#1e293b';
+    const fileColor = isDark ? '#94a3b8' : '#64748b';
+    const trackColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+    const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'var(--card-border)';
+    const r = 14, circ = +(2 * Math.PI * r).toFixed(2);
+    const offset = +(circ - (pct / 100) * circ).toFixed(2);
+
+    const makePill = (text, color) => `<span class="sc-pill" style="color:${color};border-color:${color}44;background:${color}12">${text}</span>`;
+
+    // Right side: ring or count badge
+    const showRing = sort !== 'section-count';
+    const rightEl = showRing
+        ? `<div class="sc-ring-wrap"><div class="sc-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="${r}" fill="none" stroke="${trackColor}" stroke-width="2.5"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5"
+                    stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+                    transform="rotate(-90 19 19)"/>` : ''}
+            </svg>
+            <div class="sc-ring-num" style="color:${pct > 0 ? rc : 'var(--text-muted)'}">${pct}%</div>
+          </div></div>`
+        : `<span class="sc-count-badge">[${sectionMeta.count ?? 0}/${sectionMeta.totalCount ?? 0}]</span>`;
+
+    // Bottom row: sort-aware
+    let bottomContent = '';
+    switch(sort) {
+        case 'outline':
+        case 'alpha':
+        case 'section-count': {
+            const pills = [];
+            if (diff) pills.push(makePill(diff, SC_DIFF_COLOR[diff] || '#94a3b8'));
+            if (prio) pills.push(makePill(prio, SC_PRIO_COLOR[prio] || '#94a3b8'));
+            if (thirdPill === 'badge') {
+                const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+                if (badge) pills.push(makePill(badge.label, getSectionBadgeColor(badge.type)));
+            } else {
+                pills.push(makePill(profLabel, rc));
+            }
+            bottomContent = `<div class="sc-pills">${pills.join('')}</div>`;
+            break;
+        }
+        case 'proficiency':
+            bottomContent = `<div class="sc-bar-row"><div class="sc-bar-track"><div class="sc-bar" style="width:${pct}%;background:${rc}"></div></div><span class="sc-bar-label" style="color:${rc}">${profLabel}</span></div>`;
+            break;
+        case 'difficulty':
+            bottomContent = diff
+                ? `<div class="sc-pills">${makePill(diff, SC_DIFF_COLOR[diff] || '#94a3b8')}</div>`
+                : `<div class="sc-pills"><span class="sc-meta">—</span></div>`;
+            break;
+        case 'priority':
+            bottomContent = prio
+                ? `<div class="sc-pills">${makePill(prio, SC_PRIO_COLOR[prio] || '#94a3b8')}</div>`
+                : `<div class="sc-pills"><span class="sc-meta">—</span></div>`;
+            break;
+        case 'progress': {
+            const progPct = getProgressPercent(c5);
+            const progColor = getLibProgressColor(progPct);
+            bottomContent = `<div class="sc-bar-row"><div class="sc-bar-track"><div class="sc-bar" style="width:${progPct}%;background:${progColor}"></div></div></div>`;
+            break;
+        }
+        case 'last-revised':
+            bottomContent = `<div class="sc-pills"><span class="sc-meta">Last Revised: ${getLastRevLabel(c5)}</span></div>`;
+            break;
+        case 'revision-count': {
+            const rvc = getRevisionCount(c5);
+            bottomContent = `<div class="sc-pills"><span class="sc-meta">${rvc} revision${rvc !== 1 ? 's' : ''}</span></div>`;
+            break;
+        }
+        default: {
+            const pills = [];
+            if (diff) pills.push(makePill(diff, SC_DIFF_COLOR[diff] || '#94a3b8'));
+            if (prio) pills.push(makePill(prio, SC_PRIO_COLOR[prio] || '#94a3b8'));
+            pills.push(makePill(profLabel, rc));
+            bottomContent = `<div class="sc-pills">${pills.join('')}</div>`;
+        }
+    }
+
+    const card = document.createElement('div');
+    card.className = 'sc-list';
+    card.style.borderColor = borderColor;
+    card.innerHTML = `
+        <div class="sc-top-row" style="background:linear-gradient(135deg,${g1},${g2})">
+            <div class="sc-top-text">
+                <div class="sc-title" style="color:${titleColor}">${escHtml(title)}</div>
+                ${showFile && fileName ? `<div class="sc-filename" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
+            </div>
+            ${rightEl}
+        </div>
+        <div class="sc-bottom-row">
+            ${bottomContent}
+        </div>
+    `;
+    return card;
+}
+
+// ===== SECTION GRID CARD =====
+// thirdPill: 'prof' (default) = proficiency label, 'badge' = current week badge status
+// sort: current sort type — controls middle/bottom row visibility and content
+// sectionMeta: { studiedCount, totalCount } — used for section-count sort
+function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof', sort = 'outline', sectionMeta = {}) {
+    const pct = c5?.proficiency || 0;
+    const diff = c5?.difficulty;
+    const prio = c5?.priority;
+    const rc = getLibProgressColor(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const [g1, g2] = getSectionGradient(pct);
+    const isDark = mState.theme === 'dark';
+    const titleColor = isDark ? '#e2e8f0' : '#1e293b';
+    const fileColor = isDark ? '#94a3b8' : '#64748b';
+
+    const makeGridPill = (text, color) => `<span class="sc-grid-pill" style="color:${color};border-color:${color}44;background:${color}15">${text}</span>`;
+
+    // Top area: section-count shows [xx/nn] to right of title
+    const gridTopInner = sort === 'section-count'
+        ? `<div class="sc-grid-top-row"><div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div><span class="sc-grid-count" style="color:var(--text-muted)">[${sectionMeta.count ?? 0}/${sectionMeta.totalCount ?? 0}]</span></div>`
+        : `<div class="sc-grid-title" style="color:${titleColor}">${escHtml(title)}</div>`;
+
+    // Middle row visibility and content
+    const showMiddle = !['proficiency', 'progress'].includes(sort);
+    let middleContent = '';
+    if (showMiddle) {
+        switch(sort) {
+            case 'outline':
+            case 'alpha':
+            case 'section-count': {
+                const topPills = [];
+                if (diff) topPills.push(makeGridPill(diff, SC_DIFF_COLOR[diff] || '#94a3b8'));
+                if (prio) topPills.push(makeGridPill(prio, SC_PRIO_COLOR[prio] || '#94a3b8'));
+                let profPillHtml = '';
+                if (thirdPill === 'badge') {
+                    const badge = (typeof smGetCurrentWeekBadge === 'function') ? smGetCurrentWeekBadge(c5) : null;
+                    if (badge) { const bc = getSectionBadgeColor(badge.type); profPillHtml = makeGridPill(badge.label, bc); }
+                } else {
+                    profPillHtml = makeGridPill(profLabel, rc);
+                }
+                middleContent = (topPills.length ? `<div class="sc-grid-pill-row">${topPills.join('')}</div>` : '') +
+                    (profPillHtml ? `<div class="sc-grid-pill-row">${profPillHtml}</div>` : '');
+                break;
+            }
+            case 'difficulty':
+                middleContent = diff
+                    ? `<div class="sc-grid-pill-row">${makeGridPill(diff, SC_DIFF_COLOR[diff] || '#94a3b8')}</div>`
+                    : `<div class="sc-grid-pill-row"><span class="sc-grid-meta">—</span></div>`;
+                break;
+            case 'priority':
+                middleContent = prio
+                    ? `<div class="sc-grid-pill-row">${makeGridPill(prio, SC_PRIO_COLOR[prio] || '#94a3b8')}</div>`
+                    : `<div class="sc-grid-pill-row"><span class="sc-grid-meta">—</span></div>`;
+                break;
+            case 'last-revised':
+                middleContent = `<div class="sc-grid-pill-row"><span class="sc-grid-meta">Last Revised: ${getLastRevLabel(c5)}</span></div>`;
+                break;
+            case 'revision-count': {
+                const rvc = getRevisionCount(c5);
+                middleContent = `<div class="sc-grid-pill-row"><span class="sc-grid-meta">${rvc} rev${rvc !== 1 ? 's' : ''}</span></div>`;
+                break;
+            }
+        }
+    }
+
+    // Bottom row visibility
+    const showBottom = !['difficulty', 'priority', 'last-revised', 'revision-count'].includes(sort);
+    const bottomHtml = showBottom ? `<div class="sc-grid-bottom">
+        <div class="sc-grid-row">
+            <span class="sc-grid-prof" style="color:${rc}">${profLabel}</span>
+            <span class="sc-grid-pct" style="color:${rc}">${pct}%</span>
+        </div>
+        <div class="sc-grid-bar-track">
+            <div class="sc-grid-bar" style="width:${pct}%;background:${rc}"></div>
+        </div>
+    </div>` : '';
+
+    const card = document.createElement('div');
+    card.className = 'sc-grid';
+    card.innerHTML = `
+        <div class="sc-grid-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            ${gridTopInner}
+            ${showFile && fileName ? `<div class="sc-grid-file" style="color:${fileColor}">${escHtml(fileName)}</div>` : ''}
+        </div>
+        ${showMiddle ? `<div class="sc-grid-middle">${middleContent}</div>` : ''}
+        ${bottomHtml}
+    `;
+    return card;
+}
+
 // ===== LIST VIEW: FOLDER CARD =====
 function makeListFolderCard(folder) {
     const pct = folder.progress || 0;
-    const color = getLibProgressColor(pct);
-    const fileCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const bookCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'm-file-card m-folder-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
-        <div class="m-file-icon"><svg width="30" height="25" viewBox="0 0 30 25" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="mfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#74B4F0"/><stop offset="100%" stop-color="#4D9FEC"/></linearGradient></defs><path d="M1.8 5 L1.8 1.8 Q1.8 0 3.6 0 L9 0 Q12 0 12 2.4 L12 5 Z" fill="#7DBAF2"/><rect x="0" y="4.25" width="30" height="20.75" rx="3" fill="url(#mfg)"/><path d="M0 20.5 L0 22.2 Q0 25 3 25 L27 25 Q30 25 30 22.2 L30 20.5 Z" fill="#448CD0"/><line x1="5" y1="5.3" x2="25" y2="5.3" stroke="white" stroke-width="0.8" stroke-opacity="0.24"/></svg></div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(folder.name)}</div>
-            <div class="m-file-meta">${fileCount} file${fileCount !== 1 ? 's' : ''}</div>
+        <div class="oa-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
         </div>
-        <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(folder.name)}</div>
+            <div class="oa-meta">
+                <span>${bookCount} book${bookCount !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
     `;
     card.addEventListener('click', () => {
         pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
@@ -138,16 +453,35 @@ function makeListFileCard(file) {
     const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
     const sectionCount = sections.filter(s => s.type === 'real').length;
     const pct = file.progress || 0;
-    const color = getLibProgressColor(pct);
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'm-file-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
-        <div class="m-file-icon">📘</div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(file.name)}</div>
-            <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        <div class="oa-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
         </div>
-        <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(file.name)}</div>
+            <div class="oa-meta">
+                <span>${sectionCount} section${sectionCount !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
     `;
     card.addEventListener('click', () => {
         mState.currentFileId = file.id;
@@ -157,6 +491,76 @@ function makeListFileCard(file) {
         renderSectionList('lib');
         showLibScreen('screenSections');
         updateTopbar();
+    });
+    return card;
+}
+
+// ===== GRID VIEW: FOLDER CARD =====
+function makeGridFolderCard(folder) {
+    const pct = folder.progress || 0;
+    const color = getLibDisplayColor(pct);
+    const bookCount = Object.keys(folder.contents).filter(k => folder.contents[k].type === 'file').length;
+    const [g1, g2] = getGridGradient(pct);
+    const card = document.createElement('div');
+    card.className = 'gc-card';
+    card.innerHTML = `
+        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <div class="gc-name">${escHtml(folder.name)}</div>
+            <div class="gc-meta">${bookCount} book${bookCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="gc-bottom">
+            <div class="gc-bar-track"><div class="gc-bar" style="width:${pct}%;background:${color}"></div></div>
+            <span class="gc-pct" style="color:${color}">${pct}%</span>
+        </div>
+    `;
+    card.addEventListener('click', () => {
+        pushLibStack({ screen: 'screenLibraryFolder', title: folder.name, folder });
+        renderFolderFiles(folder.name, folder.contents);
+    });
+    return card;
+}
+
+// ===== GRID VIEW: FILE CARD =====
+function makeGridFileCard(file, context = 'lib') {
+    const fileData = getFileData(file.id);
+    const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
+    const sectionCount = sections.filter(s => s.type === 'real').length;
+    const pct = file.progress || 0;
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const card = document.createElement('div');
+    card.className = 'gc-card';
+    card.innerHTML = `
+        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <div class="gc-name">${escHtml(file.name)}</div>
+            <div class="gc-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="gc-bottom">
+            <div class="gc-bar-track"><div class="gc-bar" style="width:${pct}%;background:${color}"></div></div>
+            <span class="gc-pct" style="color:${color}">${pct}%</span>
+        </div>
+    `;
+    card.addEventListener('click', () => {
+        mState.currentFileId = file.id;
+        mState.currentFileName = file.name;
+        mState.currentContext = context;
+        if (context === 'lib') {
+            pushLibStack({ screen: 'screenSections', title: file.name });
+            renderSectionList('lib');
+            showLibScreen('screenSections');
+            updateTopbar();
+        } else {
+            renderSectionList('sd');
+            showSDScreen('screenSDSections');
+            updateTopbar();
+        }
     });
     return card;
 }
@@ -178,8 +582,16 @@ function renderLibraryRoot() {
     const sortedFolders = sortLibItems(folders);
     const sortedFiles = sortLibItems(files);
 
-    sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
-    sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'lib-grid';
+        sortedFolders.forEach(folder => grid.appendChild(makeGridFolderCard(folder)));
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileCard(file, 'lib')));
+        container.appendChild(grid);
+    } else {
+        sortedFolders.forEach(folder => container.appendChild(makeListFolderCard(folder)));
+        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    }
 }
 
 // ===== LIBRARY: FOLDER FILES =====
@@ -193,7 +605,14 @@ function renderFolderFiles(folderName, contents) {
         return;
     }
     const sortedFiles = sortLibItems(files);
-    sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'lib-grid';
+        sortedFiles.forEach(file => grid.appendChild(makeGridFileCard(file, 'lib')));
+        container.appendChild(grid);
+    } else {
+        sortedFiles.forEach(file => container.appendChild(makeListFileCard(file)));
+    }
     showLibScreen('screenLibraryFolder');
 }
 
@@ -224,21 +643,42 @@ function showLibScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
-// ===== MAKE FILE CARD =====
+// ===== MAKE FILE CARD (Smart Desk list view) =====
 function makeFileCard(file, context) {
     const fileData = getFileData(file.id);
     const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
     const sectionCount = sections.filter(s => s.type === 'real').length;
+    const pct = file.progress || 0;
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
 
     const card = document.createElement('div');
-    card.className = 'm-file-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
-        <div class="m-file-icon">📘</div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(file.name)}</div>
-            <div class="m-file-meta">${sectionCount} section${sectionCount !== 1 ? 's' : ''}</div>
+        <div class="oa-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
         </div>
-        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(file.name)}</div>
+            <div class="oa-meta">
+                <span>${sectionCount} section${sectionCount !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
     `;
     card.addEventListener('click', () => {
         mState.currentFileId = file.id;
@@ -258,6 +698,43 @@ function makeFileCard(file, context) {
     return card;
 }
 
+// ===== VIEW TOGGLE =====
+function toggleLibView() {
+    mState.libView = mState.libView === 'list' ? 'grid' : 'list';
+    updateViewBtn();
+    const libTop = mState.libStack[mState.libStack.length - 1];
+    if (mState.activePage === 'Library') {
+        if (!libTop || mState.libStack.length === 0) {
+            renderLibraryRoot();
+        } else if (libTop.screen === 'screenSections') {
+            renderSectionList('lib');
+        } else if (libTop.screen === 'screenLibraryFolder') {
+            renderFolderFiles(libTop.title, libTop.folder.contents);
+        }
+    } else if (mState.activePage === 'SmartDesk') {
+        const activeTab = document.querySelector('#mSDMainTabBar .m-tab.active')?.dataset.tab;
+        if (activeTab === 'playlists') {
+            renderSDPlaylistList();
+        } else if (getSDScreen() === 'screenSDSections') {
+            renderSectionList('sd');
+        } else {
+            renderSDFileList();
+        }
+    } else if (mState.activePage === 'Diary') {
+        mdRenderContent();
+    }
+}
+
+function updateViewBtn() {
+    const btn = document.getElementById('mLibViewBtn');
+    if (!btn) return;
+    const isGrid = mState.libView === 'grid';
+    btn.innerHTML = isGrid
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`;
+    btn.title = isGrid ? 'Switch to list view' : 'Switch to grid view';
+}
+
 // ===== SECTION LIST =====
 function renderSectionList(context) {
     const listId = context === 'lib' ? 'mSectionList' : 'mSDSectionList';
@@ -271,35 +748,33 @@ function renderSectionList(context) {
 
     container.innerHTML = '';
 
-    const navC5 = c5Store['navigation'];
-    const navPct = navC5?.proficiency || 0;
-    const navColor = getLibProgressColor(navPct);
-    const navCard = document.createElement('div');
-    navCard.className = 'm-file-card m-section-card';
-    navCard.innerHTML = `
-        <div class="m-file-icon">📋</div>
-        <div class="m-file-info">
-            <div class="m-file-name">0. Table of Contents</div>
-        </div>
-        <div class="m-pct-badge" style="color:${navColor};border-color:${navColor}">${navPct}%</div>
-    `;
+    const isGrid = mState.libView === 'grid';
+    const showFile = context === 'sd';
+    const fileName = mState.currentFileName || '';
+    const sort = context === 'lib' ? mState.libSort : mState.sdSort;
+
+    const realSectionsForCount = sections.filter(s => s.type === 'real');
+    const totalCount = 1 + realSectionsForCount.length; // nav + all real sections
+    // Original position map: navigation=1, real sections in original order = 2,3,4...
+    const origPosMapNav = { navigation: 1 };
+    let navPosCounter = 2;
+    sections.forEach(s => { if (s.type === 'real') origPosMapNav[s.id] = navPosCounter++; });
+    const navSectionMeta = { count: 1, totalCount };
+
+    const navC5 = c5Store['navigation'] || {};
+    const navCard = isGrid
+        ? makeSectionGridCard('Table of Contents', navC5, showFile, fileName, 'prof', sort, navSectionMeta)
+        : makeSectionListCard('Table of Contents', navC5, showFile, fileName, 'prof', sort, navSectionMeta);
     navCard.addEventListener('click', () => openSection('navigation', 'Table of Contents', context));
     container.appendChild(navCard);
 
-    const sort = context === 'lib' ? mState.libSort : mState.sdSort;
     renderSectionItems(container, sections, c5Store, sort, context);
 }
 
 function renderSectionItems(container, sections, c5Store, sort, context) {
-    Array.from(container.querySelectorAll('.m-file-card:not(:first-child), .m-empty')).forEach(el => el.remove());
+    const realSections = sections.filter(s => s.type === 'real');
 
-    // Build numMap from ALL sections including dummies (order matters for numbering)
-    const numbers = generateNumbers(sections);
-    const numMap = {};
-    sections.forEach((s, i) => { numMap[s.id] = numbers[i]; });
-
-    const hasReal = sections.some(s => s.type === 'real');
-    if (!hasReal) {
+    if (!realSections.length) {
         const empty = document.createElement('div');
         empty.className = 'm-empty';
         empty.textContent = 'No sections yet.';
@@ -307,58 +782,58 @@ function renderSectionItems(container, sections, c5Store, sort, context) {
         return;
     }
 
-    // Outline sort: show real + dummy in original order
-    // Other sorts: real sections only, sorted (dummies are positional, meaningless when reordered)
+    // numMap for sort reference only (section-count sort uses hierarchy)
+    const numbers = generateNumbers(sections);
+    const numMap = {};
+    sections.forEach((s, i) => { numMap[s.id] = numbers[i]; });
+
     const isOutline = !sort || sort === 'outline';
+    const isGrid = mState.libView === 'grid';
+    const order = context === 'lib' ? (mState.libSortOrder || 'asc') : (mState.sdSortOrder || 'asc');
     const displaySections = isOutline
-        ? sections
-        : sortSections(sections.filter(s => s.type === 'real'), c5Store, sort, numMap);
+        ? realSections
+        : sortSections(realSections, c5Store, sort, numMap, order);
 
-    displaySections.forEach(section => {
-        const isDummy = section.type === 'dummy';
-        const num = numMap[section.id] || '';
-        const titleDisplay = num ? `${num}. ${escHtml(section.title)}` : escHtml(section.title);
+    const showFile = context === 'sd';
+    const fileName = mState.currentFileName || '';
 
-        const card = document.createElement('div');
+    // Original position map: navigation=1, real sections in original order = 2,3,4...
+    const totalCount = 1 + realSections.length;
+    const origPosMap = {};
+    let posCounter = 2;
+    sections.forEach(s => { if (s.type === 'real') origPosMap[s.id] = posCounter++; });
 
-        if (isDummy) {
-            card.className = 'm-file-card m-section-card m-dummy-card';
-            card.innerHTML = `
-                <div class="m-file-icon">📋</div>
-                <div class="m-file-info">
-                    <div class="m-file-name">${titleDisplay}</div>
-                </div>
-            `;
-        } else {
-            card.className = 'm-file-card m-section-card';
-            const c5 = c5Store[section.id];
-            const pct = c5?.proficiency || 0;
-            const color = getLibProgressColor(pct);
-            const metaParts = [];
-            if (c5?.isCompleted) metaParts.push('✓ Done');
-            if (c5 && isStudiedToday(c5)) metaParts.push('Today');
-            card.innerHTML = `
-                <div class="m-file-icon">📋</div>
-                <div class="m-file-info">
-                    <div class="m-file-name">${titleDisplay}</div>
-                    ${metaParts.length ? `<div class="m-file-meta">${metaParts.join(' · ')}</div>` : ''}
-                </div>
-                <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-            `;
+    if (isGrid) {
+        const grid = document.createElement('div');
+        grid.className = 'sc-section-grid';
+        displaySections.forEach(section => {
+            const c5 = c5Store[section.id] || {};
+            const sectionMeta = { count: origPosMap[section.id] || 0, totalCount };
+            const card = makeSectionGridCard(section.title, c5, showFile, fileName, 'prof', sort, sectionMeta);
             card.addEventListener('click', () => openSection(section.id, section.title, context));
-        }
-        container.appendChild(card);
-    });
+            grid.appendChild(card);
+        });
+        container.appendChild(grid);
+    } else {
+        displaySections.forEach(section => {
+            const c5 = c5Store[section.id] || {};
+            const sectionMeta = { count: origPosMap[section.id] || 0, totalCount };
+            const card = makeSectionListCard(section.title, c5, showFile, fileName, 'prof', sort, sectionMeta);
+            card.addEventListener('click', () => openSection(section.id, section.title, context));
+            container.appendChild(card);
+        });
+    }
 }
 
-function sortSections(sections, c5Store, sort, numMap) {
+function sortSections(sections, c5Store, sort, numMap, order = 'asc') {
     const arr = [...sections];
     const diffOrder = { 'Easy': 1, 'Moderate': 2, 'Challenging': 3, 'Hard': 4 };
     const prioOrder = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
+    const dir = order === 'desc' ? -1 : 1;
 
     switch(sort) {
         case 'alpha':
-            return arr.sort((a, b) => a.title.localeCompare(b.title));
+            return arr.sort((a, b) => dir * a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
         case 'section-count': {
             const getSubCount = s => {
                 const num = numMap?.[s.id];
@@ -369,24 +844,22 @@ function sortSections(sections, c5Store, sort, numMap) {
                     return xNum && xNum.startsWith(prefix);
                 }).length;
             };
-            return arr.sort((a, b) => getSubCount(b) - getSubCount(a));
+            return arr.sort((a, b) => getSubCount(a) - getSubCount(b));
         }
         case 'proficiency':
-            return arr.sort((a, b) => (c5Store[b.id]?.proficiency || 0) - (c5Store[a.id]?.proficiency || 0));
+            return arr.sort((a, b) => dir * ((c5Store[a.id]?.proficiency || 0) - (c5Store[b.id]?.proficiency || 0)));
         case 'progress': {
             const getProg = id => {
                 const c5 = c5Store[id];
                 if (!c5?.activatedCount) return 0;
                 return (c5.revisions.filter(r => r.date).length / c5.activatedCount) * 100;
             };
-            return arr.sort((a, b) => getProg(b.id) - getProg(a.id));
+            return arr.sort((a, b) => dir * (getProg(a.id) - getProg(b.id)));
         }
         case 'difficulty':
-            return arr.sort((a, b) =>
-                (diffOrder[c5Store[b.id]?.difficulty] || 0) - (diffOrder[c5Store[a.id]?.difficulty] || 0));
+            return arr.sort((a, b) => dir * ((diffOrder[c5Store[a.id]?.difficulty] || 0) - (diffOrder[c5Store[b.id]?.difficulty] || 0)));
         case 'priority':
-            return arr.sort((a, b) =>
-                (prioOrder[c5Store[b.id]?.priority] || 0) - (prioOrder[c5Store[a.id]?.priority] || 0));
+            return arr.sort((a, b) => dir * ((prioOrder[c5Store[a.id]?.priority] || 0) - (prioOrder[c5Store[b.id]?.priority] || 0)));
         case 'last-revised': {
             const getLastDate = id => {
                 const c5 = c5Store[id];
@@ -399,16 +872,16 @@ function sortSections(sections, c5Store, sort, numMap) {
             return arr.sort((a, b) => {
                 const da = getLastDate(a.id), db = getLastDate(b.id);
                 if (!da && !db) return 0;
-                if (!da) return -1;
-                if (!db) return 1;
-                return da - db;
+                if (!da) return 1;   // no date always goes to end
+                if (!db) return -1;
+                return dir * (da - db);
             });
         }
         case 'revision-count':
             return arr.sort((a, b) => {
                 const ca = c5Store[a.id]?.revisions?.filter(r => r.date).length || 0;
                 const cb = c5Store[b.id]?.revisions?.filter(r => r.date).length || 0;
-                return ca - cb;
+                return dir * (ca - cb);
             });
         default: // 'outline' — preserve original order
             return arr;
@@ -517,9 +990,10 @@ function renderDetailFooter(tab) {
             });
         } else {
             const allSectionsData = getFileData(mState.currentFileId);
-            const allSections = allSectionsData?.c12_sections
+            const realSections = allSectionsData?.c12_sections
                 ? JSON.parse(allSectionsData.c12_sections).filter(s => s.type === 'real')
                 : [];
+            const allSections = [{ id: 'navigation', title: 'Table of Contents' }, ...realSections];
             const currentIdx = allSections.findIndex(s => String(s.id) === String(mState.currentSectionId));
             prevBtn.disabled = currentIdx <= 0;
             prevBtn.addEventListener('click', () => {
@@ -593,8 +1067,54 @@ function renderDetailFooter(tab) {
     }
 }
 
+// ===== TABLE OF CONTENTS =====
+function renderTOC(container) {
+    const fileData = getFileData(mState.currentFileId);
+    const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
+
+    if (sections.length === 0) {
+        container.innerHTML = '<div class="m-notes-empty">No sections yet.</div>';
+        return;
+    }
+
+    const numbers = generateNumbers(sections);
+    const context = mState.activePage === 'SmartDesk' ? 'sd' : 'lib';
+
+    const list = document.createElement('div');
+    list.className = 'm-toc-list';
+
+    sections.forEach((section, i) => {
+        const item = document.createElement('div');
+        item.className = `m-toc-item m-toc-level-${section.level || 1}${section.type === 'dummy' ? ' m-toc-dummy' : ' m-toc-real'}`;
+
+        const num = document.createElement('span');
+        num.className = 'm-toc-num';
+        num.textContent = numbers[i] + '.';
+
+        const title = document.createElement('span');
+        title.className = 'm-toc-title';
+        title.textContent = section.title;
+
+        item.appendChild(num);
+        item.appendChild(title);
+
+        if (section.type === 'real') {
+            item.addEventListener('click', () => openSection(section.id, section.title, context));
+        }
+
+        list.appendChild(item);
+    });
+
+    container.appendChild(list);
+}
+
 // ===== NOTES TAB =====
 function renderNotesTab(container) {
+    if (mState.currentSectionId === 'navigation') {
+        renderTOC(container);
+        return;
+    }
+
     const fileData = getFileData(mState.currentFileId);
     const c3Data = fileData?.c3_data ? JSON.parse(fileData.c3_data) : {};
     const sectionData = c3Data[mState.currentSectionId] || c3Data[String(mState.currentSectionId)] || c3Data[Number(mState.currentSectionId)];

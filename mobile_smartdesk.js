@@ -58,7 +58,14 @@ function renderSDFileList() {
     }
 
     container.innerHTML = '';
-    pinned.forEach(file => container.appendChild(makeFileCard(file, 'sd')));
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'lib-grid';
+        pinned.forEach(file => grid.appendChild(makeGridFileCard(file, 'sd')));
+        container.appendChild(grid);
+    } else {
+        pinned.forEach(file => container.appendChild(makeFileCard(file, 'sd')));
+    }
 }
 
 // ===== PLAYLISTS TAB =====
@@ -72,7 +79,7 @@ function renderSDPlaylistList() {
         : [];
 
     if (shortcuts.length === 0) {
-        container.innerHTML = '<div class="m-empty">No playlists on Smart Desk.</div>';
+        container.innerHTML = '<div class="m-empty">No sets on Smart Desk.</div>';
         return;
     }
 
@@ -84,25 +91,95 @@ function renderSDPlaylistList() {
     const pinned = shortcuts.map(id => allPlaylists.find(p => p.id === id)).filter(Boolean);
 
     if (pinned.length === 0) {
-        container.innerHTML = '<div class="m-empty">No playlists on Smart Desk.</div>';
+        container.innerHTML = '<div class="m-empty">No sets on Smart Desk.</div>';
         return;
     }
 
     container.innerHTML = '';
-    pinned.forEach(pl => container.appendChild(makePlaylistCard(pl)));
+    if (mState.libView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'lib-grid';
+        pinned.forEach(pl => grid.appendChild(makeGridPlaylistCard(pl)));
+        container.appendChild(grid);
+    } else {
+        pinned.forEach(pl => container.appendChild(makePlaylistCard(pl)));
+    }
+}
+
+function getPlaylistProgress(pl) {
+    if (!pl.sections || pl.sections.length === 0) return 0;
+    const cache = {};
+    let total = 0, count = 0;
+    pl.sections.forEach(({ fileId, sectionId }) => {
+        const fid = fileId.startsWith('f_') ? fileId : `f_${fileId}`;
+        if (!cache[fid]) cache[fid] = getFileData(fid);
+        const c5Store = cache[fid]?.c5_sectionStore ? JSON.parse(cache[fid].c5_sectionStore) : {};
+        total += (c5Store[sectionId]?.proficiency || 0);
+        count++;
+    });
+    return count > 0 ? Math.round(total / count) : 0;
 }
 
 function makePlaylistCard(pl) {
     const count = pl.sections ? pl.sections.length : 0;
+    const pct = getPlaylistProgress(pl);
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const profLabel = getLibProficiencyLabel(pct);
+    const dashOffset = (94.25 * (1 - pct / 100)).toFixed(2);
     const card = document.createElement('div');
-    card.className = 'm-file-card';
+    card.className = 'oa-card oa-card-grad';
+    card.style.background = `linear-gradient(135deg,${g1},${g2})`;
+    card.style.borderColor = getCardBorderColor();
     card.innerHTML = `
-        <div class="m-file-icon">📑</div>
-        <div class="m-file-info">
-            <div class="m-file-name">${escHtml(pl.name)}</div>
-            <div class="m-file-meta">${count} section${count !== 1 ? 's' : ''}</div>
+        <div class="oa-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+            </svg>
         </div>
-        <div class="m-file-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="oa-info">
+            <div class="oa-name">${escHtml(pl.name)}</div>
+            <div class="oa-meta">
+                <span>${count} section${count !== 1 ? 's' : ''}</span>
+                ${pct > 0 ? `<span class="oa-dot"></span><span style="color:${color};font-weight:600">${profLabel}</span>` : ''}
+            </div>
+        </div>
+        <div class="oa-ring">
+            <svg viewBox="0 0 38 38" width="38" height="38">
+                <circle cx="19" cy="19" r="15" fill="none" style="stroke:rgba(255,255,255,0.15)" stroke-width="3"/>
+                ${pct > 0 ? `<circle cx="19" cy="19" r="15" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="${dashOffset}"/>` : ''}
+            </svg>
+            <div class="oa-ring-num" style="color:${color}">${pct}%</div>
+        </div>
+    `;
+    card.addEventListener('click', () => {
+        mState.currentFileName = pl.name;
+        renderPlaylistSectionList(pl);
+        showSDScreen('screenSDSections');
+        updateTopbar();
+    });
+    return card;
+}
+
+function makeGridPlaylistCard(pl) {
+    const count = pl.sections ? pl.sections.length : 0;
+    const pct = getPlaylistProgress(pl);
+    const color = getLibDisplayColor(pct);
+    const [g1, g2] = getGridGradient(pct);
+    const card = document.createElement('div');
+    card.className = 'gc-card';
+    card.innerHTML = `
+        <div class="gc-top" style="background:linear-gradient(135deg,${g1},${g2})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+            </svg>
+            <div class="gc-name">${escHtml(pl.name)}</div>
+            <div class="gc-meta">${count} section${count !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="gc-bottom">
+            <div class="gc-bar-track"><div class="gc-bar" style="width:${pct}%;background:${color}"></div></div>
+            <span class="gc-pct" style="color:${color}">${pct}%</span>
+        </div>
     `;
     card.addEventListener('click', () => {
         mState.currentFileName = pl.name;
@@ -125,36 +202,35 @@ function renderPlaylistSectionList(pl) {
 
     const fs = getFileSystem();
     const allFiles = fs ? collectFiles(fs) : [];
+    const isGrid = mState.libView === 'grid';
 
-    pl.sections.forEach(ref => {
+    const makeCard = (ref) => {
         const fileData = getFileData(ref.fileId);
         const sections = fileData?.c12_sections ? JSON.parse(fileData.c12_sections) : [];
         const section = sections.find(s => s.id === ref.sectionId || s.id === Number(ref.sectionId));
         const title = section?.title || `Section ${ref.sectionId}`;
-
         const c5Store = fileData?.c5_sectionStore ? JSON.parse(fileData.c5_sectionStore) : {};
-        const c5 = c5Store[ref.sectionId] || c5Store[String(ref.sectionId)];
-        const pct = c5?.proficiency || 0;
-        const color = getLibProgressColor(pct);
-
+        const c5 = c5Store[ref.sectionId] || c5Store[String(ref.sectionId)] || {};
         const fileObj = allFiles.find(f => f.id === ref.fileId);
         const fileName = fileObj?.name || '';
 
-        const card = document.createElement('div');
-        card.className = 'm-file-card m-section-card';
-        card.innerHTML = `
-            <div class="m-file-icon">📄</div>
-            <div class="m-file-info">
-                <div class="m-file-name">${escHtml(title)}</div>
-                ${fileName ? `<div class="m-file-meta">${escHtml(fileName)}</div>` : ''}
-            </div>
-            <div class="m-pct-badge" style="color:${color};border-color:${color}">${pct}%</div>
-        `;
+        const card = isGrid
+            ? makeSectionGridCard(title, c5, true, fileName, 'prof')
+            : makeSectionListCard(title, c5, true, fileName, 'prof');
         card.addEventListener('click', () => {
             mState.currentFileId = ref.fileId;
             mState.currentFileName = fileName;
             openSection(ref.sectionId, title, 'sd');
         });
-        container.appendChild(card);
-    });
+        return card;
+    };
+
+    if (isGrid) {
+        const grid = document.createElement('div');
+        grid.className = 'sc-section-grid';
+        pl.sections.forEach(ref => grid.appendChild(makeCard(ref)));
+        container.appendChild(grid);
+    } else {
+        pl.sections.forEach(ref => container.appendChild(makeCard(ref)));
+    }
 }

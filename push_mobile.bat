@@ -3,16 +3,6 @@ echo ================================
 echo   RAM Mobile - Git Push Tool
 echo ================================
 
-:: Check if git repo already initialized
-if not exist ".git" (
-    echo Initializing git repo...
-    git init
-    git remote add origin https://github.com/techchandra128/ram_mobile.git
-    echo Git initialized.
-) else (
-    echo Git repo already exists. Skipping init.
-)
-
 echo.
 
 :: Read and show current cache version
@@ -20,10 +10,11 @@ for /f "tokens=2 delims='" %%a in ('findstr "const CACHE" sw_mobile.js') do set 
 echo Current cache version: %currentver%
 
 echo.
-set /p newnum="Enter new version number (e.g. 9, press Enter to skip): "
+set "vernum=%currentver:ram-v=%"
+set /p newnum="Enter new version number (current: %vernum%, press Enter to skip): "
 
 if not "%newnum%"=="" (
-    powershell -Command "(Get-Content 'sw_mobile.js') -replace 'ram-mobile-v\d+', 'ram-mobile-v%newnum%' | Set-Content 'sw_mobile.js' -Encoding UTF8"
+    powershell -Command "(Get-Content 'sw_mobile.js') -replace 'ram-mobile-v[\d.]+', 'ram-mobile-v%newnum%' | Set-Content 'sw_mobile.js' -Encoding UTF8"
     echo Cache updated to: ram-mobile-v%newnum%
 ) else (
     echo Skipping version update.
