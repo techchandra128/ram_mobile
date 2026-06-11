@@ -1686,7 +1686,14 @@ function renderC5Tab(container) {
 
             dp.addEventListener('change', async () => {
                 const val = dp.value;
-                if (!val) return;
+                if (!val) {
+                    if (isFilled) {
+                        c5.revisions[i] = { date: null, year: null };
+                        await saveC5(c5Store);
+                        rerender();
+                    }
+                    return;
+                }
                 const [yr, mo, dy] = val.split('-');
                 c5.revisions[i] = { date: `${dy}/${mo}`, year: yr };
                 await saveC5(c5Store);
