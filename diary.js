@@ -755,7 +755,7 @@ function drSaveDiffPrio(entry, field, value) {
         if (!data) return;
         data[field] = value;
         store[String(entry.sectionId)] = data;
-        localStorage.setItem(`c5_sectionStore_${entry.fileId}`, JSON.stringify(store));
+        RAM_SYNC.setItem(`c5_sectionStore_${entry.fileId}`, JSON.stringify(store));
         // Update all entries for this section
         drState.allEntries.forEach(e => {
             if (e.fileId === entry.fileId && e.sectionId === entry.sectionId) {

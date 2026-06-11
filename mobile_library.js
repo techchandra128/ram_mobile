@@ -1458,7 +1458,8 @@ async function markAsStudied() {
         c5Store[sectionId] = {
             isCompleted: false, difficulty: 'Easy', priority: 'Low',
             revisions: Array(12).fill(null).map(() => ({ date: null, year: null })),
-            totalSlots: 12, activatedCount: 4, page: 0
+            totalSlots: 12, activatedCount: 4, page: 0,
+            scheduleType: 'prime', scheduleActive: true
         };
     }
     const c5 = c5Store[sectionId];
@@ -1481,6 +1482,7 @@ async function markAsStudied() {
     const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
     renderDetailTab('notes', contentId);
     pushToSupabase(c5Key, JSON.stringify(c5Store));
+    mUpdateFileProgress(mState.currentFileId);
 }
 
 // ===== C5 TAB =====
@@ -1493,12 +1495,13 @@ function renderC5Tab(container) {
             isCompleted: false, difficulty: 'Easy', priority: 'Low',
             revisions: Array(12).fill(null).map(() => ({ date: null, year: null })),
             totalSlots: 12, activatedCount: 4, page: 0,
-            scheduleType: 'prime', revisionOn: true
+            scheduleType: 'prime', scheduleActive: true
         };
     }
     const c5 = c5Store[sectionId];
     if (!c5.scheduleType) c5.scheduleType = 'prime';
-    if (c5.revisionOn === undefined) c5.revisionOn = true;
+    // scheduleActive is the shared web+mobile field; migrate from old mobile-only revisionOn
+    if (c5.scheduleActive === undefined) c5.scheduleActive = c5.revisionOn !== undefined ? c5.revisionOn : true;
 
     const contentId = mState.currentContext === 'lib' ? 'mTabContent' : 'mSDTabContent';
     function rerender() { renderDetailTab('c5', contentId); }
@@ -1846,7 +1849,7 @@ function renderC5Tab(container) {
     schedCard.appendChild(badgeRow);
 
     // Revision Settings toggle row
-    const revOn = c5.revisionOn !== false;
+    const revOn = c5.scheduleActive !== false;
     const toggleRow = document.createElement('div');
     toggleRow.className = 'm-c5-sched-row';
     toggleRow.innerHTML = `
@@ -1862,7 +1865,8 @@ function renderC5Tab(container) {
     container.appendChild(schedCard);
 
     toggleRow.querySelector('#mc5TogglePill').addEventListener('click', async () => {
-        c5.revisionOn = !c5.revisionOn;
+        c5.scheduleActive = c5.scheduleActive === false;
+        delete c5.revisionOn;
         await saveC5(c5Store); rerender();
     });
 
@@ -1876,6 +1880,7 @@ async function saveC5(c5Store) {
     localStorage.setItem(c5Key, JSON.stringify(c5Store));
     localStorage.setItem(`__ts_${c5Key}`, Date.now().toString());
     await pushToSupabase(c5Key, JSON.stringify(c5Store));
+    mUpdateFileProgress(mState.currentFileId);
 }
 
 // ===== C4 OBSERVATIONS STATE =====

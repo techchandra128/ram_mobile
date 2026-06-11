@@ -11,7 +11,7 @@ function cpLoad() {
     cpCampaigns = saved ? JSON.parse(saved) : [];
 }
 function cpSave() {
-    localStorage.setItem('ram_campaigns', JSON.stringify(cpCampaigns));
+    RAM_SYNC.setItem('ram_campaigns', JSON.stringify(cpCampaigns));
 }
 
 // ===== SHOW PAGE =====

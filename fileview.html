@@ -1006,6 +1006,21 @@
 
     <script src="supabase_sync.js"></script>
     <script>
+        // Pull the latest cloud data when a book opens. If the cloud had newer
+        // data (e.g. studied on mobile), reload once so the book shows it.
+        (async () => {
+            try {
+                const updated = await RAM_SYNC.syncOnOpen();
+                if (updated > 0 && !sessionStorage.getItem('__fvSynced')) {
+                    sessionStorage.setItem('__fvSynced', '1');
+                    location.reload();
+                } else {
+                    sessionStorage.removeItem('__fvSynced');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <script>
         // Hide add-section controls in playlist mode
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);

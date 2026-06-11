@@ -418,7 +418,7 @@ function asSaveDiffPrio(row, field, value) {
         if (!data) return;
         data[field] = value;
         store[String(row.sectionId)] = data;
-        localStorage.setItem(`c5_sectionStore_${row.fileId}`, JSON.stringify(store));
+        RAM_SYNC.setItem(`c5_sectionStore_${row.fileId}`, JSON.stringify(store));
     } catch(e) {}
 }
 
@@ -455,7 +455,7 @@ function asSaveC5Data(row, data) {
     try {
         const store = JSON.parse(localStorage.getItem(`c5_sectionStore_${row.fileId}`) || '{}');
         store[String(row.sectionId)] = data;
-        localStorage.setItem(`c5_sectionStore_${row.fileId}`, JSON.stringify(store));
+        RAM_SYNC.setItem(`c5_sectionStore_${row.fileId}`, JSON.stringify(store));
     } catch(e) {}
 }
 

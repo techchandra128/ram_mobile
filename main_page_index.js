@@ -96,6 +96,22 @@ function setupEventListeners() {
     });
 
 
+    // Re-pull cloud data when returning to the tab, so changes made on
+    // mobile show up without needing a full page refresh
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        RAM_SYNC.syncOnOpen().then(updated => {
+            if (!updated) return;
+            loadFileSystem();
+            renderContent();
+            if (typeof renderHeatmap === 'function') { try { renderHeatmap(); } catch(e) {} }
+            const diaryActive = document.getElementById('diaryLayer')?.classList.contains('active');
+            if (diaryActive && typeof showDiary === 'function') { try { showDiary(); } catch(e) {} }
+            const asActive = document.getElementById('asLayer')?.classList.contains('active');
+            if (asActive && typeof showAllSections === 'function') { try { showAllSections(); } catch(e) {} }
+        });
+    });
+
     // Close dropdowns on outside click
     document.addEventListener('mousedown', (e) => {
         if (!e.target.closest('#sortDropdown')) closeSortDropdown();

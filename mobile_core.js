@@ -133,7 +133,9 @@ function rerenderCurrentView() {
 // ===== TOPBAR =====
 function bindTopbar() {
     document.getElementById('mThemeBtn').addEventListener('click', () => {
-        applyTheme(mState.theme === 'dark' ? 'light' : 'dark');
+        const next = mState.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        pushToSupabase('ram_mobile_theme', next);
     });
     document.getElementById('mSyncBtn').addEventListener('click', () => {
         loadSyncData(true);
@@ -269,8 +271,10 @@ async function loadSyncData(manual = false) {
             mState.syncData[row.key] = row.value;
         }
 
+        // localStorage already holds the freshest copy after the merge loop above
         const fsRow = allRows.find(r => r.key === 'ram_fileSystem');
-        mState.syncData.fileSystem = fsRow ? (typeof fsRow.value === 'string' ? fsRow.value : JSON.stringify(fsRow.value)) : localStorage.getItem('ram_fileSystem');
+        mState.syncData.fileSystem = localStorage.getItem('ram_fileSystem')
+            || (fsRow ? (typeof fsRow.value === 'string' ? fsRow.value : JSON.stringify(fsRow.value)) : null);
         mState.syncData.files = {};
 
         if (manual) hideSyncBarAfter('Synced ✓', 'success', 2000);
@@ -371,6 +375,63 @@ function getFileData(fileId) {
         }
     }
     return result;
+}
+
+// ===== FILE PROGRESS (same formula as web's getOverallProgress) =====
+function mComputeFileProgress(fileId) {
+    const fd = getFileData(fileId);
+    if (!fd.c12_sections || !fd.c5_sectionStore) return null;
+    let sections, store;
+    try {
+        sections = JSON.parse(fd.c12_sections);
+        store = JSON.parse(fd.c5_sectionStore);
+    } catch(e) { return null; }
+    if (!Array.isArray(sections)) return null;
+    const ids = ['navigation', ...sections.filter(s => s.type === 'real').map(s => s.id)];
+    let total = 0, count = 0;
+    ids.forEach(id => {
+        const data = store[id];
+        if (!data) { count++; return; }
+        if (data.isCompleted) { total += 100; count++; return; }
+        const activated = data.activatedCount || 4;
+        const filled = (data.revisions || []).slice(0, activated).filter(r => r && r.date !== null).length;
+        total += Math.round((filled / activated) * 100);
+        count++;
+    });
+    return count === 0 ? 0 : Math.round(total / count);
+}
+
+function mUpdateFileProgress(fileId) {
+    try {
+        const progress = mComputeFileProgress(fileId);
+        if (progress === null) return;
+        const fs = getFileSystem();
+        if (!fs) return;
+        const id = fileId.startsWith('f_') ? fileId : `f_${fileId}`;
+        let found = false;
+        (function findAndSet(node) {
+            for (const item of Object.values(node)) {
+                if (found) return;
+                if (item.type === 'file' && item.fileId === id) { item.progress = progress; found = true; return; }
+                if (item.type === 'folder' && item.contents) findAndSet(item.contents);
+            }
+        })(fs);
+        if (!found) return;
+        (function recalcFolders(node) {
+            for (const item of Object.values(node)) {
+                if (item.type === 'folder' && item.contents) {
+                    recalcFolders(item.contents);
+                    const kids = Object.values(item.contents);
+                    item.progress = kids.length ? Math.round(kids.reduce((s, k) => s + (k.progress || 0), 0) / kids.length) : 0;
+                }
+            }
+        })(fs);
+        const fsStr = JSON.stringify(fs);
+        localStorage.setItem('ram_fileSystem', fsStr);
+        localStorage.setItem('__ts_ram_fileSystem', Date.now().toString());
+        if (mState.syncData) mState.syncData.fileSystem = fsStr;
+        pushToSupabase('ram_fileSystem', fsStr);
+    } catch(e) {}
 }
 
 function isStudiedToday(c5) {

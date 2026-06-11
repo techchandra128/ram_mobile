@@ -49,7 +49,7 @@ function savePlaylist(pl) {
         const all = JSON.parse(localStorage.getItem('ram_playlists') || '[]');
         const idx = all.findIndex(p => p.id === pl.id);
         if (idx !== -1) all[idx] = pl;
-        localStorage.setItem('ram_playlists', JSON.stringify(all));
+        RAM_SYNC.setItem('ram_playlists', JSON.stringify(all));
     } catch(e) {}
 }
 
