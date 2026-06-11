@@ -215,7 +215,9 @@ function getProgressPercent(c5) {
 // sort: current sort type — controls what the bottom row and right element show
 // sectionMeta: { studiedCount, totalCount } — used for section-count sort
 function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof', sort = 'outline', sectionMeta = {}) {
-    const pct = c5?.proficiency || 0;
+    const _activated = c5?.activatedCount || 4;
+    const _filled = c5?.revisions ? c5.revisions.slice(0, _activated).filter(r => r?.date).length : 0;
+    const pct = c5?.isCompleted ? 100 : (_activated > 0 ? Math.round(_filled / _activated * 100) : 0);
     const diff = c5?.difficulty;
     const prio = c5?.priority;
     const rc = getLibProgressColor(pct);
@@ -322,7 +324,9 @@ function makeSectionListCard(title, c5, showFile, fileName, thirdPill = 'prof', 
 // sort: current sort type — controls middle/bottom row visibility and content
 // sectionMeta: { studiedCount, totalCount } — used for section-count sort
 function makeSectionGridCard(title, c5, showFile, fileName, thirdPill = 'prof', sort = 'outline', sectionMeta = {}) {
-    const pct = c5?.proficiency || 0;
+    const _activated = c5?.activatedCount || 4;
+    const _filled = c5?.revisions ? c5.revisions.slice(0, _activated).filter(r => r?.date).length : 0;
+    const pct = c5?.isCompleted ? 100 : (_activated > 0 ? Math.round(_filled / _activated * 100) : 0);
     const diff = c5?.difficulty;
     const prio = c5?.priority;
     const rc = getLibProgressColor(pct);
@@ -846,8 +850,17 @@ function sortSections(sections, c5Store, sort, numMap, order = 'asc') {
             };
             return arr.sort((a, b) => getSubCount(a) - getSubCount(b));
         }
-        case 'proficiency':
-            return arr.sort((a, b) => dir * ((c5Store[a.id]?.proficiency || 0) - (c5Store[b.id]?.proficiency || 0)));
+        case 'proficiency': {
+            const calcPct = id => {
+                const d = c5Store[id];
+                if (!d) return 0;
+                if (d.isCompleted) return 100;
+                const act = d.activatedCount || 4;
+                const fil = d.revisions ? d.revisions.slice(0, act).filter(r => r?.date).length : 0;
+                return act > 0 ? Math.round(fil / act * 100) : 0;
+            };
+            return arr.sort((a, b) => dir * (calcPct(a.id) - calcPct(b.id)));
+        }
         case 'progress': {
             const getProg = id => {
                 const c5 = c5Store[id];
