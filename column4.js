@@ -103,7 +103,7 @@ function renderNotes() {
     const sorted = getSortedNotes();
 
     if (sorted.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:13px; padding:24px 0;">No notes yet</div>`;
+        container.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:13px; padding:24px 0;">No Observations Yet</div>`;
         return;
     }
 
@@ -197,7 +197,7 @@ document.addEventListener('click', (e) => {
 // ===== OPEN ADD NOTE MODAL =====
 function openAddNoteModal() {
     c4State._editingId = null;
-    document.getElementById('c4ModalTitle').textContent = 'Add New Note';
+    document.getElementById('c4ModalTitle').textContent = 'Add New Observation';
     document.getElementById('c4NoteTitle').value = '';
     document.getElementById('c4NoteContent').value = '';
     document.getElementById('c4TitleCounter').textContent = '0/80';

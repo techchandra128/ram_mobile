@@ -1,4 +1,4 @@
-const CACHE = 'ram-v2';
+﻿const CACHE = 'ram-v15.17';
 
 const FILES = [
     '/',
@@ -52,7 +52,7 @@ const FILES = [
     'manifest.json'
 ];
 
-// Install — download and cache all files
+// Install â€” download and cache all files
 self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE).then(cache => cache.addAll(FILES))
@@ -60,7 +60,7 @@ self.addEventListener('install', e => {
     self.skipWaiting();
 });
 
-// Activate — delete any old caches from previous versions
+// Activate â€” delete any old caches from previous versions
 self.addEventListener('activate', e => {
     e.waitUntil(
         caches.keys().then(keys =>
@@ -70,13 +70,13 @@ self.addEventListener('activate', e => {
     self.clients.claim();
 });
 
-// Fetch — serve from cache instantly, update cache in background
+// Fetch â€” serve from cache instantly, update cache in background
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
 
     const url = new URL(e.request.url);
 
-    // Don't cache Supabase API calls — always fetch live
+    // Don't cache Supabase API calls â€” always fetch live
     if (url.hostname.includes('supabase.co')) return;
 
     e.respondWith(
