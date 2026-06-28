@@ -1,4 +1,4 @@
-﻿const CACHE = 'ram-v15.20';
+﻿const CACHE = 'ram-v15.21';
 
 const FILES = [
     '/',

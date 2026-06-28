@@ -504,7 +504,15 @@ function buildCellRow(type) {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'c3-cell-row-delete';
     deleteBtn.textContent = '✕';
-    deleteBtn.onclick = () => { if (confirm('Delete this row?')) row.remove(); };
+    deleteBtn.onclick = () => {
+        const parentCell = row.closest('.c3-editor-cell');
+        const rowCount = parentCell ? parentCell.querySelectorAll(':scope > .c3-cell-row').length : 2;
+        if (rowCount <= 1 && parentCell) {
+            if (confirm('Delete this cell?')) parentCell.remove();
+        } else {
+            if (confirm('Delete this row?')) row.remove();
+        }
+    };
 
     if (type === 'cornell' || type === 'header-cornell') {
         const left = document.createElement('div');
@@ -1044,7 +1052,8 @@ function c3SerializeCells() {
     const cells = Array.from(body.querySelectorAll('.c3-editor-cell'));
     return cells.map(cell => {
         const type = cell.dataset.type;
-        const rows = Array.from(cell.querySelectorAll('.c3-cell-row'));
+        const rows = Array.from(cell.querySelectorAll(':scope > .c3-cell-row'));
+        if (rows.length === 0) return null;
         if (rows.length > 0) {
             if (type === 'cornell' || type === 'header-cornell') {
                 return { type, rows: rows.map(r => ({
@@ -1072,7 +1081,7 @@ function c3SerializeCells() {
             content: cell.querySelector('.c3-cell-body')?.innerHTML || '',
             bg: cell.querySelector('.c3-cell-body')?.style.background || '',
         };
-    });
+    }).filter(c => c !== null);
 }
 
 function c3DeserializeCells(cells) {
@@ -1128,7 +1137,15 @@ function c3InsertCellRowInto(cell, type, rowData) {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'c3-cell-row-delete';
     deleteBtn.textContent = '✕';
-    deleteBtn.onclick = () => { if (confirm('Delete this row?')) row.remove(); };
+    deleteBtn.onclick = () => {
+        const parentCell = row.closest('.c3-editor-cell');
+        const rowCount = parentCell ? parentCell.querySelectorAll(':scope > .c3-cell-row').length : 2;
+        if (rowCount <= 1 && parentCell) {
+            if (confirm('Delete this cell?')) parentCell.remove();
+        } else {
+            if (confirm('Delete this row?')) row.remove();
+        }
+    };
 
     if (type === 'cornell' || type === 'header-cornell') {
         const left = document.createElement('div');
